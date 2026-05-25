@@ -3393,3 +3393,210 @@ select:focus-visible {
     gap: 0.5rem !important;
   }
 }
+
+/* ════════════════════════════════════════════════
+   씬 트래커 (6번 묶음)
+   ════════════════════════════════════════════════ */
+
+/* 6.7 트래커 row 그리드 비율 */
+.ini-row {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-elev);
+  transition: background var(--tx-fast);
+}
+.ini-row:last-of-type { border-bottom: none; }
+.ini-row.active {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding-left: calc(0.6rem - 3px);
+}
+.ini-row.dead {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+.ini-row .dex {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  font-weight: 700;
+  text-align: center;
+}
+.ini-row .name-btn {
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ini-row .name-btn:hover { color: var(--accent); }
+.ini-row .role-mark { color: var(--ink-3); margin-left: 0.3rem; }
+.ini-row .active-mark { color: var(--accent); font-family: var(--font-mono); }
+
+/* 6.2 HP 버튼 터치 영역 */
+.ini-row .hp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  flex-shrink: 0;
+}
+.ini-damage {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1.5px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all var(--tx-fast);
+}
+.ini-damage:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.ini-damage.heal:hover:not(:disabled) {
+  border-color: var(--green);
+  color: var(--green);
+}
+.ini-damage:disabled { opacity: 0.3; cursor: not-allowed; }
+.ini-hp-val { min-width: 50px; text-align: center; font-weight: 600; color: var(--ink); }
+.ini-remove {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  border-radius: 4px;
+  margin-left: 0.2rem;
+}
+.ini-remove:hover {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+@media (max-width: 720px) {
+  .ini-damage { width: 32px; height: 32px; }
+}
+
+/* 6.3 라운드 카운터 flash */
+.ini-head .round {
+  display: inline-block;
+  font-family: var(--font-display);
+  color: var(--accent);
+  font-size: 1.1rem;
+  min-width: 1.4em;
+  text-align: center;
+  transition: transform var(--tx);
+}
+.ini-head .round.flash {
+  animation: roundFlash 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes roundFlash {
+  0%   { transform: scale(1); color: var(--accent); }
+  30%  { transform: scale(1.6); color: var(--accent-hover); text-shadow: 0 0 12px var(--accent); }
+  100% { transform: scale(1); color: var(--accent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ini-head .round.flash { animation: none; }
+}
+
+.ini-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  flex-wrap: wrap;
+}
+
+/* NPC picker */
+.npc-picker {
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 0.85rem;
+}
+.npc-picker .picker-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 0.4rem;
+}
+.npc-picker .picker-row {
+  display: flex;
+  gap: 0.5rem;
+}
+.npc-picker select {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* 키퍼 액션 chip */
+.keeper-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  padding-top: 0.7rem;
+  border-top: 1px dashed var(--line);
+}
+.keeper-actions .ka-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  margin-right: 0.3rem;
+}
+.keeper-actions .chip {
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 0.32rem 0.7rem;
+}
+.keeper-actions .chip:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.keeper-actions .chip.accent {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.keeper-actions .chip.accent:hover {
+  background: var(--accent-hover);
+}
+
+/* 6.5 키퍼 메모 폰트 키움 */
+.statblock-memo {
+  font-size: 1rem !important;
+  line-height: 1.7 !important;
+}
+.statblock-memo b {
+  font-size: 0.92rem;
+}

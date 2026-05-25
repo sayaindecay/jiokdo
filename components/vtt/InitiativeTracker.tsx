@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
 export type InitiativeRow = {
   id: string;
   dex: number;
@@ -10,122 +8,144 @@ export type InitiativeRow = {
   hp: number;
   hp_max: number;
   dead?: boolean;
+  source_slug?: string;
 };
 
 export function InitiativeTracker({
-  initial,
+  rows,
+  round,
+  activeIndex,
+  roundFlash,
+  onAdvance,
+  onReset,
+  onDamage,
+  onRemove,
   onSelect,
   activeStatblockId,
 }: {
-  initial: InitiativeRow[];
+  rows: InitiativeRow[];
+  round: number;
+  activeIndex: number;
+  roundFlash: boolean;
+  onAdvance: () => void;
+  onReset: () => void;
+  onDamage: (id: string, amount: number) => void;
+  onRemove?: (id: string) => void;
   onSelect?: (row: InitiativeRow) => void;
   activeStatblockId?: string;
 }) {
-  const [rows, setRows] = useState<InitiativeRow[]>(() =>
-    [...initial].sort((a, b) => b.dex - a.dex)
-  );
-  const [round, setRound] = useState(1);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const live = useMemo(() => rows.map((r, i) => ({ r, i })).filter((x) => !x.r.dead), [rows]);
-
-  const advance = () => {
-    if (live.length === 0) return;
-    const currentLive = live.findIndex((x) => x.i === activeIndex);
-    // active 가 dead 상태(currentLive === -1)면 가장 첫 살아 있는 row 로 보냄
-    if (currentLive < 0) {
-      setActiveIndex(live[0].i);
-      return;
-    }
-    const next = (currentLive + 1) % live.length;
-    if (next === 0) setRound((r) => r + 1);
-    setActiveIndex(live[next].i);
-  };
-
-  const reset = () => {
-    setRound(1);
-    setActiveIndex(live[0]?.i ?? 0);
-    setRows((prev) => prev.map((r) => ({ ...r, dead: false, hp: r.hp_max })));
-  };
-
-  const damage = (rowId: string, amount: number) => {
-    setRows((prev) => {
-      const next = prev.map((r) => {
-        if (r.id !== rowId) return r;
-        const hp = Math.max(0, r.hp - amount);
-        return { ...r, hp, dead: hp === 0 ? true : r.dead };
-      });
-      // 활성 row가 방금 죽었다면 다음 살아 있는 인덱스로 이동
-      const killedIndex = next.findIndex((r) => r.id === rowId);
-      if (killedIndex === activeIndex && next[killedIndex]?.dead) {
-        const liveAfter = next
-          .map((r, i) => ({ r, i }))
-          .filter((x) => !x.r.dead);
-        const nextLive = liveAfter.find((x) => x.i > killedIndex) ?? liveAfter[0];
-        if (nextLive) {
-          setActiveIndex(nextLive.i);
-          if (nextLive.i <= killedIndex && liveAfter.length > 0) {
-            setRound((r) => r + 1);
-          }
-        }
-      }
-      return next;
-    });
-  };
+  const sorted = [...rows].sort((a, b) => b.dex - a.dex);
+  const liveCount = sorted.filter((r) => !r.dead).length;
 
   return (
     <div className="initiative">
       <div className="ini-head">
         <span>이니셔티브 (DEX 순)</span>
-        <span>라운드 <span className="round">{round}</span></span>
+        <span>
+          라운드{" "}
+          <span className={`round${roundFlash ? " flash" : ""}`}>{round}</span>
+        </span>
       </div>
-      {rows.map((r, i) => {
-        const isActive = i === activeIndex && !r.dead;
-        const isSelected = activeStatblockId === r.id;
-        return (
-          <button
-            type="button"
-            key={r.id}
-            onClick={() => onSelect?.(r)}
-            className={`ini-row${isActive ? " active" : ""}${r.dead ? " dead" : ""}`}
+
+      {sorted.length === 0 ? (
+        <div
+          className="empty"
+          style={{ padding: "1.4rem 1rem", margin: "0.4rem 0" }}
+        >
+          <div style={{ fontFamily: "var(--font-anno)", color: "var(--ink-2)", fontSize: "0.95rem" }}>
+            트래커가 비어 있습니다.
+          </div>
+          <div
             style={{
-              width: "100%",
-              textAlign: "left",
-              cursor: onSelect ? "pointer" : "default",
-              border: "none",
-              outline: isSelected ? "1.5px dashed var(--accent)" : undefined,
-              fontFamily: "inherit",
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.74rem",
+              color: "var(--ink-3)",
+              marginTop: "0.3rem",
             }}
           >
-            <span className="dex">{r.dex}</span>
-            <span className="name">
-              {r.name}
-              {isActive ? " ← 지금" : null}
-              {r.is_pc ? <span className="muted" style={{ fontSize: "0.74rem" }}> PC</span> : null}
-              {r.dead ? <span className="muted" style={{ fontSize: "0.74rem" }}> 사망</span> : null}
-            </span>
-            <span className="hp">
+            우측에서 NPC 를 추가하거나 PC 를 등장시키세요.
+          </div>
+        </div>
+      ) : (
+        sorted.map((r, i) => {
+          const isActive = i === activeIndex && !r.dead;
+          const isSelected = activeStatblockId === r.id;
+          return (
+            <div
+              key={r.id}
+              className={`ini-row${isActive ? " active" : ""}${r.dead ? " dead" : ""}`}
+              style={{
+                outline: isSelected ? "1.5px dashed var(--accent)" : undefined,
+              }}
+            >
+              <span className="dex">{r.dex}</span>
               <button
                 type="button"
-                className="link-btn"
-                onClick={(e) => { e.stopPropagation(); damage(r.id, 1); }}
-                style={{ marginRight: 4, fontFamily: "var(--font-mono)" }}
-                aria-label={`${r.name} HP 1 감소`}
-              >−</button>
-              {r.hp}/{r.hp_max}
-            </span>
-          </button>
-        );
-      })}
-      <div
-        style={{
-          display: "flex", gap: "0.5rem",
-          marginTop: "0.7rem",
-          flexWrap: "wrap",
-        }}
-      >
-        <button className="btn ghost" type="button" onClick={reset}>↺ 라운드 초기화</button>
-        <button className="btn" type="button" onClick={advance}>다음 라운드 →</button>
+                onClick={() => onSelect?.(r)}
+                className="name name-btn"
+                title={`${r.name} 스탯블록 보기`}
+              >
+                {r.name}
+                {isActive ? <span className="active-mark"> ← 지금</span> : null}
+                {r.is_pc ? <span className="muted role-mark"> PC</span> : null}
+                {r.dead ? <span className="muted role-mark"> 사망</span> : null}
+              </button>
+              <span className="hp" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  className="ini-damage"
+                  onClick={() => onDamage(r.id, 1)}
+                  aria-label={`${r.name} HP 1 감소`}
+                  title="HP −1"
+                  disabled={r.dead}
+                >
+                  −
+                </button>
+                <span className="ini-hp-val">{r.hp}/{r.hp_max}</span>
+                <button
+                  type="button"
+                  className="ini-damage heal"
+                  onClick={() => onDamage(r.id, -1)}
+                  aria-label={`${r.name} HP 1 회복`}
+                  title="HP +1"
+                  disabled={r.dead}
+                >
+                  +
+                </button>
+                {onRemove ? (
+                  <button
+                    type="button"
+                    className="ini-remove"
+                    onClick={() => onRemove(r.id)}
+                    aria-label={`${r.name} 트래커에서 제거`}
+                    title="트래커에서 제거"
+                  >
+                    ✕
+                  </button>
+                ) : null}
+              </span>
+            </div>
+          );
+        })
+      )}
+
+      <div className="ini-actions">
+        <button
+          className="btn ghost"
+          type="button"
+          onClick={onReset}
+          disabled={sorted.length === 0}
+        >
+          ↺ 라운드 초기화
+        </button>
+        <button
+          className="btn"
+          type="button"
+          onClick={onAdvance}
+          disabled={liveCount === 0}
+        >
+          다음 라운드 →
+        </button>
       </div>
     </div>
   );

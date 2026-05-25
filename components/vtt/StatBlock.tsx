@@ -96,18 +96,15 @@ export function StatBlock({
         ) : null}
 
         {!compact && entry.description ? (
-          <div className="wiki-callout" style={{ marginTop: "0.85rem" }}>
+          <div className="wiki-callout statblock-memo" style={{ marginTop: "0.85rem" }}>
             <b>키퍼 메모 ─</b> {entry.description}
           </div>
         ) : null}
 
         {showActions ? (
           <div className="dice-toolbar" style={{ marginTop: "0.85rem", marginBottom: 0 }}>
-            <span className="chip">-1d6 HP</span>
-            <span className="chip">-1d4 HP</span>
             <span className="chip">상태: 출혈</span>
             <span className="chip">상태: 기절</span>
-            <span className="chip">+ NPC 복제</span>
           </div>
         ) : null}
       </div>

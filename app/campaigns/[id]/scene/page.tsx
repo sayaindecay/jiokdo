@@ -21,30 +21,18 @@ export default async function ScenePage({
     listSessions(id),
   ]);
 
-  const currentSession = sessions[0]; // 가장 최근/높은 number
+  const currentSession = sessions[0];
 
-  // 기본 트래커: PC들 + 베스티어리 첫 항목을 NPC 2명으로 복제
+  // 기본 트래커: PC 들만. NPC 는 SceneClient 의 picker 로 추가.
   const focusedNpc = bestiary[0] ?? null;
-  const rows = [
-    ...chars.map((c, i) => ({
-      id: `pc-${c.id}`,
-      dex: c.attrs.dex,
-      name: c.name,
-      is_pc: true,
-      hp: c.hp,
-      hp_max: c.hp_max,
-    })),
-    ...(focusedNpc && focusedNpc.attrs.hp != null
-      ? [1, 2].map((n) => ({
-          id: `npc-${focusedNpc.slug}-${n}`,
-          dex: focusedNpc.attrs.dex ?? 50,
-          name: `${focusedNpc.name} #${n}`,
-          is_pc: false,
-          hp: focusedNpc.attrs.hp!,
-          hp_max: focusedNpc.attrs.hp!,
-        }))
-      : []),
-  ];
+  const initialRows = chars.map((c) => ({
+    id: `pc-${c.id}`,
+    dex: c.attrs.dex,
+    name: c.name,
+    is_pc: true,
+    hp: c.hp,
+    hp_max: c.hp_max,
+  }));
 
   return (
     <>
@@ -66,9 +54,9 @@ export default async function ScenePage({
       </div>
 
       <SceneClient
-        rows={rows}
+        initialRows={initialRows}
         focusedNpc={focusedNpc}
-        otherNpcs={bestiary.slice(1, 5)}
+        bestiary={bestiary}
       />
     </>
   );
