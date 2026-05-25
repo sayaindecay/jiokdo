@@ -50,6 +50,11 @@ export function CharacterSheet({
             </div>
           </div>
           <div className="sheet-actions">
+            {isOwner ? (
+              <Link href={`/characters/${character.id}/edit`} className="btn ghost">
+                편집
+              </Link>
+            ) : null}
             {campaign ? (
               <Link href={`/campaigns/${campaign.id}/play`} className="btn">
                 세션 입장
@@ -146,7 +151,7 @@ export function CharacterSheet({
               ) : null}
             </ul>
 
-            <h3>최근 굴림</h3>
+            <h3 data-recent-rolls>최근 굴림</h3>
             {recentRolls.length === 0 ? (
               <div className="empty" style={{ padding: "1rem", marginTop: "0.4rem" }}>
                 아직 굴림 기록이 없습니다.

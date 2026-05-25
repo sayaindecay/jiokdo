@@ -12,6 +12,15 @@ type Props = {
   disabled?: boolean;
 };
 
+function scrollAndFlashRecentRolls() {
+  if (typeof document === "undefined") return;
+  const target = document.querySelector('[data-recent-rolls]');
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  target.classList.add("flash-strong");
+  setTimeout(() => target.classList.remove("flash-strong"), 1200);
+}
+
 export function RollButton({
   characterId, skillName, skillValue, children, className, disabled,
 }: Props) {
@@ -27,8 +36,9 @@ export function RollButton({
         fd.set("roll_kind", "cc");
         fd.set("skill_name", skillName);
         fd.set("skill_value", String(skillValue));
-        start(() => {
-          rollCharacterCheckAction(fd);
+        start(async () => {
+          await rollCharacterCheckAction(fd);
+          scrollAndFlashRecentRolls();
         });
       }}
     >

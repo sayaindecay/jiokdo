@@ -2138,3 +2138,51 @@ h3 {
 @media (max-width: 980px) {
   .scene-grid { grid-template-columns: 1fr; }
 }
+
+/* ───── Skill row affordance (P12) ───── */
+.skill-row.rollable {
+  cursor: pointer;
+  position: relative;
+}
+.skill-row.rollable .roll-hint {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  background: var(--bg-elev);
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.skill-row.rollable:hover .roll-hint,
+.skill-row.rollable:focus .roll-hint {
+  opacity: 1;
+}
+.skill-row.rollable:hover {
+  border-color: var(--accent);
+}
+.skill-row.rollable .val {
+  transition: opacity 0.12s;
+}
+.skill-row.rollable:hover .val {
+  opacity: 0.4;
+}
+
+/* ───── Flash strong (P15 — 굴림 결과 강조) ───── */
+@keyframes jiokdo-flash {
+  0%   { background: var(--accent-soft); color: var(--accent); }
+  100% { background: transparent; color: inherit; }
+}
+.flash-strong {
+  animation: jiokdo-flash 1.2s ease-out;
+  border-radius: var(--radius);
+  padding: 0.15rem 0.45rem;
+  margin: -0.15rem -0.45rem;
+}

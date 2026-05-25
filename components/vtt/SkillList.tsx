@@ -58,22 +58,30 @@ export function SkillList({
             <button
               type="button"
               key={s.name}
-              className={`skill-row${s.used ? " used" : ""}`}
+              className={`skill-row${s.used ? " used" : ""}${canRoll ? " rollable" : ""}`}
               disabled={!canRoll}
-              onClick={() => {
+              onClick={async () => {
                 if (!canRoll) return;
                 const fd = new FormData();
                 fd.set("character_id", String(characterId));
                 fd.set("roll_kind", "cc");
                 fd.set("skill_name", s.name);
                 fd.set("skill_value", String(s.value));
-                rollCharacterCheckAction(fd);
+                await rollCharacterCheckAction(fd);
+                if (typeof document !== "undefined") {
+                  const target = document.querySelector('[data-recent-rolls]');
+                  if (target) {
+                    target.scrollIntoView({ behavior: "smooth", block: "center" });
+                    target.classList.add("flash-strong");
+                    setTimeout(() => target.classList.remove("flash-strong"), 1200);
+                  }
+                }
               }}
-              style={canRoll ? { cursor: "pointer" } : { cursor: "default" }}
               title={canRoll ? `/cc ${s.name} ${s.value} 굴리기` : "본인 캐릭터만 굴릴 수 있습니다"}
             >
               <span className="name">{s.name}</span>
               <span className="val">{s.value}</span>
+              {canRoll ? <span className="roll-hint" aria-hidden="true">d100 →</span> : null}
             </button>
           ))
         )}
