@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAuthenticatedNickname } from "@/lib/auth";
+import { listBestiaryCategories } from "@/lib/db";
 import { BestiaryForm } from "@/components/vtt/BestiaryForm";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function NewBestiaryPage() {
   const nick = await getAuthenticatedNickname();
   if (!nick) redirect("/login?redirect=/bestiary/new");
+  const categories = await listBestiaryCategories();
 
   return (
     <>
@@ -20,7 +22,7 @@ export default async function NewBestiaryPage() {
       <p className="page-sub">
         @{nick} 으로 등록됩니다. 본인이 등록한 항목만 추후 편집·삭제할 수 있습니다.
       </p>
-      <BestiaryForm />
+      <BestiaryForm categories={categories} />
     </>
   );
 }

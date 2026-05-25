@@ -300,6 +300,16 @@ export async function findRelatedBestiary(slug: string, category: string, limit 
   return res.rows.map((r) => rowToBestiary(r as unknown as Record<string, unknown>));
 }
 
+export async function listBestiaryCategories(): Promise<string[]> {
+  await ensureReady();
+  const res = await client.execute(
+    "SELECT DISTINCT category FROM bestiary WHERE category != '' ORDER BY category ASC"
+  );
+  return res.rows
+    .map((r) => String((r as unknown as Record<string, unknown>).category ?? ""))
+    .filter((c) => c.length > 0);
+}
+
 export async function createBestiaryEntry(input: {
   slug: string;
   name: string;

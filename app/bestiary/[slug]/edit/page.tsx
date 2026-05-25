@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getAuthenticatedNickname } from "@/lib/auth";
-import { getBestiaryEntry } from "@/lib/db";
+import { getBestiaryEntry, listBestiaryCategories } from "@/lib/db";
 import { BestiaryForm } from "@/components/vtt/BestiaryForm";
 import { BestiaryDangerZone } from "@/components/vtt/BestiaryDangerZone";
 
@@ -19,6 +19,7 @@ export default async function BestiaryEditPage({
   if (entry.created_by !== nick) {
     redirect(`/bestiary/${slug}`);
   }
+  const categories = await listBestiaryCategories();
 
   return (
     <>
@@ -32,7 +33,7 @@ export default async function BestiaryEditPage({
       <h1 className="page-title">{entry.name} 편집</h1>
       <p className="page-sub">변경한 내용은 즉시 모든 사용자에게 반영됩니다.</p>
 
-      <BestiaryForm initial={entry} />
+      <BestiaryForm initial={entry} categories={categories} />
 
       <BestiaryDangerZone slug={entry.slug} name={entry.name} />
     </>

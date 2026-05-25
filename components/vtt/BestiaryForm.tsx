@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import type { BestiaryEntry } from "@/lib/types";
 import { createBestiaryAction, updateBestiaryAction } from "@/app/actions";
@@ -23,13 +23,20 @@ async function wrap(action: (fd: FormData) => Promise<void>, fd: FormData) {
   }
 }
 
-export function BestiaryForm({ initial }: { initial?: BestiaryEntry }) {
+export function BestiaryForm({
+  initial,
+  categories = [],
+}: {
+  initial?: BestiaryEntry;
+  categories?: string[];
+}) {
   const isEdit = !!initial;
   const action = isEdit ? updateBestiaryAction : createBestiaryAction;
   const [err, formAction, pending] = useActionState<string | null, FormData>(
     (_p, fd) => wrap(action, fd),
     null
   );
+  const [category, setCategory] = useState(initial?.category ?? "");
 
   return (
     <form className="form bestiary-form" action={formAction}>
@@ -45,7 +52,35 @@ export function BestiaryForm({ initial }: { initial?: BestiaryEntry }) {
         </div>
         <div>
           <label>카테고리</label>
-          <input name="category" maxLength={80} defaultValue={initial?.category ?? ""} placeholder="예) 신화 생물 / 외계 종족" />
+          {categories.length > 0 ? (
+            <div className="bf-cat-toggle" role="group" aria-label="카테고리 선택">
+              {categories.map((c) => {
+                const active = category === c;
+                return (
+                  <button
+                    type="button"
+                    key={c}
+                    className={`bf-cat-chip${active ? " active" : ""}`}
+                    onClick={() => setCategory(active ? "" : c)}
+                    aria-pressed={active}
+                  >
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+          <input
+            name="category"
+            maxLength={80}
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            placeholder={
+              categories.length > 0
+                ? "위에서 선택하거나 새로 입력"
+                : "예) 신화 생물 / 외계 종족"
+            }
+          />
         </div>
       </div>
 
@@ -160,7 +195,7 @@ export function BestiaryForm({ initial }: { initial?: BestiaryEntry }) {
 
       <FormError message={err} />
 
-      <div className="actions" style={{ marginTop: "1rem", gap: "0.5rem" }}>
+      <div className="bf-actions">
         <button type="submit" className="btn primary" disabled={pending}>
           {pending ? "저장 중…" : isEdit ? "변경 저장" : "등록"}
         </button>
