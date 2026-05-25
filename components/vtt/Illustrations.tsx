@@ -93,6 +93,86 @@ export function PortraitSilhouette({ className }: { className?: string }) {
   );
 }
 
+/** 시네마틱 무대 일러스트 — 안개 낀 부두 (oxblood 가로등 + 달) */
+export function SceneIllustration({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 800 320" className={className} aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="rgba(245, 243, 228, 0.55)" />
+          <stop offset="40%" stopColor="rgba(245, 243, 228, 0.18)" />
+          <stop offset="100%" stopColor="rgba(245, 243, 228, 0)" />
+        </radialGradient>
+        <linearGradient id="mistGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(245, 243, 228, 0)" />
+          <stop offset="100%" stopColor="rgba(245, 243, 228, 0.06)" />
+        </linearGradient>
+        <radialGradient id="lampGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="rgba(207, 102, 20, 0.55)" />
+          <stop offset="60%" stopColor="rgba(207, 102, 20, 0.16)" />
+          <stop offset="100%" stopColor="rgba(207, 102, 20, 0)" />
+        </radialGradient>
+      </defs>
+
+      {/* 하늘 */}
+      <rect x="0" y="0" width="800" height="320" fill="rgba(20, 17, 13, 0)" />
+
+      {/* 달 */}
+      <circle cx="650" cy="80" r="110" fill="url(#moonGlow)" />
+      <circle cx="650" cy="80" r="32" fill="rgba(245, 243, 228, 0.78)" />
+      <circle cx="630" cy="68" r="3" fill="rgba(20, 17, 13, 0.35)" />
+      <circle cx="664" cy="92" r="5" fill="rgba(20, 17, 13, 0.30)" />
+      <circle cx="640" cy="92" r="2" fill="rgba(20, 17, 13, 0.30)" />
+
+      {/* 별 */}
+      <g fill="rgba(245, 243, 228, 0.5)">
+        <circle cx="80" cy="40" r="0.8" />
+        <circle cx="160" cy="22" r="1.2" />
+        <circle cx="250" cy="55" r="0.7" />
+        <circle cx="380" cy="30" r="1.0" />
+        <circle cx="460" cy="60" r="0.6" />
+        <circle cx="730" cy="160" r="0.8" />
+      </g>
+
+      {/* 가로등 글로우 (좌) */}
+      <circle cx="140" cy="200" r="120" fill="url(#lampGlow)" />
+
+      {/* 부두 라인 */}
+      <line x1="0" y1="260" x2="800" y2="260" stroke="rgba(245, 243, 228, 0.18)" strokeWidth="1" />
+      <line x1="0" y1="276" x2="800" y2="276" stroke="rgba(245, 243, 228, 0.12)" strokeWidth="1" />
+
+      {/* 부두 기둥 */}
+      <g stroke="rgba(245, 243, 228, 0.28)" strokeWidth="2" fill="none">
+        <line x1="60" y1="260" x2="60" y2="320" />
+        <line x1="220" y1="260" x2="220" y2="320" />
+        <line x1="380" y1="260" x2="380" y2="320" />
+        <line x1="540" y1="260" x2="540" y2="320" />
+        <line x1="700" y1="260" x2="700" y2="320" />
+      </g>
+
+      {/* 가로등 (왼쪽) */}
+      <g stroke="rgba(245, 243, 228, 0.55)" strokeWidth="1.8" fill="none">
+        <line x1="140" y1="260" x2="140" y2="170" />
+        <path d="M 130 170 Q 140 160 150 170" />
+      </g>
+      <circle cx="140" cy="178" r="5" fill="rgba(207, 102, 20, 0.85)" />
+
+      {/* 안개 */}
+      <rect x="0" y="220" width="800" height="100" fill="url(#mistGrad)" />
+      <g stroke="rgba(245, 243, 228, 0.10)" strokeWidth="1.2" fill="none" strokeLinecap="round">
+        <path d="M 0 240 Q 100 232 200 240 T 400 240 T 600 240 T 800 240" />
+        <path d="M 0 254 Q 120 246 240 254 T 480 254 T 720 254 T 800 254" opacity="0.7" />
+      </g>
+
+      {/* 떠 있는 검은 봉투 (희미한 작은 형체) */}
+      <g transform="translate(360, 232)" opacity="0.5">
+        <rect x="-12" y="-8" width="24" height="16" fill="rgba(245, 243, 228, 0.1)" stroke="rgba(245, 243, 228, 0.4)" strokeWidth="0.8" />
+        <path d="M -12 -8 L 0 0 L 12 -8" fill="none" stroke="rgba(245, 243, 228, 0.4)" strokeWidth="0.8" />
+      </g>
+    </svg>
+  );
+}
+
 /** 베스티어리 placeholder — 신화 글리프 (호어이 단순 사각문양) */
 export function MythicGlyph({ className }: { className?: string }) {
   return (

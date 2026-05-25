@@ -3600,3 +3600,328 @@ select:focus-visible {
 .statblock-memo b {
   font-size: 0.92rem;
 }
+
+/* ════════════════════════════════════════════════
+   시네마틱 플레이 페이지 (5번 묶음)
+   ════════════════════════════════════════════════ */
+
+/* 5.9 페이지 fade in */
+.play-shell {
+  animation: playFadeIn 480ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes playFadeIn {
+  from { opacity: 0; filter: blur(2px); transform: translateY(4px); }
+  to   { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .play-shell { animation: none; }
+}
+
+/* sticky composer 가 본문을 가리지 않도록 padding 보정 */
+.play-shell {
+  padding-bottom: 7rem;
+}
+
+/* 5.1 무대 일러스트 */
+.scene-illustration {
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #0e0c08 0%, #14110d 70%, #1a1612 100%);
+}
+.scene-illustration > svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.scene-illustration-tag {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 243, 228, 0.35);
+  pointer-events: none;
+}
+
+/* 5.2 직전 묘사 fade out */
+.narration-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.75rem 0;
+  padding: 0 1.1rem;
+}
+.narration-old {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-size: 0.82rem;
+  color: rgba(245, 243, 228, 0.55);
+  font-family: var(--font-kr);
+  line-height: 1.5;
+  border-left: 2px solid rgba(245, 243, 228, 0.18);
+  padding-left: 0.6rem;
+}
+.narration-old .who {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+.narration-old .excerpt {
+  font-style: italic;
+}
+
+/* 5.5 기능 chip 카운트 배지 */
+.scene-hud .skills .skill-chip .chip-count {
+  margin-left: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent);
+  background: rgba(207, 102, 20, 0.18);
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(207, 102, 20, 0.4);
+}
+
+/* 5.6 roster/clues 영화 자막 톤 */
+.scene-roster .head {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.scene-roster .member .name {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+.scene-roster .member .info {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+/* 5.7 로그 dice 미니 chip */
+.session-log .session-row {
+  align-items: flex-start;
+  padding: 0.7rem 1.1rem;
+}
+.session-row-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+.session-row .kind-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-2);
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+.session-row .kind-tag.kind-narration {
+  background: var(--accent-soft);
+  border-color: rgba(138, 28, 28, 0.3);
+  color: var(--accent);
+}
+.session-row .kind-tag.kind-system {
+  background: var(--purple-bg);
+  border-color: #d0c0e0;
+  color: var(--purple);
+}
+.session-row .session-author {
+  font-weight: 600;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.session-row .session-preview {
+  color: var(--ink-2);
+  font-size: 0.86rem;
+  font-family: var(--font-kr);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.session-row .session-meta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+.session-dice-row {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.session-dice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+.session-dice.plain {
+  background: var(--bg-2);
+  border-color: var(--line);
+  color: var(--ink-2);
+}
+.session-dice .dice-icon {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+/* 5.8 라운드 ↑↓ 컨트롤 */
+.round-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: rgba(245, 243, 228, 0.06);
+  border: 1px solid rgba(245, 243, 228, 0.18);
+  border-radius: 999px;
+  padding: 0.15rem 0.35rem;
+}
+.round-control .rc-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: none;
+  color: rgba(245, 243, 228, 0.75);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.round-control .rc-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+.round-control .rc-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.round-control .rc-val {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: rgba(245, 243, 228, 0.92);
+  min-width: 4em;
+  text-align: center;
+  transition: color var(--tx);
+}
+.round-control .rc-val.flash {
+  animation: roundCtrlFlash 0.6s ease-out;
+}
+@keyframes roundCtrlFlash {
+  0% { color: var(--accent); transform: scale(1.15); }
+  100% { color: rgba(245, 243, 228, 0.92); transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .round-control .rc-val.flash { animation: none; }
+}
+
+/* 5.4 sticky 컴포저 */
+.play-composer-sticky {
+  position: sticky;
+  bottom: 0;
+  margin: 1rem -1.25rem 0;
+  padding: 0.6rem 1.25rem;
+  background: linear-gradient(180deg, transparent 0%, rgba(20, 17, 13, 0.92) 35%, #14110d 100%);
+  backdrop-filter: blur(10px);
+  z-index: 5;
+}
+.play-composer-sticky .composer {
+  background: rgba(245, 243, 228, 0.08);
+  border: 1.5px solid rgba(245, 243, 228, 0.2);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+}
+.play-composer-sticky .composer-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.play-composer-sticky .composer-bar .kind-picker { gap: 0.25rem; }
+.play-composer-sticky .composer-bar .kind-pill {
+  background: rgba(245, 243, 228, 0.08);
+  border-color: rgba(245, 243, 228, 0.2);
+  color: rgba(245, 243, 228, 0.75);
+  font-size: 0.72rem;
+  padding: 0.22rem 0.6rem;
+}
+.play-composer-sticky .composer-bar .kind-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.play-composer-sticky .composer-char {
+  background: rgba(245, 243, 228, 0.08);
+  border-color: rgba(245, 243, 228, 0.18);
+  color: var(--bg-elev);
+  padding: 0.22rem 0.5rem;
+  font-size: 0.78rem;
+}
+.play-composer-sticky .composer-expand {
+  margin-left: auto;
+  background: none;
+  border: 1px dashed rgba(245, 243, 228, 0.3);
+  color: rgba(245, 243, 228, 0.7);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.play-composer-sticky .composer-expand:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.play-composer-sticky textarea {
+  margin-top: 0.6rem;
+  background: rgba(20, 17, 13, 0.55);
+  border-color: rgba(245, 243, 228, 0.22);
+  color: var(--bg-elev);
+  font-family: var(--font-mono);
+}
+.play-composer-sticky textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(207, 102, 20, 0.25);
+}
+.play-composer-sticky .dice-toolbar {
+  margin-top: 0.6rem;
+  margin-bottom: 0;
+}
+.play-composer-sticky .dice-toolbar .chip {
+  background: rgba(245, 243, 228, 0.08);
+  border-color: rgba(245, 243, 228, 0.18);
+  color: rgba(245, 243, 228, 0.7);
+}
+.play-composer-sticky .composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}

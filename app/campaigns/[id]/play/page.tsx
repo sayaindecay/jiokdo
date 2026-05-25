@@ -9,25 +9,38 @@ import { formatTime } from "@/lib/format";
 import { LEVEL_LABEL } from "@/lib/dice";
 import { SceneStage } from "@/components/vtt/SceneStage";
 import { CluesPanel, SceneRoster } from "@/components/vtt/SceneRoster";
-import { PlayComposer } from "@/components/PlayComposer";
-import type { Segment } from "@/lib/types";
+import { PlayComposerSticky } from "@/components/vtt/PlayComposerSticky";
+import type { PlayEntry, Segment } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-function summarizeSegments(segs: Segment[]): { line: string; tail?: string } {
+type DiceMini =
+  | { kind: "cc"; expr: string; total: number; level: string; level_label: string }
+  | { kind: "roll"; notation: string; total: number };
+
+function diceMini(segs: Segment[]): DiceMini[] {
+  const out: DiceMini[] = [];
   for (const s of segs) {
-    if (s.type === "dice") {
-      if (s.result.kind === "cc") {
-        return {
-          line: `${s.result.name ? `${s.result.name} ` : ""}/cc ${s.result.skill} → ${s.result.roll}`,
-          tail: LEVEL_LABEL[s.result.level],
-        };
-      }
-      return { line: `${s.result.notation} → ${s.result.total}`, tail: undefined };
+    if (s.type !== "dice") continue;
+    const r = s.result;
+    if (r.kind === "cc") {
+      out.push({
+        kind: "cc",
+        expr: `${r.name ? `${r.name} ` : ""}d100≤${r.skill} → ${r.roll}`,
+        total: r.roll,
+        level: r.level,
+        level_label: LEVEL_LABEL[r.level],
+      });
+    } else {
+      out.push({ kind: "roll", notation: r.notation, total: r.total });
     }
   }
-  const text = segs.find((s) => s.type === "text") as { type: "text"; value: string } | undefined;
-  return { line: text ? text.value.slice(0, 80) : "(빈 글)" };
+  return out;
+}
+
+function textFromSegs(segs: Segment[]): string {
+  const t = segs.find((s) => s.type === "text") as { type: "text"; value: string } | undefined;
+  return t ? t.value : "";
 }
 
 function kindLabel(k: string): string {
@@ -57,11 +70,16 @@ export default async function PlayPage({
   const myChar = nick ? characters.find((c) => c.owner_nick === nick) ?? null : null;
   const currentSession = sessions[0] ?? null;
 
-  const lastNarration = [...entries].reverse().find((e) => e.kind === "narration") ?? null;
+  // 가장 최근 → 옛 순서의 묘사 흐름 (5.2)
+  const narrationHistory: PlayEntry[] = [...entries]
+    .reverse()
+    .filter((e) => e.kind === "narration")
+    .slice(0, 3);
+
   const recentEntries = [...entries].reverse().slice(0, 8);
 
   return (
-    <>
+    <div className="play-shell">
       <div className="breadcrumb">
         <Link href={`/campaigns/${camp.id}`}>{camp.name}</Link>
         <span className="sep">/</span>
@@ -78,10 +96,9 @@ export default async function PlayPage({
         <SceneStage
           campaign={camp}
           session={currentSession}
-          lastNarration={lastNarration}
+          narrationHistory={narrationHistory}
           myCharacter={myChar}
           onlineCount={members.length}
-          round={null}
         />
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <SceneRoster members={members} characters={characters} myNick={nick} />
@@ -100,21 +117,38 @@ export default async function PlayPage({
           아직 기록이 없습니다. {isMember ? "아래 composer에서 첫 글을 남겨보세요." : "이 캠페인의 멤버가 아닙니다."}
         </div>
       ) : (
-        <div className="post-list">
+        <div className="post-list session-log">
           {recentEntries.map((e) => {
-            const sum = summarizeSegments(e.segments);
+            const dice = diceMini(e.segments);
+            const text = textFromSegs(e.segments);
             const author = e.character_name || e.nickname;
+            const preview = text ? text.slice(0, 80) : null;
             return (
-              <div className="post-row" key={e.id}>
-                <div>
-                  <span className="title">
-                    {author}: {sum.line}
-                  </span>
-                  {sum.tail ? <span className="comment-count">{sum.tail}</span> : null}
+              <div className={`post-row session-row kind-${e.kind}`} key={e.id}>
+                <div className="session-row-main">
+                  <span className={`kind-tag kind-${e.kind}`}>{kindLabel(e.kind)}</span>
+                  <span className="session-author">{author}</span>
+                  {preview ? <span className="session-preview">{preview}{text.length > 80 ? "…" : ""}</span> : null}
+                  {/* 5.7 dice 결과 인라인 chip */}
+                  {dice.length > 0 ? (
+                    <span className="session-dice-row">
+                      {dice.map((d, i) =>
+                        d.kind === "cc" ? (
+                          <span key={i} className={`session-dice cc level ${d.level}`} title={d.expr}>
+                            <span className="dice-icon" aria-hidden="true">⌬</span>
+                            {d.level_label} · {d.total}
+                          </span>
+                        ) : (
+                          <span key={i} className="session-dice plain" title={d.notation}>
+                            <span className="dice-icon" aria-hidden="true">⌬</span>
+                            {d.notation} = {d.total}
+                          </span>
+                        )
+                      )}
+                    </span>
+                  ) : null}
                 </div>
-                <div className="meta">
-                  {kindLabel(e.kind)} · {formatTime(e.created_at)}
-                </div>
+                <div className="session-meta">{formatTime(e.created_at)}</div>
               </div>
             );
           })}
@@ -122,24 +156,22 @@ export default async function PlayPage({
       )}
 
       {isMember ? (
-        <div id="composer" style={{ marginTop: "1.25rem" }}>
-          <PlayComposer
-            campaignId={id}
-            characters={
-              nick
-                ? characters
-                    .filter((c) => c.owner_nick === nick)
-                    .map((c) => ({ id: c.id, name: c.name }))
-                : []
-            }
-            isKeeper={nick === camp.keeper_nick}
-          />
-        </div>
+        <PlayComposerSticky
+          campaignId={id}
+          characters={
+            nick
+              ? characters
+                  .filter((c) => c.owner_nick === nick)
+                  .map((c) => ({ id: c.id, name: c.name }))
+              : []
+          }
+          isKeeper={nick === camp.keeper_nick}
+        />
       ) : (
         <div className="empty" style={{ marginTop: "1.25rem" }}>
           이 캠페인의 멤버가 아닙니다. <Link href="/campaigns">캠페인 목록</Link>에서 초대 코드로 참여하세요.
         </div>
       )}
-    </>
+    </div>
   );
 }
