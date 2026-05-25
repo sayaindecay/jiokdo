@@ -22,8 +22,17 @@ export function Countdown({ targetMs }: { targetMs: number }) {
 
   if (now.past) {
     return (
-      <div className="countdown">
+      <div className="countdown is-now" aria-live="polite">
         <em>지금</em> 시작
+      </div>
+    );
+  }
+  // 임계: 30분 이내면 임박 표시
+  const imminent = now.d === 0 && now.h === 0 && now.m <= 30;
+  if (imminent) {
+    return (
+      <div className="countdown is-imminent" aria-live="polite">
+        <em>{now.m}</em> 분 남음
       </div>
     );
   }

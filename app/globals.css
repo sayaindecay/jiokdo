@@ -4109,3 +4109,197 @@ select:focus-visible {
 .danger-divider span {
   padding: 0 0.4rem;
 }
+
+/* ════════════════════════════════════════════════
+   캠페인 목록 페이지 (3번 묶음)
+   ════════════════════════════════════════════════ */
+
+/* 3.2 Countdown 폰트 임팩트 */
+.countdown {
+  font-family: var(--font-display);
+  font-size: 3.6rem;
+  line-height: 1;
+  margin: 0.35rem 0 0.5rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.countdown em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 400;
+}
+@media (min-width: 980px) {
+  .countdown { font-size: 4.2rem; }
+}
+@media (max-width: 640px) {
+  .countdown { font-size: 2.8rem; }
+}
+/* 3.8 임박 + "지금" 펄스 */
+.countdown.is-imminent {
+  color: var(--accent);
+}
+.countdown.is-imminent em {
+  animation: countdownPulse 1.4s ease-in-out infinite;
+}
+.countdown.is-now {
+  color: var(--accent);
+  animation: nowFlash 1.2s ease-in-out infinite;
+}
+.countdown.is-now em {
+  font-weight: 700;
+  text-shadow: 0 0 16px var(--accent-soft);
+}
+@keyframes countdownPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+@keyframes nowFlash {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .countdown.is-imminent em,
+  .countdown.is-now { animation: none; }
+}
+
+/* 3.3 mini-stats 위계 */
+.mini-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.mini-stats .ms {
+  background: var(--bg-elev);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.9rem;
+  box-shadow: 2px 2px 0 rgba(26, 23, 20, 0.08);
+  text-decoration: none;
+  color: var(--ink);
+  display: block;
+  transition: all var(--tx);
+}
+.mini-stats .ms:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 rgba(26, 23, 20, 0.14);
+  border-color: var(--accent);
+}
+.mini-stats .ms b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--ink);
+}
+.mini-stats .ms span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  margin-top: 0.3rem;
+}
+/* hero stat — 큰 글자, 강조 */
+.mini-stats .ms-hero b {
+  font-size: 2.4rem;
+  color: var(--accent);
+}
+.mini-stats .ms-hero.warn {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.mini-stats .ms-hero.warn b {
+  text-shadow: 1px 1px 0 rgba(106, 20, 20, 0.12);
+}
+/* ghost stat — 작은 글자, 흐림 */
+.mini-stats .ms-ghost {
+  background: transparent;
+  border: 1.5px dashed var(--line);
+  box-shadow: none;
+  opacity: 0.85;
+}
+.mini-stats .ms-ghost b {
+  font-size: 1.3rem;
+  color: var(--ink-2);
+}
+@media (max-width: 720px) {
+  .mini-stats { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .mini-stats .ms b { font-size: 1.4rem; }
+  .mini-stats .ms-hero b { font-size: 1.8rem; }
+}
+
+/* 3.4 빈 hero 안에 폼 통합 */
+.dash-hero.dash-hero-empty .hero-forms {
+  max-width: 520px;
+  margin: 1.1rem 0 0;
+}
+.dash-hero.dash-hero-empty .hero-forms .form-tabs {
+  background: var(--bg-elev);
+}
+
+/* 3.5 dash-table hover stripe (기존 left 3px hue stripe 보강) */
+.dash-table .trow {
+  position: relative;
+  transition: background var(--tx-fast), transform var(--tx);
+}
+.dash-table .trow::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform var(--tx);
+}
+.dash-table .trow:hover::after {
+  transform: scaleY(0.85);
+}
+.dash-table .trow:hover {
+  background: var(--bg-elev-2);
+  transform: translateX(2px);
+}
+
+/* 3.6 activity-feed 시간 폭 보강 */
+.activity-feed .item {
+  grid-template-columns: 100px 1fr auto;
+}
+.activity-feed .item .when {
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+.activity-feed .item .where {
+  font-size: 0.74rem;
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 640px) {
+  .activity-feed .item {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+  }
+  .activity-feed .item .where { max-width: none; }
+}
+
+/* 3.7 모바일 멤버 dot */
+.dash-table .c-members {
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+  color: var(--ink-2);
+}
+@media (max-width: 720px) {
+  .dash-table .c-members {
+    font-size: 0.78rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 60px;
+  }
+}

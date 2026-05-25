@@ -53,7 +53,12 @@ export default async function CampaignsDashboardPage() {
     );
     history = (await listSessions(next.campaign.id)).slice(0, 5);
   } else {
-    heroBlock = <DashHeroEmpty hasCampaign={campaigns.length > 0} />;
+    heroBlock = (
+      <DashHeroEmpty
+        hasCampaign={campaigns.length > 0}
+        showForms={campaigns.length === 0}
+      />
+    );
   }
 
   const rows: CampaignTableRow[] = await Promise.all(
@@ -103,10 +108,14 @@ export default async function CampaignsDashboardPage() {
 
       <CampaignsTable rows={rows} myNick={nick} />
 
-      <div className="section-head">
-        <h2>새 캠페인 / 초대 코드</h2>
-      </div>
-      <CampaignForms />
+      {campaigns.length > 0 ? (
+        <>
+          <div className="section-head">
+            <h2>새 캠페인 / 초대 코드</h2>
+          </div>
+          <CampaignForms />
+        </>
+      ) : null}
 
       <div style={{ height: "1.5rem" }} />
       <ActivityFeed items={activity} />
