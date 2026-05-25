@@ -5,8 +5,8 @@ import {
   Inter,
   IBM_Plex_Mono,
   Special_Elite,
-  Gaegu,
-  Nanum_Pen_Script,
+  Gowun_Batang,
+  Hahmlet,
   Noto_Serif_KR,
 } from "next/font/google";
 import { getAuthenticatedNickname, getNickname } from "@/lib/auth";
@@ -33,15 +33,15 @@ const display = Special_Elite({
   variable: "--font-display",
   display: "swap",
 });
-const anno = Gaegu({
+const anno = Gowun_Batang({
   subsets: ["latin"],
-  weight: ["300", "400", "700"],
+  weight: ["400", "700"],
   variable: "--font-anno",
   display: "swap",
 });
-const script = Nanum_Pen_Script({
+const script = Hahmlet({
   subsets: ["latin"],
-  weight: ["400"],
+  weight: ["400", "500", "700"],
   variable: "--font-script",
   display: "swap",
 });

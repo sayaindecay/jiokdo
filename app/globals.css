@@ -58,8 +58,8 @@
   /* — Typography ———————————————————— */
   --font-ui:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --font-anno:  "Gaegu", "Nanum Pen Script", cursive;       /* 손글씨 메모 (한국어 지원) */
-  --font-script: "Nanum Pen Script", "Gaegu", cursive;      /* 큰 펜글씨 (한국어 지원) */
+  --font-anno:  "Gowun Batang", "Noto Serif KR", "Nanum Myeongjo", serif;  /* 작은 메모·라벨 (한글 명조) */
+  --font-script: "Hahmlet", "Gowun Batang", "Noto Serif KR", serif;          /* 큰 강조 (조판 명조) */
   --font-display: "Special Elite", "Courier Prime", "Courier New", monospace; /* 타이프라이터 헤딩 */
   --font-kr:    "Noto Serif KR", "Nanum Myeongjo", serif;
 }
@@ -4908,4 +4908,446 @@ select:focus-visible {
   .btn.large { padding: 0.65rem 1.1rem; font-size: 0.92rem; min-height: 40px; }
   .btn.small { padding: 0.32rem 0.65rem; font-size: 0.78rem; min-height: 28px; }
   .nav a { font-size: 0.84rem; padding: 0.3rem 0.55rem; }
+}
+
+/* ════════════════════════════════════════════════
+   캠페인 상세 페이지 v2 (.campaign-dashboard / .cd-*)
+   ════════════════════════════════════════════════ */
+
+.campaign-dashboard {
+  padding-top: 0.25rem;
+}
+
+/* ─── 헤더 ─── */
+.cd-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: flex-end;
+  gap: 1.5rem 2rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1.5px solid var(--line);
+  position: relative;
+}
+.cd-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1.5px;
+  background: var(--accent);
+  opacity: 0.35;
+  transform: scaleX(0.18);
+  transform-origin: left;
+}
+
+.cd-head-text { min-width: 0; }
+
+.cd-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.65rem;
+  display: inline-block;
+  padding-bottom: 0.2rem;
+  border-bottom: 1.5px dashed var(--accent);
+}
+
+.cd-title {
+  font-family: var(--font-script);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 0.85rem;
+}
+
+.cd-description {
+  font-family: var(--font-anno);
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--ink-2);
+  margin: 0 0 1.1rem;
+  max-width: 60ch;
+}
+.cd-description-empty {
+  color: var(--ink-3);
+  font-style: italic;
+}
+
+.cd-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.75rem;
+  margin: 0;
+  padding: 0.65rem 0 0;
+  border-top: 1px dashed var(--line);
+}
+.cd-meta > div {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0;
+}
+.cd-meta dt {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 0;
+}
+.cd-meta dd {
+  font-family: var(--font-script);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
+  line-height: 1;
+}
+
+.cd-actions {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .cd-header {
+    grid-template-columns: 1fr;
+    gap: 1.1rem;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+  .cd-actions { width: 100%; }
+  .cd-actions .btn { flex: 1; justify-content: center; }
+  .cd-meta { gap: 0 1.1rem; }
+  .cd-meta dd { font-size: 1.1rem; }
+}
+
+/* ─── Grid ─── */
+.cd-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+.cd-grid .cd-span-2 { grid-column: 1 / -1; }
+@media (max-width: 820px) {
+  .cd-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── 카드 공통 ─── */
+.cd-card {
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.6rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cd-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1.5px dashed var(--line);
+}
+.cd-card-head h2 {
+  font-family: var(--font-script);
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.cd-card-count {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+.cd-card-foot { margin-top: 0.2rem; }
+
+/* ─── 멤버 list ─── */
+.cd-member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cd-member-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.2rem;
+  border-bottom: 1px solid var(--line);
+}
+.cd-member-list li:last-child { border-bottom: none; }
+.cd-member-list .cm-name {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  color: var(--ink);
+}
+.cd-member-list .is-keeper .cm-name {
+  font-weight: 700;
+  color: var(--accent);
+}
+.cd-member-list .cm-crown {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 0.95em;
+  margin-right: 0.35rem;
+  text-shadow: 0 0 4px var(--accent-soft);
+}
+.cd-member-list .cm-role {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1.5px solid;
+  white-space: nowrap;
+}
+.cd-member-list .cm-role.role-keeper {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.cd-member-list .cm-role.role-player {
+  background: var(--bg-elev-2);
+  color: var(--ink-2);
+  border-color: var(--line);
+}
+
+/* ─── 초대 코드 박스 ─── */
+.cd-invite {
+  background: var(--accent-soft);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 0.95rem 1.1rem;
+  margin-top: 0.25rem;
+}
+.cd-invite-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.55rem;
+}
+.cd-invite-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.55rem;
+}
+.cd-invite-code {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  background: var(--bg-elev);
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--line);
+  text-align: center;
+}
+.cd-invite-hint {
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* ─── 캐릭터 list ─── */
+.cd-char-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cd-char-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.75rem 0.65rem;
+  border-radius: var(--radius);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  transition: background var(--tx-fast), transform var(--tx);
+}
+.cd-char-list li:last-child { border-bottom: none; }
+.cd-char-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transition: transform var(--tx);
+}
+.cd-char-list li:hover {
+  background: var(--bg-elev-2);
+  transform: translateX(2px);
+}
+.cd-char-list li:hover::before { transform: scaleY(1); }
+.cd-char-list li.is-mine::before {
+  background: var(--gold);
+  transform: scaleY(0.55);
+  opacity: 0.55;
+}
+.cd-char-list li.is-mine:hover::before {
+  transform: scaleY(1);
+  opacity: 1;
+}
+.cc-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+.cc-name {
+  font-family: var(--font-script);
+  font-weight: 500;
+  font-size: 1.05rem;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+.cc-occu {
+  font-family: var(--font-anno);
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+.cc-owner {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+/* ─── 최근 플레이 ─── */
+.cd-recent {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cd-recent li {
+  border-bottom: 1px solid var(--line);
+}
+.cd-recent li:last-child { border-bottom: none; }
+.cd-recent-link {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.5rem;
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  transition: background var(--tx-fast);
+  min-width: 0;
+}
+.cd-recent-link:hover {
+  background: var(--bg-elev-2);
+}
+.cd-recent-kind {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--bg-elev-2);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.cd-recent-kind.kind-narration {
+  background: var(--accent-soft);
+  border-color: rgba(138, 28, 28, 0.35);
+  color: var(--accent);
+}
+.cd-recent-kind.kind-system {
+  background: var(--purple-bg);
+  border-color: #d0c0e0;
+  color: var(--purple);
+}
+.cd-recent-who {
+  font-family: var(--font-script);
+  font-weight: 500;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.cd-recent-summary {
+  font-family: var(--font-anno);
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.cd-recent-time {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+@media (max-width: 720px) {
+  .cd-recent-link {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.4rem 0.6rem;
+  }
+  .cd-recent-time {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: end;
+  }
+  .cd-recent-summary {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    white-space: normal;
+  }
+  .cd-recent-who { grid-column: 2; }
+}
+
+/* 다크 모드 — invite 박스 톤 보정 */
+:root[data-theme="dark"] .cd-invite-code {
+  background: var(--bg);
+  color: var(--ink);
 }

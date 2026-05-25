@@ -50,20 +50,35 @@ export default async function CampaignDashboard({
   const recent = entries.slice(-5).reverse();
 
   return (
-    <div style={campaignHueStyle(camp.slug)}>
+    <div className="campaign-dashboard" style={campaignHueStyle(camp.slug)}>
       <div className="breadcrumb">
         <Link href="/campaigns">캠페인</Link>
         <span className="sep">/</span>
         <span>{camp.name}</span>
       </div>
 
-      {/* 4.5 헤더 — 모바일에서 줄바꿈 처리 + sticky 친절성 */}
-      <div className="campaign-header">
-        <div className="ch-text">
-          <h1 className="page-title">{camp.name}</h1>
-          <p className="page-sub">{camp.description || "설명 없음"}</p>
+      {/* ─── 헤더 — 명조 제목 + 산세리프 설명 + mono 메타 + 액션 ─── */}
+      <header className="cd-header">
+        <div className="cd-head-text">
+          <div className="cd-eyebrow">
+            캠페인 №{String(id).padStart(2, "0")} · {camp.system.toUpperCase()}
+          </div>
+          <h1 className="cd-title">{camp.name}</h1>
+          {camp.description ? (
+            <p className="cd-description">{camp.description}</p>
+          ) : (
+            <p className="cd-description cd-description-empty">
+              설명이 아직 비어 있습니다.
+            </p>
+          )}
+          <dl className="cd-meta">
+            <div><dt>멤버</dt><dd>{members.length}</dd></div>
+            <div><dt>캐릭터</dt><dd>{chars.length}</dd></div>
+            <div><dt>세션</dt><dd>{sessions.length}</dd></div>
+            <div><dt>플레이</dt><dd>{entries.length}</dd></div>
+          </dl>
         </div>
-        <div className="ch-actions">
+        <div className="cd-actions">
           <Link href={`/campaigns/${id}/scene`} className="btn ghost">
             장면 트래커
           </Link>
@@ -71,22 +86,25 @@ export default async function CampaignDashboard({
             플레이 페이지 →
           </Link>
         </div>
-      </div>
+      </header>
 
-      <div className="dashboard-grid">
-        {/* 멤버 */}
-        <section className="dash-card">
-          <h2>멤버 ({members.length})</h2>
-          <ul className="member-list">
+      <div className="cd-grid">
+        {/* ─── 멤버 ─── */}
+        <section className="cd-card">
+          <header className="cd-card-head">
+            <h2>멤버</h2>
+            <span className="cd-card-count">{members.length}</span>
+          </header>
+          <ul className="cd-member-list">
             {members.map((m) => {
               const isKp = m.role === "keeper";
               return (
-                <li key={m.nickname} className={isKp ? "member-keeper" : ""}>
-                  <span className="nickname">
-                    {isKp ? <span aria-hidden="true" className="keeper-crown">♛</span> : null}
+                <li key={m.nickname} className={isKp ? "is-keeper" : ""}>
+                  <span className="cm-name">
+                    {isKp ? <span aria-hidden="true" className="cm-crown">♛</span> : null}
                     {m.nickname}
                   </span>
-                  <span className={`role-badge ${m.role}`}>
+                  <span className={`cm-role role-${m.role}`}>
                     {isKp ? "키퍼" : "플레이어"}
                   </span>
                 </li>
@@ -94,22 +112,26 @@ export default async function CampaignDashboard({
             })}
           </ul>
 
-          {/* 4.2 초대 코드 복사 */}
           {isKeeper ? (
-            <div className="invite-box">
-              <div className="label">초대 코드</div>
-              <div className="invite-row">
-                <code className="invite-code">{camp.invite_code}</code>
+            <div className="cd-invite">
+              <div className="cd-invite-label">초대 코드</div>
+              <div className="cd-invite-row">
+                <code className="cd-invite-code">{camp.invite_code}</code>
                 <CopyButton value={camp.invite_code} label="복사" copiedLabel="복사됨" />
               </div>
-              <p className="hint">플레이어에게 이 코드를 알려주세요.</p>
+              <p className="cd-invite-hint">
+                플레이어에게 이 코드를 알려주면 캠페인에 합류합니다.
+              </p>
             </div>
           ) : null}
         </section>
 
-        {/* 캐릭터 */}
-        <section className="dash-card">
-          <h2>캐릭터 ({chars.length})</h2>
+        {/* ─── 캐릭터 ─── */}
+        <section className="cd-card">
+          <header className="cd-card-head">
+            <h2>캐릭터</h2>
+            <span className="cd-card-count">{chars.length}</span>
+          </header>
           {chars.length === 0 ? (
             <EmptyState
               variant="scroll"
@@ -117,27 +139,34 @@ export default async function CampaignDashboard({
               hint={isMember ? "아래에서 새 캐릭터를 등록하세요." : "멤버만 캐릭터를 만들 수 있습니다."}
             />
           ) : (
-            <ul className="character-list">
+            <ul className="cd-char-list">
               {chars.map((c) => {
                 const mine = nick != null && c.owner_nick === nick;
                 return (
-                  <li key={c.id} className={mine ? "char-mine" : ""}>
-                    <Link href={`/characters/${c.id}`}>
-                      <span className="char-name">{c.name}</span>
-                      <span className="char-occu">{c.occupation || "—"}</span>
+                  <li key={c.id} className={mine ? "is-mine" : ""}>
+                    <Link href={`/characters/${c.id}`} className="cc-link">
+                      <span className="cc-name">{c.name}</span>
+                      <span className="cc-occu">{c.occupation || "직업 미기재"}</span>
                     </Link>
-                    <span className="text-faint small">@{c.owner_nick}</span>
+                    <span className="cc-owner">@{c.owner_nick}</span>
                   </li>
                 );
               })}
             </ul>
           )}
-          {isMember ? <CharacterCreateForm campaignId={id} /> : null}
+          {isMember ? (
+            <div className="cd-card-foot">
+              <CharacterCreateForm campaignId={id} />
+            </div>
+          ) : null}
         </section>
 
-        {/* 4.4 최근 플레이 — 각 항목 링크 */}
-        <section className="dash-card span-2">
-          <h2>최근 플레이 ({entries.length}건)</h2>
+        {/* ─── 최근 플레이 ─── */}
+        <section className="cd-card cd-span-2">
+          <header className="cd-card-head">
+            <h2>최근 플레이</h2>
+            <span className="cd-card-count">{entries.length}건</span>
+          </header>
           {recent.length === 0 ? (
             <EmptyState
               variant="dice"
@@ -152,28 +181,36 @@ export default async function CampaignDashboard({
               }
             />
           ) : (
-            <ul className="recent-list">
+            <ul className="cd-recent">
               {recent.map((e) => (
                 <li key={e.id}>
-                  <Link href={`/campaigns/${id}/play#entry-${e.id}`} className="recent-link">
-                    <span className="nickname">{e.character_name || e.nickname}</span>
-                    <span className={`kind-badge kind-${e.kind}`}>{labelKind(e.kind)}</span>
-                    <span className="recent-summary">{summaryOf(e.segments)}</span>
+                  <Link
+                    href={`/campaigns/${id}/play#entry-${e.id}`}
+                    className="cd-recent-link"
+                  >
+                    <span className={`cd-recent-kind kind-${e.kind}`}>
+                      {labelKind(e.kind)}
+                    </span>
+                    <span className="cd-recent-who">
+                      {e.character_name || e.nickname}
+                    </span>
+                    <span className="cd-recent-summary">{summaryOf(e.segments)}</span>
+                    <span className="cd-recent-time">{formatTime(e.created_at)}</span>
                   </Link>
-                  <span className="text-faint small">{formatTime(e.created_at)}</span>
                 </li>
               ))}
             </ul>
           )}
           {entries.length > 0 ? (
-            <Link href={`/campaigns/${id}/play`} className="btn ghost" style={{ marginTop: "0.7rem" }}>
-              전체 보기
-            </Link>
+            <div className="cd-card-foot">
+              <Link href={`/campaigns/${id}/play`} className="btn ghost">
+                전체 로그 보기 →
+              </Link>
+            </div>
           ) : null}
         </section>
       </div>
 
-      {/* 4.7 위험 영역과 구분 */}
       {isKeeper ? (
         <>
           <div className="danger-divider" aria-hidden="true">

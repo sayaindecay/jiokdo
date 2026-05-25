@@ -55,8 +55,6 @@ export function CharacterSheet({
             <h1>{character.name}</h1>
             <div className="occupation">
               {character.occupation || "무직"}
-              <span className="sep">·</span>
-              <span>1928 · 경성</span>
               {character.age ? (
                 <>
                   <span className="sep">·</span>
