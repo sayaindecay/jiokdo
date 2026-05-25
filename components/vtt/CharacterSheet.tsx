@@ -5,6 +5,7 @@ import { Meter } from "./Meter";
 import { SkillList } from "./SkillList";
 import { RollButton } from "./RollButton";
 import { VitalsEditor } from "./VitalsEditor";
+import { PortraitSilhouette } from "./Illustrations";
 
 const ATTR_KEYS: { key: keyof Character["attrs"]; label: string }[] = [
   { key: "str", label: "STR" }, { key: "con", label: "CON" }, { key: "siz", label: "SIZ" },
@@ -46,7 +47,9 @@ export function CharacterSheet({
 
       <div className="sheet-shell">
         <div className="sheet-header">
-          <div className="sheet-portrait">📷</div>
+          <div className="sheet-portrait" title="초상화 업로드는 추후 지원 예정">
+            <PortraitSilhouette />
+          </div>
           <div className="sheet-title">
             <h1>{character.name}</h1>
             <div className="occupation">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Campaign, Session } from "@/lib/types";
+import { campaignHueStyle } from "@/lib/hue";
 
 export type CampaignTableRow = {
   campaign: Campaign;
@@ -61,6 +62,7 @@ export function CampaignsTable({ rows, myNick }: { rows: CampaignTableRow[]; myN
               href={`/campaigns/${r.campaign.id}`}
               className={`trow${r.status === "dormant" ? " dormant" : ""}`}
               aria-label={`${r.campaign.name}, ${sessionLabel}, 다음 세션 ${next.label}, 멤버 ${r.members_count}명, 상태 ${statusLabel}`}
+              style={campaignHueStyle(r.campaign.slug)}
             >
               <span className="c-name">{r.campaign.name}</span>
               <span className="c-role">{sessionLabel}</span>

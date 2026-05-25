@@ -1,4 +1,5 @@
 import type { BestiaryEntry } from "@/lib/types";
+import { MythicGlyph } from "./Illustrations";
 
 const ATTR_LABELS: { key: keyof BestiaryEntry["attrs"]; label: string }[] = [
   { key: "str", label: "STR" }, { key: "con", label: "CON" }, { key: "siz", label: "SIZ" },
@@ -23,6 +24,11 @@ export function StatBlock({
         </div>
       </div>
       <div className="sb-body">
+        {!compact ? (
+          <div className="glyph-illus">
+            <MythicGlyph />
+          </div>
+        ) : null}
         <div className="stat-grid">
           {ATTR_LABELS.map(({ key, label }) => {
             const v = a[key];

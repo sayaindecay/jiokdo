@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { listBestiary } from "@/lib/db";
+import { EmptyState } from "@/components/vtt/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,11 @@ export default async function BestiaryIndex({
       </form>
 
       {entries.length === 0 ? (
-        <div className="empty">결과 없음</div>
+        <EmptyState
+          variant="books"
+          title="해당하는 항목이 없습니다"
+          hint={q ? `"${q}"에 대한 결과 없음 — 다른 단어를 시도하세요` : "베스티어리가 비어 있습니다"}
+        />
       ) : (
         <div className="bestiary-grid">
           {entries.map((e) => (

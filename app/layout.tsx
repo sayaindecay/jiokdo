@@ -12,6 +12,7 @@ import {
 import { getAuthenticatedNickname, getNickname } from "@/lib/auth";
 import { NicknameBadge } from "@/components/NicknameBadge";
 import { SiteSearchTrigger } from "@/components/vtt/SiteSearchTrigger";
+import { ThemeBootstrap, ThemeToggle } from "@/components/vtt/ThemeToggle";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -66,7 +67,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     anno.variable, script.variable, kr.variable,
   ].join(" ");
   return (
-    <html lang="ko" className={fontVars}>
+    <html lang="ko" className={fontVars} suppressHydrationWarning>
+      <head>
+        <ThemeBootstrap />
+      </head>
       <body>
         <header className="site-header">
           <div className="wrap wrap-wide">
@@ -81,6 +85,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </nav>
             <div style={{ marginLeft: "auto", display: "flex", gap: "0.5rem", alignItems: "center" }}>
               <SiteSearchTrigger />
+              <ThemeToggle />
               <NicknameBadge nickname={nickname} authenticated={authenticated} />
             </div>
           </div>

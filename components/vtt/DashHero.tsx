@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Countdown } from "./Countdown";
 import type { Campaign, Session } from "@/lib/types";
+import { campaignHueStyle } from "@/lib/hue";
 
 export function DashHero({
   campaign, session, stats,
@@ -11,7 +12,7 @@ export function DashHero({
 }) {
   const hours = Math.round(stats.total_play_ms / (3600 * 1000));
   return (
-    <div className="dash-hero">
+    <div className="dash-hero" style={campaignHueStyle(campaign.slug)}>
       <div className="label">다음 세션까지</div>
       {session.scheduled_at ? (
         <Countdown targetMs={session.scheduled_at} />

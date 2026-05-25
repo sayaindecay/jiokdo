@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getNickname } from "@/lib/auth";
 import { searchAll, type SearchHit } from "@/lib/db";
 import { highlight } from "@/lib/highlight";
+import { EmptyState } from "@/components/vtt/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -123,13 +124,17 @@ export default async function SearchPage({
 
         <div>
           {!query ? (
-            <div className="empty">
-              상단 검색창에 단어를 입력하세요. 룰북·몬스터·캠페인·시트·단서가 출처별로 묶여 표시됩니다.
-            </div>
+            <EmptyState
+              variant="scroll"
+              title="검색어를 입력하세요"
+              hint="룰북·몬스터·캠페인·시트·단서가 출처별로 묶여 표시됩니다."
+            />
           ) : visibleHits.length === 0 ? (
-            <div className="empty">
-              <strong>{query}</strong> 에 대한 결과가 없습니다.
-            </div>
+            <EmptyState
+              variant="mist"
+              title={`"${query}" 에 대한 결과가 없습니다`}
+              hint="다른 단어를 시도하거나 facet 을 바꿔보세요."
+            />
           ) : (
             GROUPS.filter((g) =>
               active === "all" ? facetCounts[g.key] > 0 : g.key === active
