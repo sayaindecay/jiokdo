@@ -6,6 +6,12 @@ import type { Board, Comment, Post, Segment } from "./types";
 const url = process.env.TURSO_DATABASE_URL || "file:./data/jiokdo.db";
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
+if (process.env.VERCEL && url.startsWith("file:")) {
+  throw new Error(
+    "TURSO_DATABASE_URL이 설정되지 않았습니다. Vercel 프로젝트의 Environment Variables에 TURSO_DATABASE_URL과 TURSO_AUTH_TOKEN을 추가하고 재배포하세요."
+  );
+}
+
 if (url.startsWith("file:")) {
   const relative = url.slice(5);
   const abs = path.resolve(process.cwd(), relative);
@@ -59,6 +65,11 @@ function ensureReady(): Promise<void> {
     }
   })().catch((e) => {
     readyPromise = null;
+    console.error("[db] schema init failed", {
+      url: url.startsWith("libsql://") ? url.replace(/\/\/.+@/, "//") : url,
+      hasAuthToken: !!authToken,
+      error: e instanceof Error ? `${e.name}: ${e.message}` : String(e),
+    });
     throw e;
   });
   return readyPromise;
