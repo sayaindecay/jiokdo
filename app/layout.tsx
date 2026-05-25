@@ -73,7 +73,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <nav className="nav">
               <Link href="/">홈</Link>
               <Link href="/campaigns">캠페인</Link>
-              <Link href="/rules">룰북</Link>
+              <Link href="/rulebook">룰북</Link>
             </nav>
             <div style={{ marginLeft: "auto", display: "flex", gap: "0.5rem", alignItems: "center" }}>
               <SiteSearchTrigger />

@@ -24,7 +24,7 @@ export default async function LandingPage() {
             <Link href="/campaigns" className="btn primary">
               {nick ? "내 캠페인 열기" : "캠페인 시작"}
             </Link>
-            <Link href="/rules" className="btn ghost">룰북 보기</Link>
+            <Link href="/rulebook" className="btn ghost">룰북 보기</Link>
           </div>
           <div className="peek-stats">
             <div className="stat"><b>3,418</b><span>등록 탐사자</span></div>
@@ -48,7 +48,7 @@ export default async function LandingPage() {
           <div className="stats"><span><b>247</b> 활성</span><span><b>1.2k</b> 세션</span></div>
           <div className="recent"><b>방금</b> · 이도윤: 「토요일 9시 켈러 시나리오 4인 모집 中…」</div>
         </Link>
-        <Link href="/rules" className="board-card">
+        <Link href="/rulebook" className="board-card">
           <h2>룰북</h2>
           <p className="desc">CoC 7판 핵심 규칙 · 판정 · 전투 · 이성</p>
           <div className="stats"><span><b>96</b> 섹션</span><span><b>540</b> 참조</span></div>
