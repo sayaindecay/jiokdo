@@ -110,6 +110,40 @@ export async function createCharacterAction(fd: FormData): Promise<void> {
   redirect(`/characters/${id}`);
 }
 
+export async function rollCharacterCheckAction(fd: FormData): Promise<void> {
+  const nick = await getNickname();
+  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const characterId = num(fd, "character_id");
+  const ch = await getCharacter(characterId);
+  if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
+
+  const kind = text(fd, "roll_kind", 12); // "cc" | "roll"
+  const skillName = text(fd, "skill_name", 40);
+  const skillValue = num(fd, "skill_value");
+  const expression = text(fd, "expression", 40);
+
+  let line: string;
+  if (kind === "cc" && skillName && skillValue) {
+    line = `/cc ${skillName} ${skillValue}`;
+  } else if (kind === "cc" && skillValue) {
+    line = `/cc ${skillValue}`;
+  } else if (expression) {
+    line = `/${expression.startsWith("roll") ? expression : "roll " + expression}`;
+  } else {
+    throw new Error("굴림 정보가 없습니다");
+  }
+
+  const segments = contentToSegments(line);
+  await createPlayEntry({
+    campaign_id: ch.campaign_id,
+    nickname: nick,
+    character_id: ch.id,
+    kind: "dialogue",
+    segments,
+  });
+  revalidatePath(`/characters/${ch.id}`);
+}
+
 export async function updateCharacterVitalsAction(fd: FormData): Promise<void> {
   const nick = await getNickname();
   if (!nick) throw new Error("닉네임을 먼저 설정하세요");
