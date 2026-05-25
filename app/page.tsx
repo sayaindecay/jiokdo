@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { listBoards } from "@/lib/db";
 
-export default function HomePage() {
-  const boards = listBoards();
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const boards = await listBoards();
   return (
     <>
       <h1 className="page-title">게시판</h1>

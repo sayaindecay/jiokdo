@@ -10,9 +10,9 @@ export default async function BoardPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const board = getBoard(slug);
+  const board = await getBoard(slug);
   if (!board) notFound();
-  const posts = listPosts(board.slug);
+  const posts = await listPosts(board.slug);
 
   return (
     <>

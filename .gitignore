@@ -3,8 +3,8 @@ node_modules
 out
 dist
 *.log
-.env*
-!.env.example
-data/*.db
-data/*.db-journal
+.env
+.env.local
+.env.*.local
+data/
 .DS_Store

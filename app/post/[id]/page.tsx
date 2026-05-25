@@ -13,10 +13,10 @@ export default async function PostPage({
   const { id: idStr } = await params;
   const id = Number(idStr);
   if (!Number.isFinite(id)) notFound();
-  const post = getPost(id);
+  const post = await getPost(id);
   if (!post) notFound();
-  const board = getBoard(post.board_slug);
-  const comments = listComments(post.id);
+  const board = await getBoard(post.board_slug);
+  const comments = await listComments(post.id);
 
   return (
     <>

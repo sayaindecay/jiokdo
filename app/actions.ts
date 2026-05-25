@@ -18,7 +18,7 @@ function sanitizeText(raw: FormDataEntryValue | null, max: number): string {
 
 export async function createPostAction(formData: FormData): Promise<void> {
   const boardSlug = sanitizeText(formData.get("board_slug"), 32);
-  if (!getBoard(boardSlug)) throw new Error("게시판을 찾을 수 없습니다");
+  if (!(await getBoard(boardSlug))) throw new Error("게시판을 찾을 수 없습니다");
 
   const title = sanitizeText(formData.get("title"), 120);
   const content = sanitizeText(formData.get("content"), 20000);
@@ -28,7 +28,7 @@ export async function createPostAction(formData: FormData): Promise<void> {
   if (!content) throw new Error("내용을 입력하세요");
 
   const segments = contentToSegments(content);
-  const id = createPost({ board_slug: boardSlug, nickname, title, segments });
+  const id = await createPost({ board_slug: boardSlug, nickname, title, segments });
 
   revalidatePath(`/board/${boardSlug}`);
   redirect(`/post/${id}`);
@@ -36,7 +36,7 @@ export async function createPostAction(formData: FormData): Promise<void> {
 
 export async function createCommentAction(formData: FormData): Promise<void> {
   const postId = Number(formData.get("post_id"));
-  const post = getPost(postId);
+  const post = await getPost(postId);
   if (!post) throw new Error("글을 찾을 수 없습니다");
 
   const content = sanitizeText(formData.get("content"), 8000);
@@ -44,7 +44,7 @@ export async function createCommentAction(formData: FormData): Promise<void> {
   if (!content) throw new Error("내용을 입력하세요");
 
   const segments = contentToSegments(content);
-  createComment({ post_id: postId, nickname, segments });
+  await createComment({ post_id: postId, nickname, segments });
 
   revalidatePath(`/post/${postId}`);
 }
