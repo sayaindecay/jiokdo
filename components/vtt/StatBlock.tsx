@@ -70,9 +70,27 @@ export function StatBlock({
                 <div className="attack-row" key={i}>
                   <span className="name">{atk.name}</span>
                   <span className="formula">{atk.skill}% · {atk.damage}</span>
-                  <span className="roll-btn" style={{ opacity: 0.4, cursor: "default" }} title="향후 키퍼 액션">d100</span>
+                  <span
+                    className="roll-btn"
+                    style={{ opacity: 0.4, cursor: "default" }}
+                    title="씬 트래커에서 굴림 가능 — 추후 베스티어리 단독 굴림 지원 예정"
+                    aria-label="씬 트래커에서 사용 가능"
+                  >
+                    d100
+                  </span>
                 </div>
               ))}
+              <p
+                style={{
+                  marginTop: "0.4rem",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.04em",
+                  color: "var(--ink-3)",
+                }}
+              >
+                ※ 공격 굴림은 캠페인의 <a href="#" style={{ color: "inherit", textDecoration: "underline" }}>씬 트래커</a> 에서 사용합니다.
+              </p>
             </div>
           </>
         ) : null}

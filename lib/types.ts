@@ -94,10 +94,12 @@ export type BestiaryEntry = {
   name: string;
   category: string;
   description: string;
-  attrs: Partial<CocAttrs> & { hp?: number; move?: number; build?: number; damage_bonus?: string };
+  attrs: Partial<CocAttrs> & { hp?: number; move?: number | string; build?: number; damage_bonus?: string };
   attacks: { name: string; skill: number; damage: string; note?: string }[];
   sanity_loss: string;
   source: string;
+  created_by: string | null;
+  created_at: number;
 };
 
 export type RuleSection = {

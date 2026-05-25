@@ -2884,3 +2884,195 @@ select:focus-visible {
   font-size: 0.85rem;
   color: var(--ink-2);
 }
+
+/* ════════════════════════════════════════════════
+   베스티어리 폴리시 (9.1 ~ 9.6)
+   ════════════════════════════════════════════════ */
+
+/* 9.1 카테고리 필터 chip 바 */
+.bestiary-filter {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.bestiary-filter .label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-right: 0.3rem;
+}
+.bestiary-filter .filter-chip {
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all var(--tx-fast);
+}
+.bestiary-filter .filter-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.bestiary-filter .filter-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* 9.2 위협 등급 별 */
+.threat-stars {
+  display: inline-flex;
+  gap: 1px;
+  font-size: 0.78rem;
+  letter-spacing: -1px;
+}
+.threat-stars .on  { color: var(--accent); }
+.threat-stars .off { color: var(--line-strong); }
+.bestiary-card .threat-stars {
+  margin-left: auto;
+}
+.bestiary-card .card-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--line);
+  margin-top: 0.6rem;
+}
+
+/* 베스티어리 작성자 표시 */
+.bestiary-author {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.bestiary-author.user {
+  color: var(--accent);
+}
+
+/* 9.5 관련 항목 그리드 */
+.related-bestiary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+}
+.related-bestiary .mini-card {
+  display: block;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.85rem;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--tx);
+}
+.related-bestiary .mini-card:hover {
+  border-color: var(--accent);
+  transform: translate(-1px, -1px);
+}
+.related-bestiary .mini-card .n {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ink);
+}
+.related-bestiary .mini-card .c {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-3);
+  margin-top: 0.2rem;
+}
+
+/* 9.6 페이지네이션 */
+.pagination {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  align-items: center;
+  margin: 1.5rem 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+.pagination a, .pagination .disabled, .pagination .current {
+  padding: 0.35rem 0.7rem;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink-2);
+  background: var(--bg-elev);
+  transition: all var(--tx-fast);
+}
+.pagination a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.pagination .current {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.pagination .disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.pagination .info {
+  color: var(--ink-3);
+  margin: 0 0.5rem;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+/* 베스티어리 폼 */
+.bestiary-form .row {
+  display: grid;
+  gap: 0.7rem;
+  margin-bottom: 0.7rem;
+}
+.bestiary-form .row.cols-2 { grid-template-columns: 1fr 1fr; }
+.bestiary-form .row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.bestiary-form .row.cols-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 720px) {
+  .bestiary-form .row.cols-2,
+  .bestiary-form .row.cols-3,
+  .bestiary-form .row.cols-4 { grid-template-columns: 1fr 1fr; }
+}
+.bestiary-form .attr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.4rem;
+}
+.bestiary-form .attr-grid label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-2);
+  margin: 0;
+}
+.bestiary-form .attr-grid input {
+  width: 4.5rem;
+  text-align: center;
+  font-family: var(--font-mono);
+}
+.bestiary-form .attack-row-input {
+  display: grid;
+  grid-template-columns: 1.6fr 70px 1fr 1.4fr;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+@media (max-width: 720px) {
+  .bestiary-form .attack-row-input {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -68,7 +68,7 @@ export const RULE_SECTIONS: Omit<RuleSection, "id">[] = [
   },
 ];
 
-export const BESTIARY: Omit<BestiaryEntry, "id">[] = [
+export const BESTIARY: Omit<BestiaryEntry, "id" | "created_by" | "created_at">[] = [
   {
     slug: "deep-one",
     name: "딥 원 (Deep One)",

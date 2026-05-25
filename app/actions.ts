@@ -5,12 +5,15 @@ import { revalidatePath } from "next/cache";
 import { contentToSegments } from "@/lib/dice";
 import { cookies } from "next/headers";
 import {
-  createCampaign, createCharacter, createPlayEntry, createUser, createUserSessionRecord,
-  deleteCampaign, deleteCharacter, deleteOtherUserSessions, deleteUser, deleteUserSession,
-  findUser, getCampaign, getCampaignByCode, getCharacter, joinCampaign,
-  listKeperCampaigns, touchUserLogin, updateCharacterProfile, updateCharacterVitals,
+  createBestiaryEntry, createCampaign, createCharacter, createPlayEntry,
+  createUser, createUserSessionRecord, deleteBestiaryEntry, deleteCampaign,
+  deleteCharacter, deleteOtherUserSessions, deleteUser, deleteUserSession,
+  findUser, getBestiaryEntry, getCampaign, getCampaignByCode, getCharacter,
+  isBestiarySlugTaken, joinCampaign, listKeperCampaigns, touchUserLogin,
+  updateBestiaryEntry, updateCharacterProfile, updateCharacterVitals,
   updateUserPassword,
 } from "@/lib/db";
+import type { BestiaryEntry } from "@/lib/types";
 import {
   clearAuthCookies, clearNickname, getAuthenticatedNickname, setNicknameCookie,
   setSessionCookie, SESSION_DURATION_MS,
@@ -401,6 +404,110 @@ export async function updateCharacterVitalsAction(fd: FormData): Promise<void> {
     san: Math.max(0, Math.min(ch.san_max, num(fd, "san"))),
   });
   revalidatePath(`/characters/${id}`);
+}
+
+// ───── 베스티어리 ─────
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9가-힣\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 60);
+}
+
+function parseBestiaryFormData(fd: FormData): {
+  name: string;
+  category: string;
+  description: string;
+  attrs: BestiaryEntry["attrs"];
+  attacks: BestiaryEntry["attacks"];
+  sanity_loss: string;
+  source: string;
+} {
+  const name = text(fd, "name", 80);
+  if (!name) throw new Error("이름을 입력하세요");
+  const category = text(fd, "category", 80);
+  const description = text(fd, "description", 2000);
+  const sanity_loss = text(fd, "sanity_loss", 24);
+  const source = text(fd, "source", 80) || "사용자 등록";
+
+  const attrs: BestiaryEntry["attrs"] = {};
+  const intKeys = ["str", "con", "siz", "dex", "int", "pow", "app", "edu", "hp", "build"] as const;
+  for (const k of intKeys) {
+    const raw = text(fd, `attr_${k}`, 6);
+    if (raw) {
+      const n = Number(raw);
+      if (Number.isFinite(n)) (attrs as Record<string, number>)[k] = n;
+    }
+  }
+  const move = text(fd, "attr_move", 16);
+  if (move) attrs.move = move;
+  const db_str = text(fd, "attr_damage_bonus", 24);
+  if (db_str) attrs.damage_bonus = db_str;
+
+  // attacks: 최대 5개
+  const attacks: BestiaryEntry["attacks"] = [];
+  for (let i = 0; i < 5; i++) {
+    const an = text(fd, `attack_${i}_name`, 60);
+    if (!an) continue;
+    const skillRaw = text(fd, `attack_${i}_skill`, 4);
+    const skill = Number(skillRaw);
+    const damage = text(fd, `attack_${i}_damage`, 80);
+    const note = text(fd, `attack_${i}_note`, 120);
+    if (an && Number.isFinite(skill)) {
+      attacks.push({ name: an, skill, damage, note: note || undefined });
+    }
+  }
+
+  return { name, category, description, attrs, attacks, sanity_loss, source };
+}
+
+export async function createBestiaryAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const parsed = parseBestiaryFormData(fd);
+  let slug = slugify(parsed.name) || `m-${Date.now()}`;
+  for (let i = 2; i < 20; i++) {
+    if (!(await isBestiarySlugTaken(slug))) break;
+    slug = `${slugify(parsed.name)}-${i}`;
+  }
+  await createBestiaryEntry({ ...parsed, slug, created_by: nick });
+  revalidatePath("/bestiary");
+  revalidatePath(`/bestiary/${slug}`);
+  redirect(`/bestiary/${slug}`);
+}
+
+export async function updateBestiaryAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const slug = text(fd, "slug", 80);
+  const existing = await getBestiaryEntry(slug);
+  if (!existing) throw new Error("항목을 찾을 수 없습니다");
+  if (existing.created_by !== nick) {
+    throw new Error("본인이 등록한 항목만 편집할 수 있습니다");
+  }
+  const parsed = parseBestiaryFormData(fd);
+  await updateBestiaryEntry(slug, parsed);
+  revalidatePath("/bestiary");
+  revalidatePath(`/bestiary/${slug}`);
+  redirect(`/bestiary/${slug}`);
+}
+
+export async function deleteBestiaryAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const slug = text(fd, "slug", 80);
+  const existing = await getBestiaryEntry(slug);
+  if (!existing) throw new Error("항목을 찾을 수 없습니다");
+  if (existing.created_by !== nick) {
+    throw new Error("본인이 등록한 항목만 삭제할 수 있습니다");
+  }
+  const confirmName = text(fd, "confirm_name", 80);
+  if (confirmName !== existing.name) {
+    throw new Error("확인을 위해 이름을 정확히 입력하세요");
+  }
+  await deleteBestiaryEntry(slug);
+  revalidatePath("/bestiary");
+  redirect("/bestiary");
 }
 
 export async function postPlayEntryAction(fd: FormData): Promise<void> {

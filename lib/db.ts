@@ -70,7 +70,9 @@ function ensureReady(): Promise<void> {
         attrs_json TEXT NOT NULL,
         attacks_json TEXT NOT NULL,
         sanity_loss TEXT NOT NULL DEFAULT '',
-        source TEXT NOT NULL DEFAULT 'core'
+        source TEXT NOT NULL DEFAULT 'core',
+        created_by TEXT,
+        created_at INTEGER NOT NULL DEFAULT 0
       )`,
       `CREATE TABLE IF NOT EXISTS rule_sections (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -128,6 +130,14 @@ function ensureReady(): Promise<void> {
       `CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at)`,
     ], "write");
 
+    // 기존 DB 마이그레이션 (컬럼 추가) — 실패 시 무시
+    for (const stmt of [
+      "ALTER TABLE bestiary ADD COLUMN created_by TEXT",
+      "ALTER TABLE bestiary ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0",
+    ]) {
+      try { await client.execute(stmt); } catch { /* 이미 존재 */ }
+    }
+
     for (const s of RULE_SECTIONS) {
       await client.execute({
         sql: `INSERT OR IGNORE INTO rule_sections (slug, parent_slug, title, body, order_index) VALUES (?, ?, ?, ?, ?)`,
@@ -182,24 +192,141 @@ function rowToBestiary(r: Record<string, unknown>): BestiaryEntry {
     attrs: JSON.parse(String(r.attrs_json)),
     attacks: JSON.parse(String(r.attacks_json)),
     sanity_loss: String(r.sanity_loss), source: String(r.source),
+    created_by: r.created_by == null ? null : String(r.created_by),
+    created_at: r.created_at == null ? 0 : Number(r.created_at),
   };
 }
-export async function listBestiary(query?: string): Promise<BestiaryEntry[]> {
+export async function listBestiary(
+  query?: string,
+  options?: { category?: string; limit?: number; offset?: number }
+): Promise<BestiaryEntry[]> {
   await ensureReady();
-  const q = query ? `%${query.toLowerCase()}%` : null;
-  const res = q
-    ? await client.execute({
-        sql: "SELECT * FROM bestiary WHERE LOWER(name) LIKE ? OR LOWER(category) LIKE ? OR LOWER(description) LIKE ? ORDER BY name",
-        args: [q, q, q],
-      })
-    : await client.execute("SELECT * FROM bestiary ORDER BY name");
+  const conds: string[] = [];
+  const args: (string | number)[] = [];
+  if (query) {
+    const q = `%${query.toLowerCase()}%`;
+    conds.push("(LOWER(name) LIKE ? OR LOWER(category) LIKE ? OR LOWER(description) LIKE ?)");
+    args.push(q, q, q);
+  }
+  if (options?.category) {
+    const c = `%${options.category.toLowerCase()}%`;
+    conds.push("LOWER(category) LIKE ?");
+    args.push(c);
+  }
+  const where = conds.length ? `WHERE ${conds.join(" AND ")}` : "";
+  const limit = options?.limit ?? 50;
+  const offset = options?.offset ?? 0;
+  args.push(limit, offset);
+  const res = await client.execute({
+    sql: `SELECT * FROM bestiary ${where} ORDER BY name LIMIT ? OFFSET ?`,
+    args,
+  });
   return res.rows.map((r) => rowToBestiary(r as unknown as Record<string, unknown>));
+}
+export async function countBestiaryWith(
+  query?: string,
+  category?: string,
+): Promise<number> {
+  await ensureReady();
+  const conds: string[] = [];
+  const args: string[] = [];
+  if (query) {
+    const q = `%${query.toLowerCase()}%`;
+    conds.push("(LOWER(name) LIKE ? OR LOWER(category) LIKE ? OR LOWER(description) LIKE ?)");
+    args.push(q, q, q);
+  }
+  if (category) {
+    const c = `%${category.toLowerCase()}%`;
+    conds.push("LOWER(category) LIKE ?");
+    args.push(c);
+  }
+  const where = conds.length ? `WHERE ${conds.join(" AND ")}` : "";
+  const res = await client.execute({
+    sql: `SELECT COUNT(*) AS n FROM bestiary ${where}`,
+    args,
+  });
+  return Number(res.rows[0]?.n ?? 0);
 }
 export async function getBestiaryEntry(slug: string): Promise<BestiaryEntry | null> {
   await ensureReady();
   const res = await client.execute({ sql: "SELECT * FROM bestiary WHERE slug = ?", args: [slug] });
   const r = res.rows[0];
   return r ? rowToBestiary(r as unknown as Record<string, unknown>) : null;
+}
+export async function findRelatedBestiary(slug: string, category: string, limit = 4): Promise<BestiaryEntry[]> {
+  await ensureReady();
+  const c = `%${category.toLowerCase()}%`;
+  const res = await client.execute({
+    sql: `SELECT * FROM bestiary
+          WHERE slug != ?
+            AND (LOWER(category) LIKE ? OR ? = '')
+          ORDER BY name LIMIT ?`,
+    args: [slug, c, category, limit],
+  });
+  return res.rows.map((r) => rowToBestiary(r as unknown as Record<string, unknown>));
+}
+
+export async function createBestiaryEntry(input: {
+  slug: string;
+  name: string;
+  category: string;
+  description: string;
+  attrs: BestiaryEntry["attrs"];
+  attacks: BestiaryEntry["attacks"];
+  sanity_loss: string;
+  source: string;
+  created_by: string;
+}): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: `INSERT INTO bestiary (slug, name, category, description, attrs_json, attacks_json, sanity_loss, source, created_by, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      input.slug, input.name, input.category, input.description,
+      JSON.stringify(input.attrs), JSON.stringify(input.attacks),
+      input.sanity_loss, input.source, input.created_by, Date.now(),
+    ],
+  });
+}
+
+export async function updateBestiaryEntry(slug: string, input: {
+  name: string;
+  category: string;
+  description: string;
+  attrs: BestiaryEntry["attrs"];
+  attacks: BestiaryEntry["attacks"];
+  sanity_loss: string;
+  source: string;
+}): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: `UPDATE bestiary SET name = ?, category = ?, description = ?,
+            attrs_json = ?, attacks_json = ?, sanity_loss = ?, source = ?
+          WHERE slug = ?`,
+    args: [
+      input.name, input.category, input.description,
+      JSON.stringify(input.attrs), JSON.stringify(input.attacks),
+      input.sanity_loss, input.source, slug,
+    ],
+  });
+}
+
+export async function deleteBestiaryEntry(slug: string): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "DELETE FROM bestiary WHERE slug = ?",
+    args: [slug],
+  });
+  return Number(res.rowsAffected) > 0;
+}
+
+export async function isBestiarySlugTaken(slug: string): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT 1 FROM bestiary WHERE slug = ? LIMIT 1",
+    args: [slug],
+  });
+  return res.rows.length > 0;
 }
 
 // ───── 캠페인 ─────
