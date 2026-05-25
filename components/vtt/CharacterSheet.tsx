@@ -108,8 +108,8 @@ export function CharacterSheet({
             <h3>특성 / Characteristics</h3>
             {ATTR_KEYS.map(({ key, label }) => {
               const value = character.attrs[key];
-              return (
-                <div className="char-row" key={key}>
+              const inner = (
+                <>
                   <span className="key">{label}</span>
                   <span className="val">{value}</span>
                   <span className="halves" aria-label={`반값 ${Math.floor(value / 2)}, 5분의 1값 ${Math.floor(value / 5)}`}>
@@ -122,19 +122,21 @@ export function CharacterSheet({
                       <span className="hc-val">{Math.floor(value / 5)}</span>
                     </span>
                   </span>
-                  {isOwner ? (
-                    <RollButton
-                      characterId={character.id}
-                      skillName={label}
-                      skillValue={value}
-                      className="roll-btn"
-                    >
-                      d100
-                    </RollButton>
-                  ) : (
-                    <span className="roll-btn" style={{ opacity: 0.4, cursor: "default" }}>d100</span>
-                  )}
-                </div>
+                  <span className="roll-mark" aria-hidden="true">d100</span>
+                </>
+              );
+              return isOwner ? (
+                <RollButton
+                  key={key}
+                  characterId={character.id}
+                  skillName={label}
+                  skillValue={value}
+                  className="char-row rollable"
+                >
+                  {inner}
+                </RollButton>
+              ) : (
+                <div className="char-row" key={key}>{inner}</div>
               );
             })}
 
