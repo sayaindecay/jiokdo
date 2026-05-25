@@ -22,7 +22,8 @@ function summaryOf(segs: Segment[]): string {
   for (const s of segs) {
     if (s.type === "dice") {
       if (s.result.kind === "cc") {
-        return `${s.result.name ?? "1d100"} → ${s.result.roll} ${LEVEL_LABEL[s.result.level]}`;
+        const prefix = s.result.name ? `${s.result.name} → ` : "";
+        return `${prefix}${s.result.roll} ${LEVEL_LABEL[s.result.level]}`;
       }
       return `${s.result.notation} = ${s.result.total}`;
     }
