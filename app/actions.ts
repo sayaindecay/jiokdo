@@ -6,9 +6,10 @@ import { contentToSegments } from "@/lib/dice";
 import { cookies } from "next/headers";
 import {
   createCampaign, createCharacter, createPlayEntry, createUser, createUserSessionRecord,
-  deleteCampaign, deleteCharacter, deleteUserSession, findUser, getCampaign,
-  getCampaignByCode, getCharacter, joinCampaign, touchUserLogin,
-  updateCharacterProfile, updateCharacterVitals,
+  deleteCampaign, deleteCharacter, deleteOtherUserSessions, deleteUser, deleteUserSession,
+  findUser, getCampaign, getCampaignByCode, getCharacter, joinCampaign,
+  listKeperCampaigns, touchUserLogin, updateCharacterProfile, updateCharacterVitals,
+  updateUserPassword,
 } from "@/lib/db";
 import {
   clearAuthCookies, clearNickname, getAuthenticatedNickname, setNicknameCookie,
@@ -81,6 +82,57 @@ export async function loginAction(fd: FormData): Promise<void> {
   await startSessionFor(user.nickname);
   const redirectTo = text(fd, "redirect", 200);
   redirect(redirectTo || "/campaigns");
+}
+
+export async function changePasswordAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const current = text(fd, "current_password", 200);
+  const next = text(fd, "new_password", 200);
+  if (!current || !next) throw new Error("현재/새 비밀번호를 모두 입력하세요");
+  if (current === next) throw new Error("새 비밀번호가 현재와 같습니다");
+  const pwCheck = validatePassword(next);
+  if (!pwCheck.ok) throw new Error(pwCheck.reason);
+
+  const user = await findUser(nick);
+  if (!user) throw new Error("계정을 찾을 수 없습니다");
+  const ok = await verifyPassword(current, user.password_hash, user.password_salt);
+  if (!ok) throw new Error("현재 비밀번호가 올바르지 않습니다");
+
+  const { hash, salt } = await hashPassword(next);
+  await updateUserPassword(nick, hash, salt);
+
+  // 다른 디바이스/세션 자동 로그아웃
+  const c = await cookies();
+  const currentToken = c.get("jiokdo_session")?.value;
+  if (currentToken) await deleteOtherUserSessions(nick, currentToken);
+
+  revalidatePath("/account");
+  redirect("/account?changed=password");
+}
+
+export async function deleteAccountAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const password = text(fd, "password", 200);
+  const confirmNick = text(fd, "confirm_nickname", 32);
+  if (confirmNick !== nick) throw new Error("닉네임 확인이 일치하지 않습니다");
+
+  const user = await findUser(nick);
+  if (!user) throw new Error("계정을 찾을 수 없습니다");
+  const ok = await verifyPassword(password, user.password_hash, user.password_salt);
+  if (!ok) throw new Error("비밀번호가 올바르지 않습니다");
+
+  // 키퍼 캠페인이 남아 있으면 차단 (협업자 데이터 보호)
+  const owned = await listKeperCampaigns(nick);
+  if (owned.length > 0) {
+    throw new Error(
+      `키퍼로 있는 캠페인 ${owned.length}개를 먼저 정리해야 합니다 (대시보드의 위험 영역에서 삭제).`
+    );
+  }
+
+  const removed = await deleteUser(nick);
+  if (!removed) throw new Error("계정 삭제에 실패했습니다");
+  await clearAuthCookies();
+  redirect("/?bye=1");
 }
 
 export async function logoutAction(): Promise<void> {

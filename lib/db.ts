@@ -928,6 +928,53 @@ export async function findUserSession(token: string): Promise<{ nickname: string
   return { nickname: String(r.nickname), expires_at: expiresAt };
 }
 
+export async function updateUserPassword(nick: string, hash: string, salt: string): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: "UPDATE users SET password_hash = ?, password_salt = ? WHERE nickname = ?",
+    args: [hash, salt, nick],
+  });
+}
+
+export async function deleteUser(nick: string): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "DELETE FROM users WHERE nickname = ?",
+    args: [nick],
+  });
+  return Number(res.rowsAffected) > 0;
+}
+
+export async function deleteOtherUserSessions(nick: string, exceptToken: string): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: "DELETE FROM user_sessions WHERE nickname = ? AND token != ?",
+    args: [nick, exceptToken],
+  });
+}
+
+export async function countActiveUserSessions(nick: string): Promise<number> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT COUNT(*) AS n FROM user_sessions WHERE nickname = ? AND expires_at > ?",
+    args: [nick, Date.now()],
+  });
+  return Number(res.rows[0]?.n ?? 0);
+}
+
+export async function listKeperCampaigns(nick: string): Promise<Campaign[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `SELECT c.*,
+            (SELECT COUNT(*) FROM campaign_members m WHERE m.campaign_id = c.id) AS member_count,
+            (SELECT COUNT(*) FROM characters ch WHERE ch.campaign_id = c.id) AS character_count
+          FROM campaigns c WHERE c.keeper_nick = ?
+          ORDER BY c.created_at DESC`,
+    args: [nick],
+  });
+  return res.rows.map((r) => rowToCampaign(r as unknown as Record<string, unknown>));
+}
+
 export async function deleteUserSession(token: string): Promise<void> {
   await ensureReady();
   await client.execute({

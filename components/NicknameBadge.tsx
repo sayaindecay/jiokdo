@@ -17,10 +17,15 @@ export function NicknameBadge({
   if (authenticated && nickname) {
     return (
       <div className="nick-badge" aria-label={`로그인: ${nickname}`}>
-        <span className="nick-badge-inner">
+        <Link
+          href="/account"
+          className="nick-badge-inner"
+          title="내 계정"
+          style={{ color: "var(--ink)" }}
+        >
           <span className="dot" aria-hidden="true" />
           {nickname}
-        </span>
+        </Link>
         <form action={logoutAction}>
           <button type="submit" className="link-btn" title="로그아웃">로그아웃</button>
         </form>
