@@ -36,7 +36,13 @@ export type CocAttrs = {
   pow: number; edu: number; luck: number;
 };
 
-export type CocSkill = { name: string; value: number };
+export type CocSkillGroup = "combat" | "investigation" | "social" | "academic" | "other";
+export type CocSkill = {
+  name: string;
+  value: number;
+  used?: boolean;
+  group?: CocSkillGroup;
+};
 export type CocWeapon = {
   name: string;
   skill: number;

@@ -577,3 +577,25 @@ export async function listActivityFor(nick: string, limit = 8): Promise<Activity
     campaign_id: Number(r.c_id),
   }));
 }
+
+export async function listRecentCharacterRolls(characterId: number, limit = 5): Promise<PlayEntry[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `SELECT p.*, c.name AS character_name
+          FROM play_entries p
+          LEFT JOIN characters c ON c.id = p.character_id
+          WHERE p.character_id = ? AND p.segments_json LIKE '%"type":"dice"%'
+          ORDER BY p.created_at DESC LIMIT ?`,
+    args: [characterId, limit],
+  });
+  return res.rows.map((r) => ({
+    id: Number(r.id),
+    campaign_id: Number(r.campaign_id),
+    nickname: String(r.nickname),
+    character_id: r.character_id == null ? null : Number(r.character_id),
+    character_name: r.character_name == null ? undefined : String(r.character_name),
+    kind: String(r.kind) as PlayEntry["kind"],
+    segments: JSON.parse(String(r.segments_json)) as Segment[],
+    created_at: Number(r.created_at),
+  }));
+}

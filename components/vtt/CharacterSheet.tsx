@@ -1,0 +1,184 @@
+import Link from "next/link";
+import type { Campaign, Character, PlayEntry } from "@/lib/types";
+import { LEVEL_LABEL } from "@/lib/dice";
+import { Meter } from "./Meter";
+import { SkillList } from "./SkillList";
+import { RollButton } from "./RollButton";
+import { VitalsEditor } from "./VitalsEditor";
+
+const ATTR_KEYS: { key: keyof Character["attrs"]; label: string }[] = [
+  { key: "str", label: "STR" }, { key: "con", label: "CON" }, { key: "siz", label: "SIZ" },
+  { key: "dex", label: "DEX" }, { key: "app", label: "APP" }, { key: "int", label: "INT" },
+  { key: "pow", label: "POW" }, { key: "edu", label: "EDU" },
+];
+
+export function CharacterSheet({
+  character, campaign, recentRolls, isOwner,
+}: {
+  character: Character;
+  campaign: Campaign | null;
+  recentRolls: PlayEntry[];
+  isOwner: boolean;
+}) {
+  return (
+    <>
+      <div className="breadcrumb">
+        {campaign ? (
+          <>
+            <Link href={`/campaigns/${campaign.id}`}>{campaign.name}</Link>
+            <span className="sep">/</span>
+            <span>캐릭터</span>
+            <span className="sep">/</span>
+          </>
+        ) : null}
+        <span>{character.name}</span>
+      </div>
+
+      <div className="sheet-shell">
+        <div className="sheet-header">
+          <div className="sheet-portrait">📷</div>
+          <div className="sheet-title">
+            <h1>{character.name}</h1>
+            <div className="occupation">
+              {character.occupation || "무직"}
+              {character.age ? ` · 1928 · 경성 · ${character.age}세` : " · 1928"}
+            </div>
+            <div className="meta">
+              <span>POW {character.attrs.pow}</span><span>·</span>
+              <span>EDU {character.attrs.edu}</span><span>·</span>
+              <span>SAN {character.san}/{character.san_max}</span>
+            </div>
+          </div>
+          <div className="sheet-actions">
+            {campaign ? (
+              <Link href={`/campaigns/${campaign.id}/play`} className="btn">
+                세션 입장
+              </Link>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="sheet-body">
+          {/* Col 1: attrs + status */}
+          <div className="sheet-col">
+            <h3>특성 / Characteristics</h3>
+            {ATTR_KEYS.map(({ key, label }) => {
+              const value = character.attrs[key];
+              return (
+                <div className="char-row" key={key}>
+                  <span className="key">{label}</span>
+                  <span className="val">{value}</span>
+                  <span className="halves">
+                    ½ {Math.floor(value / 2)} · ⅕ {Math.floor(value / 5)}
+                  </span>
+                  {isOwner ? (
+                    <RollButton
+                      characterId={character.id}
+                      skillName={label}
+                      skillValue={value}
+                      className="roll-btn"
+                    >
+                      d100
+                    </RollButton>
+                  ) : (
+                    <span className="roll-btn" style={{ opacity: 0.4, cursor: "default" }}>d100</span>
+                  )}
+                </div>
+              );
+            })}
+
+            <h3>상태 / Status</h3>
+            <Meter label="HP" current={character.hp} max={character.hp_max} variant="hp" />
+            <Meter label="MP" current={character.mp} max={character.mp_max} variant="mp" />
+            <Meter label="SAN" current={character.san} max={character.san_max} variant="san" />
+            <Meter label="LUCK" current={character.attrs.luck} max={99} variant="luck" />
+
+            <div className="condition-row">
+              {character.hp < character.hp_max / 2
+                ? <span className="tag-pill red">경상</span>
+                : null}
+              {character.san < 30
+                ? <span className="tag-pill red">위험 SAN</span>
+                : null}
+              {character.mp === 0
+                ? <span className="tag-pill">MP 고갈</span>
+                : null}
+            </div>
+
+            {isOwner ? (
+              <VitalsEditor character={character} />
+            ) : null}
+          </div>
+
+          {/* Col 2: skills */}
+          <div className="sheet-col">
+            <SkillList
+              characterId={character.id}
+              skills={character.skills}
+              canRoll={isOwner}
+            />
+          </div>
+
+          {/* Col 3: backstory + inventory + recent rolls */}
+          <div className="sheet-col">
+            <h3>배경 / Backstory</h3>
+            {character.backstory ? (
+              <div className="note-block">
+                <div className="note-title">배경 노트</div>
+                {character.backstory}
+              </div>
+            ) : (
+              <div className="note-block" style={{ color: "var(--ink-3)" }}>
+                <div className="note-title">아직 비어 있음</div>
+                이상·의미 있는 사람·소중한 장소를 적어보세요.
+              </div>
+            )}
+
+            <h3>무기 · 소지품</h3>
+            <ul className="inv-list">
+              {character.weapons.map((w, i) => (
+                <li key={`w-${i}`}>
+                  {w.name} <span className="qty">{w.damage}</span>
+                </li>
+              ))}
+              {character.weapons.length === 0 ? (
+                <li style={{ color: "var(--ink-3)" }}>등록된 무기 없음</li>
+              ) : null}
+            </ul>
+
+            <h3>최근 굴림</h3>
+            {recentRolls.length === 0 ? (
+              <div className="empty" style={{ padding: "1rem", marginTop: "0.4rem" }}>
+                아직 굴림 기록이 없습니다.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                {recentRolls.map((entry) =>
+                  entry.segments.flatMap((seg, segIdx) => {
+                    if (seg.type !== "dice") return [];
+                    const r = seg.result;
+                    if (r.kind === "cc") {
+                      return [
+                        <div key={`${entry.id}-${segIdx}`} className="dice-block cc" style={{ fontSize: "0.78rem", padding: "0.4rem 0.6rem" }}>
+                          <span className="expr">{r.name ? `${r.name} (${r.skill})` : `1d100 ≤ ${r.skill}`}</span>
+                          <span className="total">→ {r.roll}</span>
+                          <span className={`level ${r.level}`}>{LEVEL_LABEL[r.level]}</span>
+                        </div>,
+                      ];
+                    }
+                    return [
+                      <div key={`${entry.id}-${segIdx}`} className="dice-block" style={{ fontSize: "0.78rem", padding: "0.4rem 0.6rem" }}>
+                        <span className="expr">{r.notation}</span>
+                        <span className="total">= {r.total}</span>
+                      </div>,
+                    ];
+                  })
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
