@@ -1,13 +1,17 @@
 import "./globals.css";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { getNickname } from "@/lib/auth";
+import { NicknameBadge } from "@/components/NicknameBadge";
+import { SearchBar } from "@/components/SearchBar";
 
 export const metadata = {
-  title: "지옥도 — TRPG 게시판",
-  description: "TRPG 롤플레잉 + 다이스 굴림이 가능한 게시판",
+  title: "지옥도 — TRPG VTT",
+  description: "Call of Cthulhu 비동기 가상 테이블탑",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const nickname = await getNickname();
   return (
     <html lang="ko">
       <head>
@@ -20,21 +24,26 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <header className="site-header">
-          <div className="wrap">
+          <div className="wrap header-inner">
             <Link href="/" className="brand">
               <span className="brand-mark">d100</span>
               <span>지옥도</span>
             </Link>
             <nav className="nav">
-              <Link href="/">게시판</Link>
-              <Link href="/help">도움말</Link>
+              <Link href="/campaigns">캠페인</Link>
+              <Link href="/rules">룰북</Link>
+              <Link href="/bestiary">몬스터</Link>
             </nav>
+            <div className="header-right">
+              <SearchBar />
+              <NicknameBadge nickname={nickname} />
+            </div>
           </div>
         </header>
         <main className="wrap main">{children}</main>
         <footer className="site-footer">
           <div className="wrap">
-            <span>지옥도 · TRPG 다이스 게시판</span>
+            지옥도 · Call of Cthulhu 비동기 VTT
           </div>
         </footer>
       </body>

@@ -1,190 +1,435 @@
 import { createClient } from "@libsql/client";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
-import type { Board, Comment, Post, Segment } from "./types";
+import type {
+  BestiaryEntry, Campaign, CampaignMember, Character,
+  CocAttrs, CocSkill, CocWeapon, PlayEntry, RuleSection, Segment,
+} from "./types";
+import { BESTIARY, RULE_SECTIONS } from "./seed-data";
 
 const url = process.env.TURSO_DATABASE_URL || "file:./data/jiokdo.db";
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 if (process.env.VERCEL && url.startsWith("file:")) {
   throw new Error(
-    "TURSO_DATABASE_URL이 설정되지 않았습니다. Vercel 프로젝트의 Environment Variables에 TURSO_DATABASE_URL과 TURSO_AUTH_TOKEN을 추가하고 재배포하세요."
+    "TURSO_DATABASE_URL이 설정되지 않았습니다. Vercel Environment Variables에 추가하세요."
   );
 }
-
 if (url.startsWith("file:")) {
-  const relative = url.slice(5);
-  const abs = path.resolve(process.cwd(), relative);
+  const abs = path.resolve(process.cwd(), url.slice(5));
   mkdirSync(path.dirname(abs), { recursive: true });
 }
 
 const client = createClient({ url, authToken });
 
-const DEFAULT_BOARDS: Board[] = [
-  { slug: "lobby", name: "로비", description: "TRPG 잡담, 모집, 후기" },
-  { slug: "scenario", name: "시나리오", description: "직접 만든 시나리오/공개 자료" },
-  { slug: "session", name: "세션", description: "플레이 로그, 진행 중인 세션" },
-];
-
 let readyPromise: Promise<void> | null = null;
 function ensureReady(): Promise<void> {
   if (readyPromise) return readyPromise;
   readyPromise = (async () => {
-    await client.batch(
-      [
-        `CREATE TABLE IF NOT EXISTS boards (
-          slug TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          description TEXT NOT NULL DEFAULT ''
-        )`,
-        `CREATE TABLE IF NOT EXISTS posts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          board_slug TEXT NOT NULL REFERENCES boards(slug),
-          nickname TEXT NOT NULL,
-          title TEXT NOT NULL,
-          segments_json TEXT NOT NULL,
-          created_at INTEGER NOT NULL
-        )`,
-        `CREATE INDEX IF NOT EXISTS idx_posts_board ON posts(board_slug, created_at DESC)`,
-        `CREATE TABLE IF NOT EXISTS comments (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-          nickname TEXT NOT NULL,
-          segments_json TEXT NOT NULL,
-          created_at INTEGER NOT NULL
-        )`,
-        `CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id, created_at ASC)`,
-      ],
-      "write"
-    );
-    for (const b of DEFAULT_BOARDS) {
+    await client.batch([
+      `CREATE TABLE IF NOT EXISTS campaigns (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        slug TEXT UNIQUE NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        invite_code TEXT NOT NULL UNIQUE,
+        keeper_nick TEXT NOT NULL,
+        system TEXT NOT NULL DEFAULT 'coc',
+        created_at INTEGER NOT NULL
+      )`,
+      `CREATE TABLE IF NOT EXISTS campaign_members (
+        campaign_id INTEGER NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+        nickname TEXT NOT NULL,
+        role TEXT NOT NULL,
+        joined_at INTEGER NOT NULL,
+        PRIMARY KEY (campaign_id, nickname)
+      )`,
+      `CREATE TABLE IF NOT EXISTS characters (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        campaign_id INTEGER NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+        owner_nick TEXT NOT NULL,
+        name TEXT NOT NULL,
+        occupation TEXT NOT NULL DEFAULT '',
+        age INTEGER,
+        attrs_json TEXT NOT NULL,
+        hp INTEGER NOT NULL, hp_max INTEGER NOT NULL,
+        mp INTEGER NOT NULL, mp_max INTEGER NOT NULL,
+        san INTEGER NOT NULL, san_max INTEGER NOT NULL,
+        skills_json TEXT NOT NULL,
+        weapons_json TEXT NOT NULL,
+        backstory TEXT NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS idx_chars_campaign ON characters(campaign_id)`,
+      `CREATE TABLE IF NOT EXISTS bestiary (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        slug TEXT UNIQUE NOT NULL,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT '',
+        description TEXT NOT NULL DEFAULT '',
+        attrs_json TEXT NOT NULL,
+        attacks_json TEXT NOT NULL,
+        sanity_loss TEXT NOT NULL DEFAULT '',
+        source TEXT NOT NULL DEFAULT 'core'
+      )`,
+      `CREATE TABLE IF NOT EXISTS rule_sections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        slug TEXT UNIQUE NOT NULL,
+        parent_slug TEXT,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL,
+        order_index INTEGER NOT NULL DEFAULT 0
+      )`,
+      `CREATE TABLE IF NOT EXISTS play_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        campaign_id INTEGER NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+        nickname TEXT NOT NULL,
+        character_id INTEGER REFERENCES characters(id) ON DELETE SET NULL,
+        kind TEXT NOT NULL,
+        segments_json TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS idx_play_campaign ON play_entries(campaign_id, created_at ASC)`,
+    ], "write");
+
+    for (const s of RULE_SECTIONS) {
       await client.execute({
-        sql: "INSERT OR IGNORE INTO boards (slug, name, description) VALUES (?, ?, ?)",
-        args: [b.slug, b.name, b.description],
+        sql: `INSERT OR IGNORE INTO rule_sections (slug, parent_slug, title, body, order_index) VALUES (?, ?, ?, ?, ?)`,
+        args: [s.slug, s.parent_slug, s.title, s.body, s.order_index],
+      });
+    }
+    for (const b of BESTIARY) {
+      await client.execute({
+        sql: `INSERT OR IGNORE INTO bestiary (slug, name, category, description, attrs_json, attacks_json, sanity_loss, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [b.slug, b.name, b.category, b.description, JSON.stringify(b.attrs), JSON.stringify(b.attacks), b.sanity_loss, b.source],
       });
     }
   })().catch((e) => {
     readyPromise = null;
-    console.error("[db] schema init failed", {
-      url: url.startsWith("libsql://") ? url.replace(/\/\/.+@/, "//") : url,
-      hasAuthToken: !!authToken,
-      error: e instanceof Error ? `${e.name}: ${e.message}` : String(e),
-    });
+    console.error("[db] init failed", e);
     throw e;
   });
   return readyPromise;
 }
 
-export async function listBoards(): Promise<Board[]> {
+// ───── 룰북 ─────
+export async function listRuleSections(): Promise<RuleSection[]> {
   await ensureReady();
-  const res = await client.execute("SELECT slug, name, description FROM boards");
+  const res = await client.execute("SELECT * FROM rule_sections ORDER BY order_index ASC");
   return res.rows.map((r) => ({
+    id: Number(r.id),
     slug: String(r.slug),
-    name: String(r.name),
-    description: String(r.description),
+    parent_slug: r.parent_slug == null ? null : String(r.parent_slug),
+    title: String(r.title),
+    body: String(r.body),
+    order_index: Number(r.order_index),
   }));
 }
-
-export async function getBoard(slug: string): Promise<Board | undefined> {
+export async function getRuleSection(slug: string): Promise<RuleSection | null> {
   await ensureReady();
-  const res = await client.execute({
-    sql: "SELECT slug, name, description FROM boards WHERE slug = ?",
-    args: [slug],
-  });
+  const res = await client.execute({ sql: "SELECT * FROM rule_sections WHERE slug = ?", args: [slug] });
   const r = res.rows[0];
-  if (!r) return undefined;
+  if (!r) return null;
   return {
-    slug: String(r.slug),
-    name: String(r.name),
-    description: String(r.description),
+    id: Number(r.id), slug: String(r.slug),
+    parent_slug: r.parent_slug == null ? null : String(r.parent_slug),
+    title: String(r.title), body: String(r.body),
+    order_index: Number(r.order_index),
   };
 }
 
-function rowToPost(r: Record<string, unknown>): Post {
+// ───── 몬스터 ─────
+function rowToBestiary(r: Record<string, unknown>): BestiaryEntry {
   return {
-    id: Number(r.id),
-    board_slug: String(r.board_slug),
-    nickname: String(r.nickname),
-    title: String(r.title),
-    segments: JSON.parse(String(r.segments_json)) as Segment[],
-    created_at: Number(r.created_at),
-    comment_count: r.comment_count != null ? Number(r.comment_count) : undefined,
+    id: Number(r.id), slug: String(r.slug), name: String(r.name),
+    category: String(r.category), description: String(r.description),
+    attrs: JSON.parse(String(r.attrs_json)),
+    attacks: JSON.parse(String(r.attacks_json)),
+    sanity_loss: String(r.sanity_loss), source: String(r.source),
   };
 }
-
-export async function listPosts(boardSlug: string): Promise<Post[]> {
+export async function listBestiary(query?: string): Promise<BestiaryEntry[]> {
   await ensureReady();
+  const q = query ? `%${query.toLowerCase()}%` : null;
+  const res = q
+    ? await client.execute({
+        sql: "SELECT * FROM bestiary WHERE LOWER(name) LIKE ? OR LOWER(category) LIKE ? OR LOWER(description) LIKE ? ORDER BY name",
+        args: [q, q, q],
+      })
+    : await client.execute("SELECT * FROM bestiary ORDER BY name");
+  return res.rows.map((r) => rowToBestiary(r as unknown as Record<string, unknown>));
+}
+export async function getBestiaryEntry(slug: string): Promise<BestiaryEntry | null> {
+  await ensureReady();
+  const res = await client.execute({ sql: "SELECT * FROM bestiary WHERE slug = ?", args: [slug] });
+  const r = res.rows[0];
+  return r ? rowToBestiary(r as unknown as Record<string, unknown>) : null;
+}
+
+// ───── 캠페인 ─────
+function rowToCampaign(r: Record<string, unknown>): Campaign {
+  return {
+    id: Number(r.id), slug: String(r.slug),
+    name: String(r.name), description: String(r.description),
+    invite_code: String(r.invite_code), keeper_nick: String(r.keeper_nick),
+    system: String(r.system), created_at: Number(r.created_at),
+    member_count: r.member_count != null ? Number(r.member_count) : undefined,
+    character_count: r.character_count != null ? Number(r.character_count) : undefined,
+  };
+}
+function randomCode(len = 6): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < len; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+function slugify(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9가-힣]+/g, "-").replace(/^-+|-+$/g, "") || `c-${Date.now()}`;
+}
+
+export async function createCampaign(input: {
+  name: string; description: string; keeper_nick: string;
+}): Promise<Campaign> {
+  await ensureReady();
+  const now = Date.now();
+  let slugBase = slugify(input.name);
+  let slug = slugBase;
+  for (let i = 2; i < 10; i++) {
+    const c = await client.execute({ sql: "SELECT 1 FROM campaigns WHERE slug = ?", args: [slug] });
+    if (c.rows.length === 0) break;
+    slug = `${slugBase}-${i}`;
+  }
+  let code = randomCode();
+  for (let i = 0; i < 5; i++) {
+    const c = await client.execute({ sql: "SELECT 1 FROM campaigns WHERE invite_code = ?", args: [code] });
+    if (c.rows.length === 0) break;
+    code = randomCode();
+  }
   const res = await client.execute({
-    sql: `SELECT p.id, p.board_slug, p.nickname, p.title, p.segments_json, p.created_at,
-                 (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comment_count
-          FROM posts p WHERE p.board_slug = ? ORDER BY p.created_at DESC`,
-    args: [boardSlug],
+    sql: `INSERT INTO campaigns (slug, name, description, invite_code, keeper_nick, system, created_at)
+          VALUES (?, ?, ?, ?, ?, 'coc', ?)`,
+    args: [slug, input.name, input.description, code, input.keeper_nick, now],
   });
-  return res.rows.map((r) => rowToPost(r as unknown as Record<string, unknown>));
+  const id = Number(res.lastInsertRowid);
+  await client.execute({
+    sql: `INSERT INTO campaign_members (campaign_id, nickname, role, joined_at) VALUES (?, ?, 'keeper', ?)`,
+    args: [id, input.keeper_nick, now],
+  });
+  const got = await getCampaign(id);
+  return got!;
 }
 
-export async function getPost(id: number): Promise<Post | undefined> {
+export async function getCampaign(id: number): Promise<Campaign | null> {
   await ensureReady();
   const res = await client.execute({
-    sql: "SELECT id, board_slug, nickname, title, segments_json, created_at FROM posts WHERE id = ?",
+    sql: `SELECT c.*,
+            (SELECT COUNT(*) FROM campaign_members m WHERE m.campaign_id = c.id) AS member_count,
+            (SELECT COUNT(*) FROM characters ch WHERE ch.campaign_id = c.id) AS character_count
+          FROM campaigns c WHERE c.id = ?`,
     args: [id],
   });
   const r = res.rows[0];
-  return r ? rowToPost(r as unknown as Record<string, unknown>) : undefined;
+  return r ? rowToCampaign(r as unknown as Record<string, unknown>) : null;
 }
-
-export async function createPost(input: {
-  board_slug: string;
-  nickname: string;
-  title: string;
-  segments: Segment[];
-}): Promise<number> {
+export async function getCampaignByCode(code: string): Promise<Campaign | null> {
   await ensureReady();
   const res = await client.execute({
-    sql: `INSERT INTO posts (board_slug, nickname, title, segments_json, created_at)
-          VALUES (?, ?, ?, ?, ?)`,
-    args: [
-      input.board_slug,
-      input.nickname,
-      input.title,
-      JSON.stringify(input.segments),
-      Date.now(),
-    ],
+    sql: "SELECT * FROM campaigns WHERE invite_code = ?",
+    args: [code.toUpperCase()],
   });
-  return Number(res.lastInsertRowid);
+  const r = res.rows[0];
+  return r ? rowToCampaign(r as unknown as Record<string, unknown>) : null;
 }
-
-export async function listComments(postId: number): Promise<Comment[]> {
+export async function listMyCampaigns(nick: string): Promise<Campaign[]> {
   await ensureReady();
   const res = await client.execute({
-    sql: `SELECT id, post_id, nickname, segments_json, created_at
-          FROM comments WHERE post_id = ? ORDER BY created_at ASC`,
-    args: [postId],
+    sql: `SELECT c.*,
+            (SELECT COUNT(*) FROM campaign_members m2 WHERE m2.campaign_id = c.id) AS member_count,
+            (SELECT COUNT(*) FROM characters ch WHERE ch.campaign_id = c.id) AS character_count
+          FROM campaigns c
+          JOIN campaign_members m ON m.campaign_id = c.id
+          WHERE m.nickname = ?
+          ORDER BY c.created_at DESC`,
+    args: [nick],
+  });
+  return res.rows.map((r) => rowToCampaign(r as unknown as Record<string, unknown>));
+}
+export async function joinCampaign(campaignId: number, nick: string): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: `INSERT OR IGNORE INTO campaign_members (campaign_id, nickname, role, joined_at) VALUES (?, ?, 'player', ?)`,
+    args: [campaignId, nick, Date.now()],
+  });
+}
+export async function listCampaignMembers(campaignId: number): Promise<CampaignMember[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM campaign_members WHERE campaign_id = ? ORDER BY joined_at ASC",
+    args: [campaignId],
   });
   return res.rows.map((r) => ({
-    id: Number(r.id),
-    post_id: Number(r.post_id),
+    campaign_id: Number(r.campaign_id),
     nickname: String(r.nickname),
-    segments: JSON.parse(String(r.segments_json)) as Segment[],
-    created_at: Number(r.created_at),
+    role: r.role === "keeper" ? "keeper" : "player",
+    joined_at: Number(r.joined_at),
   }));
 }
 
-export async function createComment(input: {
-  post_id: number;
-  nickname: string;
-  segments: Segment[];
-}): Promise<number> {
+// ───── 캐릭터 ─────
+function rowToCharacter(r: Record<string, unknown>): Character {
+  return {
+    id: Number(r.id), campaign_id: Number(r.campaign_id),
+    owner_nick: String(r.owner_nick), name: String(r.name),
+    occupation: String(r.occupation),
+    age: r.age == null ? null : Number(r.age),
+    attrs: JSON.parse(String(r.attrs_json)) as CocAttrs,
+    hp: Number(r.hp), hp_max: Number(r.hp_max),
+    mp: Number(r.mp), mp_max: Number(r.mp_max),
+    san: Number(r.san), san_max: Number(r.san_max),
+    skills: JSON.parse(String(r.skills_json)) as CocSkill[],
+    weapons: JSON.parse(String(r.weapons_json)) as CocWeapon[],
+    backstory: String(r.backstory), created_at: Number(r.created_at),
+  };
+}
+export async function createCharacter(input: Omit<Character, "id" | "created_at">): Promise<number> {
   await ensureReady();
   const res = await client.execute({
-    sql: `INSERT INTO comments (post_id, nickname, segments_json, created_at)
-          VALUES (?, ?, ?, ?)`,
+    sql: `INSERT INTO characters (campaign_id, owner_nick, name, occupation, age, attrs_json, hp, hp_max, mp, mp_max, san, san_max, skills_json, weapons_json, backstory, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
-      input.post_id,
-      input.nickname,
-      JSON.stringify(input.segments),
+      input.campaign_id, input.owner_nick, input.name, input.occupation, input.age,
+      JSON.stringify(input.attrs),
+      input.hp, input.hp_max, input.mp, input.mp_max, input.san, input.san_max,
+      JSON.stringify(input.skills), JSON.stringify(input.weapons), input.backstory,
       Date.now(),
     ],
   });
   return Number(res.lastInsertRowid);
+}
+export async function getCharacter(id: number): Promise<Character | null> {
+  await ensureReady();
+  const res = await client.execute({ sql: "SELECT * FROM characters WHERE id = ?", args: [id] });
+  const r = res.rows[0];
+  return r ? rowToCharacter(r as unknown as Record<string, unknown>) : null;
+}
+export async function listCampaignCharacters(campaignId: number): Promise<Character[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM characters WHERE campaign_id = ? ORDER BY created_at ASC",
+    args: [campaignId],
+  });
+  return res.rows.map((r) => rowToCharacter(r as unknown as Record<string, unknown>));
+}
+export async function updateCharacterVitals(id: number, vitals: { hp: number; mp: number; san: number }): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: "UPDATE characters SET hp = ?, mp = ?, san = ? WHERE id = ?",
+    args: [vitals.hp, vitals.mp, vitals.san, id],
+  });
+}
+
+// ───── 플레이 로그 ─────
+function rowToPlayEntry(r: Record<string, unknown>): PlayEntry {
+  return {
+    id: Number(r.id), campaign_id: Number(r.campaign_id),
+    nickname: String(r.nickname),
+    character_id: r.character_id == null ? null : Number(r.character_id),
+    character_name: r.character_name == null ? undefined : String(r.character_name),
+    kind: String(r.kind) as PlayEntry["kind"],
+    segments: JSON.parse(String(r.segments_json)) as Segment[],
+    created_at: Number(r.created_at),
+  };
+}
+export async function listPlayEntries(campaignId: number): Promise<PlayEntry[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `SELECT p.*, c.name AS character_name
+          FROM play_entries p
+          LEFT JOIN characters c ON c.id = p.character_id
+          WHERE p.campaign_id = ?
+          ORDER BY p.created_at ASC`,
+    args: [campaignId],
+  });
+  return res.rows.map((r) => rowToPlayEntry(r as unknown as Record<string, unknown>));
+}
+export async function createPlayEntry(input: {
+  campaign_id: number; nickname: string; character_id: number | null;
+  kind: PlayEntry["kind"]; segments: Segment[];
+}): Promise<number> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `INSERT INTO play_entries (campaign_id, nickname, character_id, kind, segments_json, created_at)
+          VALUES (?, ?, ?, ?, ?, ?)`,
+    args: [
+      input.campaign_id, input.nickname, input.character_id, input.kind,
+      JSON.stringify(input.segments), Date.now(),
+    ],
+  });
+  return Number(res.lastInsertRowid);
+}
+
+// ───── 검색 ─────
+export type SearchHit =
+  | { kind: "rule"; slug: string; title: string; snippet: string }
+  | { kind: "monster"; slug: string; name: string; snippet: string }
+  | { kind: "campaign"; id: number; name: string; snippet: string }
+  | { kind: "character"; id: number; name: string; snippet: string };
+
+export async function searchAll(query: string, nick: string | null): Promise<SearchHit[]> {
+  await ensureReady();
+  const q = `%${query.toLowerCase()}%`;
+  const hits: SearchHit[] = [];
+
+  const rules = await client.execute({
+    sql: `SELECT slug, title, body FROM rule_sections
+          WHERE LOWER(title) LIKE ? OR LOWER(body) LIKE ?
+          LIMIT 10`,
+    args: [q, q],
+  });
+  for (const r of rules.rows) {
+    hits.push({ kind: "rule", slug: String(r.slug), title: String(r.title), snippet: snippet(String(r.body), query) });
+  }
+
+  const monsters = await client.execute({
+    sql: `SELECT slug, name, description FROM bestiary
+          WHERE LOWER(name) LIKE ? OR LOWER(description) LIKE ? OR LOWER(category) LIKE ?
+          LIMIT 10`,
+    args: [q, q, q],
+  });
+  for (const r of monsters.rows) {
+    hits.push({ kind: "monster", slug: String(r.slug), name: String(r.name), snippet: snippet(String(r.description), query) });
+  }
+
+  if (nick) {
+    const camps = await client.execute({
+      sql: `SELECT c.id, c.name, c.description FROM campaigns c
+            JOIN campaign_members m ON m.campaign_id = c.id
+            WHERE m.nickname = ? AND (LOWER(c.name) LIKE ? OR LOWER(c.description) LIKE ?)
+            LIMIT 10`,
+      args: [nick, q, q],
+    });
+    for (const r of camps.rows) {
+      hits.push({ kind: "campaign", id: Number(r.id), name: String(r.name), snippet: snippet(String(r.description), query) });
+    }
+
+    const chars = await client.execute({
+      sql: `SELECT id, name, backstory FROM characters
+            WHERE owner_nick = ? AND (LOWER(name) LIKE ? OR LOWER(occupation) LIKE ? OR LOWER(backstory) LIKE ?)
+            LIMIT 10`,
+      args: [nick, q, q, q],
+    });
+    for (const r of chars.rows) {
+      hits.push({ kind: "character", id: Number(r.id), name: String(r.name), snippet: snippet(String(r.backstory), query) });
+    }
+  }
+
+  return hits;
+}
+
+function snippet(text: string, query: string, len = 120): string {
+  const lower = text.toLowerCase();
+  const i = lower.indexOf(query.toLowerCase());
+  if (i < 0) return text.slice(0, len);
+  const start = Math.max(0, i - 30);
+  return (start > 0 ? "…" : "") + text.slice(start, start + len) + (start + len < text.length ? "…" : "");
 }

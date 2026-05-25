@@ -30,26 +30,86 @@ export type Segment =
   | { type: "text"; value: string }
   | { type: "dice"; result: DiceResult };
 
-export type Board = {
+export type CocAttrs = {
+  str: number; con: number; siz: number;
+  dex: number; app: number; int: number;
+  pow: number; edu: number; luck: number;
+};
+
+export type CocSkill = { name: string; value: number };
+export type CocWeapon = {
+  name: string;
+  skill: number;
+  damage: string;
+  range?: string;
+  attacks?: string;
+};
+
+export type Campaign = {
+  id: number;
   slug: string;
   name: string;
   description: string;
-};
-
-export type Post = {
-  id: number;
-  board_slug: string;
-  nickname: string;
-  title: string;
-  segments: Segment[];
+  invite_code: string;
+  keeper_nick: string;
+  system: string;
   created_at: number;
-  comment_count?: number;
+  member_count?: number;
+  character_count?: number;
 };
 
-export type Comment = {
-  id: number;
-  post_id: number;
+export type CampaignMember = {
+  campaign_id: number;
   nickname: string;
+  role: "keeper" | "player";
+  joined_at: number;
+};
+
+export type Character = {
+  id: number;
+  campaign_id: number;
+  owner_nick: string;
+  name: string;
+  occupation: string;
+  age: number | null;
+  attrs: CocAttrs;
+  hp: number; hp_max: number;
+  mp: number; mp_max: number;
+  san: number; san_max: number;
+  skills: CocSkill[];
+  weapons: CocWeapon[];
+  backstory: string;
+  created_at: number;
+};
+
+export type BestiaryEntry = {
+  id: number;
+  slug: string;
+  name: string;
+  category: string;
+  description: string;
+  attrs: Partial<CocAttrs> & { hp?: number; move?: number; build?: number; damage_bonus?: string };
+  attacks: { name: string; skill: number; damage: string; note?: string }[];
+  sanity_loss: string;
+  source: string;
+};
+
+export type RuleSection = {
+  id: number;
+  slug: string;
+  parent_slug: string | null;
+  title: string;
+  body: string;
+  order_index: number;
+};
+
+export type PlayEntry = {
+  id: number;
+  campaign_id: number;
+  nickname: string;
+  character_id: number | null;
+  character_name?: string;
+  kind: "narration" | "dialogue" | "system";
   segments: Segment[];
   created_at: number;
 };
