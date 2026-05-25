@@ -140,7 +140,13 @@ function ensureReady(): Promise<void> {
 
     for (const s of RULE_SECTIONS) {
       await client.execute({
-        sql: `INSERT OR IGNORE INTO rule_sections (slug, parent_slug, title, body, order_index) VALUES (?, ?, ?, ?, ?)`,
+        sql: `INSERT INTO rule_sections (slug, parent_slug, title, body, order_index)
+              VALUES (?, ?, ?, ?, ?)
+              ON CONFLICT(slug) DO UPDATE SET
+                parent_slug = excluded.parent_slug,
+                title = excluded.title,
+                body = excluded.body,
+                order_index = excluded.order_index`,
         args: [s.slug, s.parent_slug, s.title, s.body, s.order_index],
       });
     }
