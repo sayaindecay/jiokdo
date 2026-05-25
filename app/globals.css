@@ -4303,3 +4303,174 @@ select:focus-visible {
     max-width: 60px;
   }
 }
+
+/* ════════════════════════════════════════════════
+   룰북 페이지 (2번 묶음)
+   ════════════════════════════════════════════════ */
+
+/* 2.1 사이드바 그룹 헤더 위계 */
+.wiki-sidebar .group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  text-transform: none;
+  padding: 0.5rem 0.55rem 0.4rem;
+  border-bottom: 1.5px dashed var(--line);
+  margin-bottom: 0.4rem;
+}
+.wiki-sidebar .group-title .g-icon {
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+/* 2.2 검색 박스 표기 일관성 (이미 / 사용 중, 시각 보강) */
+.wiki-sidebar .search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink-2);
+  transition: all var(--tx-fast);
+}
+.wiki-sidebar .search-box:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.wiki-sidebar .search-box kbd {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0.05rem 0.4rem;
+  color: var(--ink-3);
+  min-width: 18px;
+  text-align: center;
+}
+
+/* 2.3 subhead 메타 강조 */
+.wiki-main .subhead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.wiki-main .subhead > span:not(.tag-pill) {
+  /* 일반 메타 항목 */
+  color: var(--ink-3);
+}
+.wiki-main .subhead .tag-pill {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid;
+}
+.wiki-main .subhead .tag-pill.accent {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 1px 1px 0 rgba(106, 20, 20, 0.3);
+}
+
+/* 2.4 wiki-table zebra striping */
+.wiki-table tbody tr:nth-child(even) {
+  background: var(--bg-2);
+}
+.wiki-table tbody tr:hover {
+  background: var(--accent-soft);
+}
+.wiki-table tbody tr:hover td {
+  color: var(--ink);
+}
+.wiki-table tbody tr:nth-child(even):hover {
+  background: var(--accent-soft);
+}
+
+/* 2.5 콜아웃 보더 강화 */
+.wiki-callout {
+  border-left: 5px solid var(--accent);
+  background: linear-gradient(
+    90deg,
+    var(--accent-soft) 0%,
+    var(--bg-elev) 12%
+  );
+  padding: 0.85rem 1rem 0.85rem 1.2rem;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 2.6 관련 명령어 chip 강조 */
+.wiki-aside .quick-cmds .cmd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.wiki-aside .quick-cmds .cmd-chip {
+  display: inline-block;
+  background: var(--accent-soft);
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius);
+  cursor: default;
+  user-select: text;
+  transition: all var(--tx-fast);
+}
+.wiki-aside .quick-cmds .cmd-chip:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* 2.7 본문 가독성 max-width */
+.wiki-main .rule-section {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.wiki-main .rule-section .md p,
+.wiki-main .rule-section .md ul,
+.wiki-main .rule-section .md ol {
+  font-family: var(--font-kr);
+  line-height: 1.85;
+}
+.wiki-main > h1,
+.wiki-main > .subhead {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 2.8 anchor scroll-margin (sticky 헤더 60px + 여백) */
+.wiki-section h2,
+.wiki-section h3,
+.wiki-section [id] {
+  scroll-margin-top: 80px;
+}
+.md h2[id],
+.md h3[id],
+.md h4[id] {
+  scroll-margin-top: 80px;
+}

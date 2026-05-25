@@ -10,6 +10,12 @@ export type WikiNavItem = {
 
 export type WikiAnchor = { id: string; text: string };
 
+const GROUP_ICONS: Record<string, string> = {
+  기본: "📘",
+  판정: "🎲",
+  기타: "✦",
+};
+
 export function WikiLayout({
   nav,
   activeSlug,
@@ -38,7 +44,12 @@ export function WikiLayout({
         </Link>
         {Object.entries(groups).map(([groupTitle, items]) => (
           <div className="group" key={groupTitle}>
-            <div className="group-title">{groupTitle}</div>
+            <div className="group-title">
+              <span className="g-icon" aria-hidden="true">
+                {GROUP_ICONS[groupTitle] ?? "✦"}
+              </span>
+              {groupTitle}
+            </div>
             {items.map((item) => {
               const isActive = item.slug === activeSlug;
               return (
@@ -87,11 +98,13 @@ export function WikiLayout({
         ) : null}
 
         {related?.cmds && related.cmds.length > 0 ? (
-          <div className="quick">
+          <div className="quick quick-cmds">
             <div className="quick-title">관련 명령어</div>
-            {related.cmds.map((c) => (
-              <a key={c} href={`/rulebook/${activeSlug ?? "checks"}`}>{c}</a>
-            ))}
+            <div className="cmd-chips">
+              {related.cmds.map((c) => (
+                <code key={c} className="cmd-chip">{c}</code>
+              ))}
+            </div>
           </div>
         ) : null}
 
