@@ -23,6 +23,16 @@ async function wrap(action: (fd: FormData) => Promise<void>, fd: FormData) {
   }
 }
 
+const DEFAULT_CATEGORIES = [
+  "신화 생물",
+  "외계 종족",
+  "사역수",
+  "독립 종족",
+  "인간 / NPC",
+  "동물",
+  "기타",
+];
+
 export function BestiaryForm({
   initial,
   categories = [],
@@ -38,6 +48,16 @@ export function BestiaryForm({
   );
   const [category, setCategory] = useState(initial?.category ?? "");
 
+  // 기본 추천 + DB 의 기존 카테고리 (중복 제거, 등록 순서 유지)
+  const seen = new Set<string>();
+  const chipCategories: string[] = [];
+  for (const c of [...DEFAULT_CATEGORIES, ...categories]) {
+    const trimmed = c.trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    chipCategories.push(trimmed);
+  }
+
   return (
     <form className="form bestiary-form" action={formAction}>
       {isEdit && initial ? (
@@ -52,34 +72,28 @@ export function BestiaryForm({
         </div>
         <div>
           <label>카테고리</label>
-          {categories.length > 0 ? (
-            <div className="bf-cat-toggle" role="group" aria-label="카테고리 선택">
-              {categories.map((c) => {
-                const active = category === c;
-                return (
-                  <button
-                    type="button"
-                    key={c}
-                    className={`bf-cat-chip${active ? " active" : ""}`}
-                    onClick={() => setCategory(active ? "" : c)}
-                    aria-pressed={active}
-                  >
-                    {c}
-                  </button>
-                );
-              })}
-            </div>
-          ) : null}
+          <div className="bf-cat-toggle" role="group" aria-label="카테고리 선택">
+            {chipCategories.map((c) => {
+              const active = category === c;
+              return (
+                <button
+                  type="button"
+                  key={c}
+                  className={`bf-cat-chip${active ? " active" : ""}`}
+                  onClick={() => setCategory(active ? "" : c)}
+                  aria-pressed={active}
+                >
+                  {c}
+                </button>
+              );
+            })}
+          </div>
           <input
             name="category"
             maxLength={80}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            placeholder={
-              categories.length > 0
-                ? "위에서 선택하거나 새로 입력"
-                : "예) 신화 생물 / 외계 종족"
-            }
+            placeholder="위에서 선택하거나 새로 입력"
           />
         </div>
       </div>
