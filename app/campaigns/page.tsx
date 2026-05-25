@@ -122,18 +122,18 @@ export default async function CampaignsDashboardPage() {
       ) : null}
 
       {/* ─── 새 캠페인 / 참여 폼 ─── */}
-      {campaigns.length > 0 ? (
-        <section className="cl-section">
-          <div className="cl-section-head">
-            <div className="cl-section-eyebrow">JOIN · CREATE</div>
-            <h2>새 캠페인 / 초대 코드</h2>
-            <p className="cl-section-hint">
-              새 사건을 시작하거나, 다른 키퍼가 보낸 초대 코드를 입력하세요.
-            </p>
-          </div>
-          <CampaignForms />
-        </section>
-      ) : null}
+      <section className="cl-section">
+        <div className="cl-section-head">
+          <div className="cl-section-eyebrow">JOIN · CREATE</div>
+          <h2>새 캠페인 / 초대 코드</h2>
+          <p className="cl-section-hint">
+            {campaigns.length > 0
+              ? "새 사건을 시작하거나, 다른 키퍼가 보낸 초대 코드를 입력하세요."
+              : "첫 캠페인을 만들거나, 다른 키퍼가 보낸 초대 코드를 입력해 합류하세요."}
+          </p>
+        </div>
+        <CampaignForms />
+      </section>
 
       {/* ─── 활동 피드 ─── */}
       <section className="cl-section">
