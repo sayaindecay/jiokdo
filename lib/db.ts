@@ -138,6 +138,7 @@ function ensureReady(): Promise<void> {
       "ALTER TABLE campaigns ADD COLUMN status TEXT NOT NULL DEFAULT 'active'",
       "ALTER TABLE campaigns ADD COLUMN illustration_url TEXT",
       "ALTER TABLE characters ADD COLUMN portrait_url TEXT",
+      "ALTER TABLE bestiary ADD COLUMN image_url TEXT",
     ]) {
       try { await client.execute(stmt); } catch { /* 이미 존재 */ }
     }
@@ -235,6 +236,7 @@ function rowToBestiary(r: Record<string, unknown>): BestiaryEntry {
     attrs: JSON.parse(String(r.attrs_json)),
     attacks: JSON.parse(String(r.attacks_json)),
     sanity_loss: String(r.sanity_loss), source: String(r.source),
+    image_url: r.image_url == null ? null : String(r.image_url),
     created_by: r.created_by == null ? null : String(r.created_by),
     created_at: r.created_at == null ? 0 : Number(r.created_at),
   };
@@ -328,16 +330,17 @@ export async function createBestiaryEntry(input: {
   attacks: BestiaryEntry["attacks"];
   sanity_loss: string;
   source: string;
+  image_url: string | null;
   created_by: string;
 }): Promise<void> {
   await ensureReady();
   await client.execute({
-    sql: `INSERT INTO bestiary (slug, name, category, description, attrs_json, attacks_json, sanity_loss, source, created_by, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    sql: `INSERT INTO bestiary (slug, name, category, description, attrs_json, attacks_json, sanity_loss, source, image_url, created_by, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       input.slug, input.name, input.category, input.description,
       JSON.stringify(input.attrs), JSON.stringify(input.attacks),
-      input.sanity_loss, input.source, input.created_by, Date.now(),
+      input.sanity_loss, input.source, input.image_url, input.created_by, Date.now(),
     ],
   });
 }
@@ -350,16 +353,17 @@ export async function updateBestiaryEntry(slug: string, input: {
   attacks: BestiaryEntry["attacks"];
   sanity_loss: string;
   source: string;
+  image_url: string | null;
 }): Promise<void> {
   await ensureReady();
   await client.execute({
     sql: `UPDATE bestiary SET name = ?, category = ?, description = ?,
-            attrs_json = ?, attacks_json = ?, sanity_loss = ?, source = ?
+            attrs_json = ?, attacks_json = ?, sanity_loss = ?, source = ?, image_url = ?
           WHERE slug = ?`,
     args: [
       input.name, input.category, input.description,
       JSON.stringify(input.attrs), JSON.stringify(input.attacks),
-      input.sanity_loss, input.source, slug,
+      input.sanity_loss, input.source, input.image_url, slug,
     ],
   });
 }

@@ -103,6 +103,7 @@ export type BestiaryEntry = {
   attacks: { name: string; skill: number; damage: string; note?: string }[];
   sanity_loss: string;
   source: string;
+  image_url: string | null;
   created_by: string | null;
   created_at: number;
 };

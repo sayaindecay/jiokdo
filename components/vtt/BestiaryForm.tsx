@@ -17,6 +17,8 @@ const DEFAULT_CATEGORIES = [
   "기타",
 ];
 
+const MAX_IMAGE_BYTES = 1_000_000;
+
 export function BestiaryForm({
   initial,
   categories = [],
@@ -30,6 +32,27 @@ export function BestiaryForm({
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState(initial?.category ?? "");
+  const [imageUrl, setImageUrl] = useState(initial?.image_url ?? "");
+  const [imageErr, setImageErr] = useState<string | null>(null);
+
+  const onPickImage = (file: File) => {
+    setImageErr(null);
+    if (!file.type.startsWith("image/")) {
+      setImageErr("이미지 파일만 업로드할 수 있습니다.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setImageErr(`파일이 너무 큽니다. ${(file.size / 1024 / 1024).toFixed(1)}MB → 1MB 이하로 줄여 주세요.`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") setImageUrl(result);
+    };
+    reader.onerror = () => setImageErr("파일을 읽지 못했습니다.");
+    reader.readAsDataURL(file);
+  };
 
   // 기본 추천 + DB 의 기존 카테고리 (중복 제거, 등록 순서 유지)
   const seen = new Set<string>();
@@ -65,7 +88,57 @@ export function BestiaryForm({
         <input type="hidden" name="slug" value={initial.slug} />
       ) : null}
 
-      <h3 style={{ marginBottom: "0.5rem" }}>기본 정보</h3>
+      <h3 style={{ marginBottom: "0.5rem" }}>이미지</h3>
+      <div className="bf-image">
+        <input type="hidden" name="image_url" value={imageUrl} />
+        <div className="bf-image-preview">
+          {imageUrl ? (
+            <img src={imageUrl} alt="에너미 이미지 미리보기" />
+          ) : (
+            <div className="bf-image-empty" aria-hidden="true">
+              <span className="bie-icon">🖼</span>
+              <span className="bie-label">이미지 없음</span>
+            </div>
+          )}
+        </div>
+        <div className="bf-image-controls">
+          <label className="bf-image-field">
+            <span className="bf-image-label">파일 업로드 <span className="bf-hint">최대 1MB · PNG/JPG/WebP</span></span>
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={(e) => {
+                const f = e.currentTarget.files?.[0];
+                if (f) onPickImage(f);
+              }}
+              disabled={pending}
+            />
+          </label>
+          <label className="bf-image-field">
+            <span className="bf-image-label">또는 이미지 URL</span>
+            <input
+              type="url"
+              placeholder="https://..."
+              value={imageUrl.startsWith("data:") ? "" : imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              disabled={pending}
+            />
+          </label>
+          {imageUrl ? (
+            <button
+              type="button"
+              className="btn ghost bf-image-clear"
+              onClick={() => { setImageUrl(""); setImageErr(null); }}
+              disabled={pending}
+            >
+              이미지 제거
+            </button>
+          ) : null}
+          {imageErr ? <div className="bf-image-error">{imageErr}</div> : null}
+        </div>
+      </div>
+
+      <h3 style={{ marginBottom: "0.5rem", marginTop: "1.25rem" }}>기본 정보</h3>
       <p className="bf-legend">
         <span className="bf-req">*</span> 표시는 필수 항목입니다.
       </p>

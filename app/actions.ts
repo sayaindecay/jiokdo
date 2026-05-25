@@ -611,6 +611,7 @@ function parseBestiaryFormData(fd: FormData): {
   attacks: BestiaryEntry["attacks"];
   sanity_loss: string;
   source: string;
+  image_url: string | null;
 } {
   const name = text(fd, "name", 80);
   if (!name) throw new Error("이름을 입력하세요");
@@ -618,6 +619,21 @@ function parseBestiaryFormData(fd: FormData): {
   const description = text(fd, "description", 2000);
   const sanity_loss = text(fd, "sanity_loss", 24);
   const source = text(fd, "source", 80) || "사용자 등록";
+
+  // 이미지: 빈값이면 null, https URL 또는 data:image base64 만 허용 (1.4MB 이하)
+  const rawImg = ((fd.get("image_url") as string | null) ?? "").trim();
+  let image_url: string | null = null;
+  if (rawImg) {
+    if (rawImg.length > 1_400_000) {
+      throw new Error("이미지가 너무 큽니다. 1MB 이하로 줄여 주세요.");
+    }
+    const isHttps = /^https?:\/\//i.test(rawImg);
+    const isDataImage = /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(rawImg);
+    if (!isHttps && !isDataImage) {
+      throw new Error("이미지 URL 또는 업로드한 이미지만 허용됩니다.");
+    }
+    image_url = rawImg;
+  }
 
   const attrs: BestiaryEntry["attrs"] = {};
   const intKeys = ["str", "con", "siz", "dex", "int", "pow", "app", "edu", "hp", "build"] as const;
@@ -647,7 +663,7 @@ function parseBestiaryFormData(fd: FormData): {
     }
   }
 
-  return { name, category, description, attrs, attacks, sanity_loss, source };
+  return { name, category, description, attrs, attacks, sanity_loss, source, image_url };
 }
 
 export async function createBestiaryAction(fd: FormData): Promise<{ slug: string }> {

@@ -3733,6 +3733,141 @@ select:focus-visible {
   flex-wrap: wrap;
 }
 
+/* 이미지 업로드 섹션 */
+.bestiary-form .bf-image {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1rem;
+  align-items: start;
+  padding: 0.85rem;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--bg-elev-2);
+  margin-bottom: 0.8rem;
+}
+.bestiary-form .bf-image-preview {
+  width: 220px;
+  height: 220px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bestiary-form .bf-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.bestiary-form .bf-image-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ink-3);
+  font-family: var(--font-anno);
+}
+.bestiary-form .bf-image-empty .bie-icon { font-size: 2rem; opacity: 0.55; line-height: 1; }
+.bestiary-form .bf-image-empty .bie-label { font-size: 0.85rem; }
+
+.bestiary-form .bf-image-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.bestiary-form .bf-image-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.bestiary-form .bf-image-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.bestiary-form .bf-image-field input[type="file"] {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ink-2);
+  padding: 0.2rem 0;
+}
+.bestiary-form .bf-image-field input[type="url"] {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.6rem;
+}
+.bestiary-form .bf-image-field input[type="url"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.bestiary-form .bf-image-clear {
+  align-self: flex-start;
+  font-size: 0.82rem;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.bestiary-form .bf-image-error {
+  font-family: var(--font-anno);
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding: 0.4rem 0.55rem;
+  border-radius: 3px;
+}
+@media (max-width: 720px) {
+  .bestiary-form .bf-image {
+    grid-template-columns: 1fr;
+  }
+  .bestiary-form .bf-image-preview { width: 100%; height: 200px; }
+}
+
+/* 상세 페이지 hero 이미지 */
+.bestiary-hero {
+  margin: 0 0 1.25rem;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elev-2);
+  overflow: hidden;
+  max-width: 720px;
+}
+.bestiary-hero img {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+}
+
+/* 리스트 카드 썸네일 */
+.bestiary-card .bc-thumb {
+  width: calc(100% + 2rem);
+  margin: -0.95rem -1rem 0.5rem -1rem;
+  height: 130px;
+  overflow: hidden;
+  background: var(--bg-elev-2);
+  border-bottom: 1px solid var(--line);
+}
+.bestiary-card .bc-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--tx);
+}
+.bestiary-card.has-image:hover .bc-thumb img { transform: scale(1.04); }
+
 /* 필수 입력 표시 */
 .bestiary-form .bf-legend {
   font-family: var(--font-anno);

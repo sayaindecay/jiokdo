@@ -51,6 +51,12 @@ export default async function BestiaryDetail({
         ) : null}
       </div>
 
+      {e.image_url ? (
+        <figure className="bestiary-hero">
+          <img src={e.image_url} alt={`${e.name} 일러스트`} />
+        </figure>
+      ) : null}
+
       <StatBlock entry={e} />
 
       {related.length > 0 ? (

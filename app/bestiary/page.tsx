@@ -117,7 +117,12 @@ export default async function BestiaryIndex({
         <>
           <div className="bestiary-grid">
             {entries.map((e) => (
-              <Link key={e.id} href={`/bestiary/${e.slug}`} className="bestiary-card">
+              <Link key={e.id} href={`/bestiary/${e.slug}`} className={`bestiary-card${e.image_url ? " has-image" : ""}`}>
+                {e.image_url ? (
+                  <div className="bc-thumb" aria-hidden="true">
+                    <img src={e.image_url} alt="" />
+                  </div>
+                ) : null}
                 <div className="bc-head">
                   <div className="bc-cat">{e.category || "분류 미지정"}</div>
                   <ThreatStars entry={e} />
