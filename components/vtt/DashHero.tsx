@@ -29,22 +29,25 @@ export function DashHero({
         <Link href={`/campaigns/${campaign.id}`} className="btn ghost">준비 페이지</Link>
       </div>
       <div className="mini-stats">
-        <div className={`ms${stats.unresolved_clues > 0 ? " warn" : ""}`}>
+        <Link
+          href={`/campaigns/${campaign.id}/play`}
+          className={`ms${stats.unresolved_clues > 0 ? " warn" : ""}`}
+        >
           <b>{stats.unresolved_clues}</b>
-          <span>미해결 단서</span>
-        </div>
-        <div className="ms">
+          <span>미해결 단서 →</span>
+        </Link>
+        <Link href={`/campaigns/${campaign.id}`} className="ms">
           <b>{stats.danger_pcs}</b>
           <span>위험 PC (SAN 30↓)</span>
-        </div>
-        <div className="ms">
+        </Link>
+        <Link href={`/campaigns/${campaign.id}`} className="ms">
           <b>{stats.total_sessions}</b>
           <span>지난 세션 수</span>
-        </div>
-        <div className="ms">
+        </Link>
+        <Link href={`/campaigns/${campaign.id}`} className="ms">
           <b>{hours}h</b>
           <span>누적 플레이</span>
-        </div>
+        </Link>
       </div>
     </div>
   );

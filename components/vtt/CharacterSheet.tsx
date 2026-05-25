@@ -34,6 +34,16 @@ export function CharacterSheet({
         <span>{character.name}</span>
       </div>
 
+      {/* 모바일 sticky 요약 (P17) */}
+      <div className="sheet-sticky-summary" aria-hidden="false">
+        <div className="ss-name">{character.name}</div>
+        <div className="ss-vitals">
+          <span>HP <b>{character.hp}/{character.hp_max}</b></span>
+          <span>SAN <b className={character.san < 30 ? "warn" : ""}>{character.san}/{character.san_max}</b></span>
+          <span>MP <b>{character.mp}/{character.mp_max}</b></span>
+        </div>
+      </div>
+
       <div className="sheet-shell">
         <div className="sheet-header">
           <div className="sheet-portrait">📷</div>
