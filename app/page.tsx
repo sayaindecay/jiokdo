@@ -39,15 +39,31 @@ export default async function LandingPage() {
     <>
       <section className="peek-hero">
         <div className="peek-copy">
-          <span className="eyebrow">현장 보고서 №01 · 1928</span>
-          <h1>
-            TRPG 한 판,<br />
-            <em>한 줄</em> 굴림으로.
+          <span className="eyebrow">현장 보고서 №01 · 2007</span>
+          <h1 className="hero-title-quote">
+            어쩌겠습니까.<br />
+            <em>우리 세상은</em> 2000년대 초반부터<br />
+            그렇게 된 것을.
           </h1>
-          <p className="lede">
-            지옥도는 글과 다이스를 한 곳에서 굴립니다. Call of Cthulhu의 1d100 판정부터
-            일반 NdM까지, 본문 안에 굴림을 끼워 넣고 세션을 그대로 보존합니다.
-          </p>
+          <div className="hero-questionnaire" role="list">
+            <p role="listitem">이태백, 이소호, 최혜진, 천은이 모두 생존해있습니까?</p>
+            <p role="listitem">안세인, 백진아, 권효명, 천경석이 모두 생존해있습니까?</p>
+            <p role="listitem">지격환에게 정확히 무슨 일이 있었는지 알아내셨습니까?</p>
+            <p role="listitem">남상범의 마스크 아래에 무엇이 있는지 확인하셨습니까?</p>
+            <p role="listitem">특수사건수사팀이 쫓고 있는 사건이 무엇인지 파악하셨습니까?</p>
+            <p role="listitem">고신백과 이국세의 &lsquo;계획&rsquo;을 파악하셨습니까?</p>
+            <p role="listitem">파악하셨다면, 최종적으로 해당 계획은 어떻게 되었습니까?</p>
+            <p role="listitem">피재혁과 SHM의 목표가 무엇인지 파악하셨습니까?</p>
+            <p role="listitem">민관합동수사본부와 수사1팀이 공조 수사를 진행하였습니까?</p>
+            <p role="listitem">진행하였다면, 해당 수사의 결과는 무엇입니까?</p>
+            <p className="hr-strong" role="listitem">
+              이미 벌어진 일 역시 바꿀 수 있다는 확신을 얻으셨습니까?
+            </p>
+            <p className="hr-divider" aria-hidden="true">— 마지막으로, —</p>
+            <p className="hr-final" role="listitem">
+              이 모든 일을 끝낼 준비가 되셨습니까?
+            </p>
+          </div>
 
           {/* 1.1 CTA 위계 강화 */}
           <div className="cta-row">

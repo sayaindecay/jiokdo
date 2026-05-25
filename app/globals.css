@@ -5351,3 +5351,280 @@ select:focus-visible {
   background: var(--bg);
   color: var(--ink);
 }
+
+/* ════════════════════════════════════════════════
+   랜딩 hero — 질문지 / 인용 톤
+   ════════════════════════════════════════════════ */
+
+/* 큰 인용 제목 — 명조 + 잉크 느낌 */
+.peek-copy .hero-title-quote {
+  font-family: var(--font-script);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 3.6vw, 2.4rem);
+  line-height: 1.5;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 0 0 1.3rem;
+  border-left: 3px solid var(--accent);
+  padding: 0.2rem 0 0.3rem 1rem;
+}
+.peek-copy .hero-title-quote em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* 질문지 */
+.hero-questionnaire {
+  font-family: var(--font-anno);
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--ink-2);
+  margin: 0 0 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-left: 0.2rem;
+  border-left: 1.5px dashed var(--line);
+  padding-left: 1.1rem;
+}
+.hero-questionnaire p {
+  margin: 0;
+  position: relative;
+}
+.hero-questionnaire p::before {
+  content: "—";
+  position: absolute;
+  left: -1.1rem;
+  color: var(--ink-3);
+  opacity: 0.5;
+}
+
+.hero-questionnaire .hr-strong {
+  font-family: var(--font-script);
+  font-weight: 500;
+  font-size: 1.1rem;
+  color: var(--ink);
+  margin-top: 0.5rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--line);
+}
+.hero-questionnaire .hr-strong::before {
+  content: "★";
+  color: var(--accent);
+  opacity: 0.9;
+}
+
+.hero-questionnaire .hr-divider {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--accent);
+  margin: 0.6rem 0 0.3rem;
+  padding: 0;
+}
+.hero-questionnaire .hr-divider::before { content: none; }
+
+.hero-questionnaire .hr-final {
+  font-family: var(--font-script);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--accent);
+  line-height: 1.5;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.hero-questionnaire .hr-final::before {
+  content: "▸";
+  color: var(--accent);
+  opacity: 1;
+  font-size: 0.95em;
+}
+
+@media (max-width: 720px) {
+  .peek-copy .hero-title-quote {
+    font-size: 1.4rem;
+    line-height: 1.45;
+    padding-left: 0.75rem;
+  }
+  .hero-questionnaire { font-size: 0.92rem; padding-left: 0.95rem; }
+  .hero-questionnaire .hr-strong { font-size: 1rem; }
+  .hero-questionnaire .hr-final { font-size: 1.1rem; }
+}
+
+/* ════════════════════════════════════════════════
+   캠페인 목록 페이지 v2 (.cl-*)
+   ════════════════════════════════════════════════ */
+
+.cl-page { padding-top: 0.25rem; }
+
+/* ─── 헤더 ─── */
+.cl-header {
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1.5px solid var(--line);
+  position: relative;
+}
+.cl-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 1.5px;
+  background: var(--accent);
+  opacity: 0.35;
+  transform: scaleX(0.18);
+  transform-origin: left;
+}
+
+.cl-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.65rem;
+  display: inline-block;
+  padding-bottom: 0.2rem;
+  border-bottom: 1.5px dashed var(--accent);
+}
+
+.cl-title {
+  font-family: var(--font-script);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 0.85rem;
+}
+
+.cl-subtitle {
+  font-family: var(--font-anno);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--ink-2);
+  margin: 0 0 1.1rem;
+  max-width: 60ch;
+}
+
+.cl-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.75rem;
+  margin: 0;
+  padding: 0.65rem 0 0;
+  border-top: 1px dashed var(--line);
+}
+.cl-meta > div {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+.cl-meta dt {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 0;
+}
+.cl-meta dd {
+  font-family: var(--font-script);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
+  line-height: 1;
+}
+
+/* ─── 섹션 ─── */
+.cl-section {
+  margin-bottom: 2.25rem;
+}
+.cl-section:last-child { margin-bottom: 0; }
+
+.cl-section-head {
+  margin-bottom: 1rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1.5px dashed var(--line);
+}
+.cl-section-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+.cl-section-head h2 {
+  font-family: var(--font-script);
+  font-weight: 700;
+  font-size: 1.4rem;
+  line-height: 1.2;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.cl-section-hint {
+  font-family: var(--font-anno);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0.45rem 0 0;
+  max-width: 64ch;
+}
+
+.cl-head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* 상태 pill */
+.cl-status-pills {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.cl-status-pill {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--bg-elev-2);
+  color: var(--ink-2);
+}
+.cl-status-pill.accent {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 1px 0 rgba(106, 20, 20, 0.3);
+}
+
+/* 다음 세션 영역 — hero 와 history 사이 간격 */
+.cl-next-section .dash-hero {
+  margin-bottom: 1rem;
+}
+.cl-next-section .dash-history {
+  margin-top: 0;
+}
+
+@media (max-width: 720px) {
+  .cl-meta { gap: 0 1.1rem; }
+  .cl-meta dd { font-size: 1.1rem; }
+  .cl-section-head h2 { font-size: 1.25rem; }
+  .cl-head-row { align-items: flex-start; }
+}
