@@ -6,6 +6,7 @@ import {
 } from "@/lib/db";
 import { CampaignForms } from "@/components/CampaignForms";
 import { DashHero, DashHeroEmpty } from "@/components/vtt/DashHero";
+import { NicknameInline } from "@/components/vtt/NicknameInline";
 import { SessionHistory } from "@/components/vtt/SessionHistory";
 import { CampaignsTable, type CampaignTableRow } from "@/components/vtt/CampaignsTable";
 import { ActivityFeed } from "@/components/vtt/ActivityFeed";
@@ -22,13 +23,7 @@ export default async function CampaignsDashboardPage() {
           <span className="sep">/</span>
           <span>내 캠페인</span>
         </div>
-        <DashHeroEmpty hasCampaign={false} />
-        <div className="section-head">
-          <h2>닉네임이 필요합니다</h2>
-        </div>
-        <div className="empty">
-          우측 상단에서 닉네임을 설정하면 캠페인을 만들거나 참여할 수 있습니다.
-        </div>
+        <NicknameInline redirect="/campaigns" />
       </>
     );
   }
