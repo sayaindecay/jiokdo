@@ -2773,6 +2773,15 @@ body:has(.scene-side) .empty {
   background: var(--bg-elev-2);
 }
 
+/* 헤더 — 다크 모드에선 어두운 배경 + 라이트 ink 텍스트 */
+:root[data-theme="dark"] .site-header {
+  background: rgba(20, 17, 13, 0.92);
+  border-bottom-color: rgba(236, 230, 216, 0.18);
+}
+:root[data-theme="dark"] .nav a:hover {
+  background: rgba(236, 230, 216, 0.08);
+}
+
 /* ════════════════════════════════════════════════
    페이지 진입 fade (12.6)
    ════════════════════════════════════════════════ */
