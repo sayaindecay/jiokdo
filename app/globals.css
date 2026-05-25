@@ -2729,3 +2729,158 @@ select:focus-visible {
   }
   .footer-meta { text-align: center; }
 }
+
+/* ════════════════════════════════════════════════
+   검색 페이지 폴리시 (10.1 ~ 10.6)
+   ════════════════════════════════════════════════ */
+
+/* 10.1 mark 하이라이트 강화 */
+.search-result .r-title mark {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.05rem 0.4rem;
+  border-radius: 3px;
+  font-weight: 700;
+  box-shadow: 0 1px 0 rgba(106, 20, 20, 0.5);
+}
+.search-result .r-snippet mark {
+  background: linear-gradient(180deg, transparent 55%, var(--gold-bg) 55%);
+  padding: 0 0.15rem;
+  color: var(--ink);
+  font-weight: 600;
+  border-radius: 0;
+}
+:root[data-theme="dark"] .search-result .r-snippet mark {
+  background: linear-gradient(180deg, transparent 55%, rgba(214, 184, 122, 0.35) 55%);
+  color: var(--ink);
+}
+
+/* 10.3 search-result hover stripe */
+.search-result {
+  position: relative;
+  overflow: hidden;
+}
+.search-result::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform var(--tx);
+}
+.search-result:hover::before,
+.search-result:focus-visible::before {
+  transform: scaleY(1);
+}
+.search-result:hover {
+  background: var(--bg-elev);
+  border-color: var(--accent);
+  transform: translateX(2px);
+}
+
+/* 10.4 meta 라인 분리 — 출처(첫 요소) 강조 */
+.search-result .r-meta .hit-source {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.search-result .r-meta .hit-source::before {
+  content: "·";
+  display: inline-block;
+  margin-right: 0.3rem;
+  color: var(--accent);
+}
+.search-result .r-meta .sep {
+  color: var(--line-strong);
+  margin: 0 0.1rem;
+}
+.search-result .r-meta .meta-tag {
+  color: var(--ink-3);
+}
+
+/* 10.6 facet 카운트 0 시 흐리게 */
+.facets .facet[data-empty="1"] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.facets .facet[data-empty="1"] .num {
+  color: var(--ink-3);
+}
+
+/* 10.2 / 10.5 추천 검색어 chip + 입구 카드 */
+.search-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.4rem 0 1.2rem;
+}
+.search-suggest .chip {
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  color: var(--ink-2);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--tx-fast);
+}
+.search-suggest .chip:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+.search-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.85rem;
+  margin-top: 1.2rem;
+}
+.search-entry-card {
+  display: block;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--tx);
+}
+.search-entry-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+  transform: translate(-1px, -1px);
+}
+.search-entry-card .icon {
+  font-size: 1.4rem;
+  margin-bottom: 0.4rem;
+  display: inline-block;
+}
+.search-entry-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  margin: 0 0 0.2rem;
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+.search-entry-card .count {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.search-entry-card .recent {
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px dashed var(--line);
+  font-family: var(--font-anno);
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
