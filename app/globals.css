@@ -3925,3 +3925,187 @@ select:focus-visible {
   gap: 0.6rem;
   margin-top: 0.6rem;
 }
+
+/* ════════════════════════════════════════════════
+   캠페인 상세 페이지 (4번 묶음)
+   ════════════════════════════════════════════════ */
+
+/* 4.5 헤더 — 모바일 줄바꿈 처리 */
+.campaign-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.campaign-header .ch-text { flex: 1; min-width: 280px; }
+.campaign-header .ch-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+@media (max-width: 720px) {
+  .campaign-header .ch-actions { width: 100%; }
+  .campaign-header .ch-actions .btn { flex: 1; justify-content: center; }
+}
+
+/* 4.1 멤버 keeper 강조 */
+.member-list .member-keeper .nickname { color: var(--accent); font-weight: 700; }
+.member-list .keeper-crown {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 0.85em;
+  margin-right: 0.25rem;
+  filter: drop-shadow(0 0 2px var(--accent-soft));
+}
+.member-list .role-badge.keeper {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: 700;
+  box-shadow: 0 1px 0 rgba(106, 20, 20, 0.4);
+}
+.member-list .role-badge.player {
+  background: var(--bg-2);
+  color: var(--ink-2);
+  border-color: var(--line);
+}
+
+/* 4.2 초대 코드 행 + 복사 버튼 */
+.invite-box .invite-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+.invite-box .invite-row .invite-code {
+  flex: 1;
+}
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--tx-fast);
+}
+.copy-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.copy-btn.copied {
+  background: var(--green-bg);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* 4.3 캐릭터 카드 hover stripe */
+.character-list li {
+  position: relative;
+  overflow: hidden;
+  transition: background var(--tx-fast), transform var(--tx);
+  padding-left: 0.4rem;
+  border-radius: var(--radius);
+}
+.character-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 999px;
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform var(--tx);
+}
+.character-list li:hover::before { transform: scaleY(1); }
+.character-list li:hover {
+  background: var(--bg-elev-2);
+  transform: translateX(2px);
+}
+.character-list li.char-mine::before {
+  transform: scaleY(0.5);
+  background: var(--gold);
+  opacity: 0.6;
+}
+.character-list li.char-mine:hover::before {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+/* 4.4 최근 플레이 — 항목 링크화 */
+.recent-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.recent-list li:last-child { border-bottom: none; }
+.recent-list .recent-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-decoration: none;
+  color: inherit;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius);
+  transition: background var(--tx-fast);
+  min-width: 0;
+}
+.recent-list .recent-link:hover {
+  background: var(--bg-elev-2);
+}
+.recent-list .recent-summary {
+  color: var(--ink-2);
+  font-size: 0.84rem;
+  font-family: var(--font-kr);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.recent-list .kind-badge {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+}
+.recent-list .nickname {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* 4.7 위험 영역 구분 */
+.danger-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 2.5rem 0 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.danger-divider::before,
+.danger-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1.5px dashed var(--accent);
+  opacity: 0.5;
+}
+.danger-divider span {
+  padding: 0 0.4rem;
+}
