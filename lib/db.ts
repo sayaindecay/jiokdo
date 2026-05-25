@@ -2,8 +2,8 @@ import { createClient } from "@libsql/client";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import type {
-  BestiaryEntry, Campaign, CampaignMember, Character,
-  CocAttrs, CocSkill, CocWeapon, PlayEntry, RuleSection, Segment,
+  ActivityItem, BestiaryEntry, Campaign, CampaignMember, Character,
+  Clue, CocAttrs, CocSkill, CocWeapon, PlayEntry, RuleSection, Segment, Session,
 } from "./types";
 import { BESTIARY, RULE_SECTIONS } from "./seed-data";
 
@@ -90,6 +90,28 @@ function ensureReady(): Promise<void> {
         created_at INTEGER NOT NULL
       )`,
       `CREATE INDEX IF NOT EXISTS idx_play_campaign ON play_entries(campaign_id, created_at ASC)`,
+      `CREATE TABLE IF NOT EXISTS sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        campaign_id INTEGER NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+        number INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        scheduled_at INTEGER,
+        started_at INTEGER,
+        ended_at INTEGER,
+        notes_json TEXT NOT NULL DEFAULT '[]',
+        created_at INTEGER NOT NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS idx_sessions_campaign ON sessions(campaign_id, number DESC)`,
+      `CREATE TABLE IF NOT EXISTS clues (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        campaign_id INTEGER NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+        session_id INTEGER REFERENCES sessions(id) ON DELETE SET NULL,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL DEFAULT '',
+        resolved INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS idx_clues_campaign ON clues(campaign_id, resolved)`,
     ], "write");
 
     for (const s of RULE_SECTIONS) {
@@ -432,4 +454,126 @@ function snippet(text: string, query: string, len = 120): string {
   if (i < 0) return text.slice(0, len);
   const start = Math.max(0, i - 30);
   return (start > 0 ? "…" : "") + text.slice(start, start + len) + (start + len < text.length ? "…" : "");
+}
+
+// ───── 세션 ─────
+function rowToSession(r: Record<string, unknown>): Session {
+  return {
+    id: Number(r.id),
+    campaign_id: Number(r.campaign_id),
+    number: Number(r.number),
+    title: String(r.title),
+    scheduled_at: r.scheduled_at == null ? null : Number(r.scheduled_at),
+    started_at: r.started_at == null ? null : Number(r.started_at),
+    ended_at: r.ended_at == null ? null : Number(r.ended_at),
+    notes_segments: JSON.parse(String(r.notes_json || "[]")) as Segment[],
+    created_at: Number(r.created_at),
+  };
+}
+
+export async function listSessions(campaignId: number): Promise<Session[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM sessions WHERE campaign_id = ? ORDER BY number DESC",
+    args: [campaignId],
+  });
+  return res.rows.map((r) => rowToSession(r as unknown as Record<string, unknown>));
+}
+
+export async function getNextScheduledSession(nick: string): Promise<{ session: Session; campaign: Campaign } | null> {
+  await ensureReady();
+  const now = Date.now();
+  const res = await client.execute({
+    sql: `SELECT s.*, c.id AS c_id, c.slug AS c_slug, c.name AS c_name, c.description AS c_description,
+                 c.invite_code AS c_invite, c.keeper_nick AS c_keeper, c.system AS c_system,
+                 c.created_at AS c_created
+          FROM sessions s
+          JOIN campaign_members m ON m.campaign_id = s.campaign_id AND m.nickname = ?
+          JOIN campaigns c ON c.id = s.campaign_id
+          WHERE s.scheduled_at IS NOT NULL AND s.scheduled_at >= ? AND s.ended_at IS NULL
+          ORDER BY s.scheduled_at ASC LIMIT 1`,
+    args: [nick, now],
+  });
+  const r = res.rows[0];
+  if (!r) return null;
+  const session = rowToSession(r as unknown as Record<string, unknown>);
+  const campaign: Campaign = {
+    id: Number(r.c_id), slug: String(r.c_slug), name: String(r.c_name),
+    description: String(r.c_description), invite_code: String(r.c_invite),
+    keeper_nick: String(r.c_keeper), system: String(r.c_system),
+    created_at: Number(r.c_created),
+  };
+  return { session, campaign };
+}
+
+export async function getCampaignAggregates(campaignId: number): Promise<{
+  unresolved_clues: number;
+  total_sessions: number;
+  total_play_ms: number;
+  members_count: number;
+}> {
+  await ensureReady();
+  const [clues, sessions, members] = await Promise.all([
+    client.execute({ sql: "SELECT COUNT(*) AS n FROM clues WHERE campaign_id = ? AND resolved = 0", args: [campaignId] }),
+    client.execute({
+      sql: `SELECT COUNT(*) AS n,
+                   COALESCE(SUM(CASE WHEN ended_at IS NOT NULL AND started_at IS NOT NULL THEN ended_at - started_at ELSE 0 END), 0) AS dur
+            FROM sessions WHERE campaign_id = ?`,
+      args: [campaignId],
+    }),
+    client.execute({ sql: "SELECT COUNT(*) AS n FROM campaign_members WHERE campaign_id = ?", args: [campaignId] }),
+  ]);
+  return {
+    unresolved_clues: Number(clues.rows[0]?.n ?? 0),
+    total_sessions: Number(sessions.rows[0]?.n ?? 0),
+    total_play_ms: Number(sessions.rows[0]?.dur ?? 0),
+    members_count: Number(members.rows[0]?.n ?? 0),
+  };
+}
+
+export async function countCharactersInDanger(campaignId: number): Promise<number> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT COUNT(*) AS n FROM characters WHERE campaign_id = ? AND san <= 30",
+    args: [campaignId],
+  });
+  return Number(res.rows[0]?.n ?? 0);
+}
+
+export async function listClues(campaignId: number): Promise<Clue[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM clues WHERE campaign_id = ? ORDER BY created_at DESC",
+    args: [campaignId],
+  });
+  return res.rows.map((r) => ({
+    id: Number(r.id),
+    campaign_id: Number(r.campaign_id),
+    session_id: r.session_id == null ? null : Number(r.session_id),
+    title: String(r.title),
+    body: String(r.body),
+    resolved: Number(r.resolved) === 1,
+    created_at: Number(r.created_at),
+  }));
+}
+
+export async function listActivityFor(nick: string, limit = 8): Promise<ActivityItem[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `SELECT p.created_at AS when_at, p.nickname AS who,
+                 'play 글 게시' AS what,
+                 c.name AS where_name, c.id AS c_id
+          FROM play_entries p
+          JOIN campaign_members m ON m.campaign_id = p.campaign_id AND m.nickname = ?
+          JOIN campaigns c ON c.id = p.campaign_id
+          ORDER BY p.created_at DESC LIMIT ?`,
+    args: [nick, limit],
+  });
+  return res.rows.map((r) => ({
+    when: Number(r.when_at),
+    who: String(r.who),
+    what: String(r.what),
+    where: String(r.where_name),
+    campaign_id: Number(r.c_id),
+  }));
 }

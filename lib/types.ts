@@ -113,3 +113,33 @@ export type PlayEntry = {
   segments: Segment[];
   created_at: number;
 };
+
+export type Session = {
+  id: number;
+  campaign_id: number;
+  number: number;
+  title: string;
+  scheduled_at: number | null;
+  started_at: number | null;
+  ended_at: number | null;
+  notes_segments: Segment[];
+  created_at: number;
+};
+
+export type Clue = {
+  id: number;
+  campaign_id: number;
+  session_id: number | null;
+  title: string;
+  body: string;
+  resolved: boolean;
+  created_at: number;
+};
+
+export type ActivityItem = {
+  when: number;
+  who: string;
+  what: string;
+  where: string;
+  campaign_id?: number;
+};

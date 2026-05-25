@@ -1,54 +1,120 @@
 import Link from "next/link";
 import { getNickname } from "@/lib/auth";
-import { listMyCampaigns } from "@/lib/db";
+import {
+  countCharactersInDanger, getCampaignAggregates, getNextScheduledSession,
+  listActivityFor, listCampaignMembers, listMyCampaigns, listSessions,
+} from "@/lib/db";
 import { CampaignForms } from "@/components/CampaignForms";
+import { DashHero, DashHeroEmpty } from "@/components/vtt/DashHero";
+import { SessionHistory } from "@/components/vtt/SessionHistory";
+import { CampaignsTable, type CampaignTableRow } from "@/components/vtt/CampaignsTable";
+import { ActivityFeed } from "@/components/vtt/ActivityFeed";
 
 export const dynamic = "force-dynamic";
 
-export default async function CampaignsIndex() {
+export default async function CampaignsDashboardPage() {
   const nick = await getNickname();
   if (!nick) {
     return (
       <>
-        <h1 className="page-title">캠페인</h1>
-        <p className="page-sub">먼저 우측 상단에서 닉네임을 설정하세요.</p>
-        <div className="empty">닉네임 미설정</div>
+        <div className="breadcrumb">
+          <Link href="/">지옥도</Link>
+          <span className="sep">/</span>
+          <span>내 캠페인</span>
+        </div>
+        <DashHeroEmpty hasCampaign={false} />
+        <div className="section-head">
+          <h2>닉네임이 필요합니다</h2>
+        </div>
+        <div className="empty">
+          우측 상단에서 닉네임을 설정하면 캠페인을 만들거나 참여할 수 있습니다.
+        </div>
       </>
     );
   }
-  const my = await listMyCampaigns(nick);
+
+  const campaigns = await listMyCampaigns(nick);
+  const next = await getNextScheduledSession(nick);
+
+  let heroBlock;
+  let history: Awaited<ReturnType<typeof listSessions>> = [];
+
+  if (next) {
+    const [agg, danger] = await Promise.all([
+      getCampaignAggregates(next.campaign.id),
+      countCharactersInDanger(next.campaign.id),
+    ]);
+    heroBlock = (
+      <DashHero
+        campaign={next.campaign}
+        session={next.session}
+        stats={{
+          unresolved_clues: agg.unresolved_clues,
+          danger_pcs: danger,
+          total_sessions: agg.total_sessions,
+          total_play_ms: agg.total_play_ms,
+        }}
+      />
+    );
+    history = (await listSessions(next.campaign.id)).slice(0, 5);
+  } else {
+    heroBlock = <DashHeroEmpty hasCampaign={campaigns.length > 0} />;
+  }
+
+  const rows: CampaignTableRow[] = await Promise.all(
+    campaigns.map(async (c) => {
+      const sessions = await listSessions(c.id);
+      const members = await listCampaignMembers(c.id);
+      const upcoming = sessions
+        .filter((s) => s.scheduled_at && s.scheduled_at >= Date.now() && !s.ended_at)
+        .sort((a, b) => (a.scheduled_at ?? 0) - (b.scheduled_at ?? 0));
+      const role = c.keeper_nick === nick ? "keeper" : "player";
+      const status: "active" | "dormant" =
+        upcoming[0] || sessions.length > 0 ? "active" : "dormant";
+      return {
+        campaign: c,
+        role,
+        next_session: upcoming[0] ?? null,
+        characters_count: c.character_count ?? 0,
+        members_count: members.length,
+        status,
+      };
+    })
+  );
+
+  const activeCount = rows.filter((r) => r.status === "active").length;
+  const dormantCount = rows.filter((r) => r.status === "dormant").length;
+  const activity = await listActivityFor(nick, 8);
+
   return (
     <>
-      <h1 className="page-title">캠페인</h1>
-      <p className="page-sub">{nick} 님이 참여 중인 캠페인</p>
+      <div className="breadcrumb">
+        <Link href="/">지옥도</Link>
+        <span className="sep">/</span>
+        <span>내 캠페인</span>
+      </div>
 
-      <CampaignForms />
+      {heroBlock}
+
+      {next ? <SessionHistory campaignName={next.campaign.name} sessions={history} /> : null}
 
       <div className="section-head">
-        <h2>내 캠페인</h2>
-        <span className="count">{my.length}개</span>
-      </div>
-      {my.length === 0 ? (
-        <div className="empty">아직 캠페인이 없습니다. 위에서 만들거나 초대 코드로 참여하세요.</div>
-      ) : (
-        <div className="campaign-grid">
-          {my.map((c) => (
-            <Link key={c.id} href={`/campaigns/${c.id}`} className="campaign-card">
-              <div className="campaign-head">
-                <h3>{c.name}</h3>
-                <span className="role-badge">
-                  {c.keeper_nick === nick ? "키퍼" : "플레이어"}
-                </span>
-              </div>
-              <p>{c.description || "설명 없음"}</p>
-              <div className="campaign-meta">
-                <span>👤 {c.member_count}</span>
-                <span>📖 {c.character_count}</span>
-              </div>
-            </Link>
-          ))}
+        <h2>모든 캠페인</h2>
+        <div className="actions">
+          <span className="tag-pill accent">활성 {activeCount}</span>
+          <span className="tag-pill">휴면 {dormantCount}</span>
         </div>
-      )}
+      </div>
+
+      <CampaignsTable rows={rows} myNick={nick} />
+
+      <div className="section-head">
+        <h2>새 캠페인 / 초대 코드</h2>
+      </div>
+      <CampaignForms />
+
+      <div style={{ height: "1.5rem" }} />
+      <ActivityFeed items={activity} />
     </>
   );
 }
