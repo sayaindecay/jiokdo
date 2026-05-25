@@ -50,8 +50,8 @@
   /* — Typography ———————————————————— */
   --font-ui:    "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:  "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --font-anno:  "Kalam", "Caveat", cursive;          /* 손글씨 메모 */
-  --font-script: "Caveat", cursive;                  /* 큰 손글씨 */
+  --font-anno:  "Gaegu", "Nanum Pen Script", cursive;       /* 손글씨 메모 (한국어 지원) */
+  --font-script: "Nanum Pen Script", "Gaegu", cursive;      /* 큰 펜글씨 (한국어 지원) */
   --font-display: "Special Elite", "Courier Prime", "Courier New", monospace; /* 타이프라이터 헤딩 */
   --font-kr:    "Noto Serif KR", "Nanum Myeongjo", serif;
 }

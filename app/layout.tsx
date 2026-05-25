@@ -5,8 +5,8 @@ import {
   Inter,
   IBM_Plex_Mono,
   Special_Elite,
-  Kalam,
-  Caveat,
+  Gaegu,
+  Nanum_Pen_Script,
   Noto_Serif_KR,
 } from "next/font/google";
 import { getAuthenticatedNickname, getNickname } from "@/lib/auth";
@@ -31,15 +31,15 @@ const display = Special_Elite({
   variable: "--font-display",
   display: "swap",
 });
-const anno = Kalam({
+const anno = Gaegu({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["300", "400", "700"],
   variable: "--font-anno",
   display: "swap",
 });
-const script = Caveat({
+const script = Nanum_Pen_Script({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400"],
   variable: "--font-script",
   display: "swap",
 });
