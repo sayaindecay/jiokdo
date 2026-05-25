@@ -644,3 +644,166 @@ export async function listRecentCharacterRolls(characterId: number, limit = 5): 
     created_at: Number(r.created_at),
   }));
 }
+
+// ───── 글로벌 통계 / 라이브 티커 (Phase 1 실데이터 연동) ─────
+export async function getGlobalStats(): Promise<{
+  registered_nicks: number;
+  total_dice_rolls: number;
+  this_week_sessions: number;
+}> {
+  await ensureReady();
+  const sevenDaysAgo = Date.now() - 7 * 24 * 3600 * 1000;
+  const [nicks, dice, sessionsThisWeek] = await Promise.all([
+    client.execute("SELECT COUNT(DISTINCT nickname) AS n FROM campaign_members"),
+    client.execute("SELECT COUNT(*) AS n FROM play_entries WHERE segments_json LIKE '%\"type\":\"dice\"%'"),
+    client.execute({
+      sql: "SELECT COUNT(*) AS n FROM sessions WHERE created_at >= ? OR (scheduled_at IS NOT NULL AND scheduled_at >= ?)",
+      args: [sevenDaysAgo, sevenDaysAgo],
+    }),
+  ]);
+  return {
+    registered_nicks: Number(nicks.rows[0]?.n ?? 0),
+    total_dice_rolls: Number(dice.rows[0]?.n ?? 0),
+    this_week_sessions: Number(sessionsThisWeek.rows[0]?.n ?? 0),
+  };
+}
+
+export type RecentDiceItem = {
+  id: number;
+  nickname: string;
+  character_name: string | null;
+  campaign_name: string;
+  campaign_id: number;
+  expression: string;
+  level: string | null;
+  level_label: string | null;
+  total: number;
+  created_at: number;
+};
+
+export async function listRecentDice(limit = 10): Promise<RecentDiceItem[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `SELECT p.id, p.nickname, p.segments_json, p.campaign_id, p.created_at,
+                 ch.name AS character_name, c.name AS campaign_name
+          FROM play_entries p
+          LEFT JOIN characters ch ON ch.id = p.character_id
+          LEFT JOIN campaigns c ON c.id = p.campaign_id
+          WHERE p.segments_json LIKE '%"type":"dice"%'
+          ORDER BY p.created_at DESC
+          LIMIT ?`,
+    args: [limit * 2],
+  });
+  const out: RecentDiceItem[] = [];
+  for (const r of res.rows) {
+    const segs = JSON.parse(String(r.segments_json)) as Segment[];
+    const dice = segs.find((s) => s.type === "dice");
+    if (!dice || dice.type !== "dice") continue;
+    let expression: string, level: string | null = null, level_label: string | null = null, total: number;
+    if (dice.result.kind === "cc") {
+      expression = dice.result.name
+        ? `/cc ${dice.result.name} ${dice.result.skill}`
+        : `/cc ${dice.result.skill}`;
+      total = dice.result.roll;
+      level = dice.result.level;
+      const { LEVEL_LABEL } = await import("./dice");
+      level_label = LEVEL_LABEL[dice.result.level];
+    } else {
+      expression = `/roll ${dice.result.notation}`;
+      total = dice.result.total;
+    }
+    out.push({
+      id: Number(r.id),
+      nickname: String(r.nickname),
+      character_name: r.character_name == null ? null : String(r.character_name),
+      campaign_name: String(r.campaign_name || "—"),
+      campaign_id: Number(r.campaign_id),
+      expression,
+      level,
+      level_label,
+      total,
+      created_at: Number(r.created_at),
+    });
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+export async function getRecentNarrationsAndRolls(limit = 6): Promise<{
+  who: string;
+  text: string;
+  isDice: boolean;
+  level?: string;
+  level_label?: string;
+}[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `SELECT p.nickname, p.kind, p.segments_json, ch.name AS character_name
+          FROM play_entries p
+          LEFT JOIN characters ch ON ch.id = p.character_id
+          ORDER BY p.created_at DESC
+          LIMIT ?`,
+    args: [limit],
+  });
+  const out: { who: string; text: string; isDice: boolean; level?: string; level_label?: string }[] = [];
+  const { LEVEL_LABEL } = await import("./dice");
+  for (const r of res.rows.reverse()) {
+    const who = String(r.character_name || r.nickname);
+    const segs = JSON.parse(String(r.segments_json)) as Segment[];
+    for (const s of segs) {
+      if (s.type === "text") {
+        const text = s.value.trim();
+        if (text) out.push({ who, text: text.slice(0, 220), isDice: false });
+      } else if (s.type === "dice") {
+        if (s.result.kind === "cc") {
+          out.push({
+            who,
+            text: `${s.result.name ? `${s.result.name} ` : ""}1d100 ≤ ${s.result.skill} → ${s.result.roll}`,
+            isDice: true,
+            level: s.result.level,
+            level_label: LEVEL_LABEL[s.result.level],
+          });
+        } else {
+          out.push({
+            who,
+            text: `${s.result.notation} → ${s.result.total}`,
+            isDice: true,
+          });
+        }
+      }
+    }
+  }
+  return out.slice(-limit);
+}
+
+export async function countMyCampaigns(nick: string): Promise<{ campaigns: number; play_entries: number }> {
+  await ensureReady();
+  const [c, p] = await Promise.all([
+    client.execute({
+      sql: "SELECT COUNT(*) AS n FROM campaign_members WHERE nickname = ?",
+      args: [nick],
+    }),
+    client.execute({
+      sql: `SELECT COUNT(*) AS n FROM play_entries p
+            JOIN campaign_members m ON m.campaign_id = p.campaign_id
+            WHERE m.nickname = ?`,
+      args: [nick],
+    }),
+  ]);
+  return {
+    campaigns: Number(c.rows[0]?.n ?? 0),
+    play_entries: Number(p.rows[0]?.n ?? 0),
+  };
+}
+
+export async function countRuleSections(): Promise<number> {
+  await ensureReady();
+  const res = await client.execute("SELECT COUNT(*) AS n FROM rule_sections");
+  return Number(res.rows[0]?.n ?? 0);
+}
+
+export async function countBestiary(): Promise<number> {
+  await ensureReady();
+  const res = await client.execute("SELECT COUNT(*) AS n FROM bestiary");
+  return Number(res.rows[0]?.n ?? 0);
+}
