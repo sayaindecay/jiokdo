@@ -2591,3 +2591,141 @@ body:has(.scene-side) .empty {
   width: 110px;
   height: auto;
 }
+
+/* ════════════════════════════════════════════════
+   Focus-visible (11.6) — 키보드 접근성
+   ════════════════════════════════════════════════ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  /* input은 기존 box-shadow accent 강조가 있으므로 outline 제거 */
+  outline: none;
+}
+.btn:focus-visible {
+  outline-offset: 3px;
+}
+.dice-block:focus-visible,
+.skill-row:focus-visible,
+.search-result:focus-visible,
+.trow:focus-visible,
+.board-card:focus-visible,
+.campaign-card:focus-visible,
+.bestiary-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* 마우스 클릭으로 들어온 :focus 는 outline 숨김 */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ════════════════════════════════════════════════
+   라우트 로딩 skeleton (11.4)
+   ════════════════════════════════════════════════ */
+.route-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding-top: 0.25rem;
+}
+.rl-stripe,
+.rl-card {
+  background: var(--bg-elev);
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+}
+.rl-stripe { height: 56px; }
+.rl-card { height: 96px; }
+.rl-stripe::after,
+.rl-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent-soft) 40%,
+    var(--accent-soft) 60%,
+    transparent 100%
+  );
+  animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rl-stripe::after, .rl-card::after { animation: none; }
+}
+
+/* ════════════════════════════════════════════════
+   푸터 (11.7)
+   ════════════════════════════════════════════════ */
+.site-footer { padding: 1.5rem 0 2rem; }
+.footer-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1.25rem;
+  align-items: center;
+}
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+.footer-brand .brand-mark {
+  width: 26px;
+  height: 26px;
+  font-size: 0.6rem;
+  background: var(--ink-3);
+  border-color: var(--ink-3);
+}
+.footer-nav {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.footer-nav a {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius);
+  transition: background var(--tx-fast), color var(--tx-fast);
+}
+.footer-nav a:hover {
+  color: var(--accent);
+  background: var(--bg-elev-2);
+}
+.footer-meta {
+  color: var(--ink-3);
+  font-family: var(--font-anno);
+  font-size: 0.82rem;
+  text-align: right;
+}
+@media (max-width: 720px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 0.85rem;
+  }
+  .footer-meta { text-align: center; }
+}

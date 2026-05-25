@@ -1,7 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { loginAction, signupAction } from "@/app/actions";
+import { FormError } from "./FormError";
+
+async function wrapAction(
+  action: (fd: FormData) => Promise<void>,
+  fd: FormData
+): Promise<string | null> {
+  try {
+    await action(fd);
+    return null;
+  } catch (e) {
+    // Next.js redirect 는 NEXT_REDIRECT 라는 에러를 throw 하지만 React가
+    // 자동으로 잡아주므로 여기까지 도달하지 않는다.
+    if (e instanceof Error) return e.message;
+    return "오류가 발생했습니다";
+  }
+}
 
 export function AuthTabs({
   initialTab,
@@ -11,6 +27,15 @@ export function AuthTabs({
   redirectTo: string;
 }) {
   const [tab, setTab] = useState<"signup" | "login">(initialTab);
+
+  const [signupErr, signupForm, signupPending] = useActionState<string | null, FormData>(
+    (_prev, fd) => wrapAction(signupAction, fd),
+    null
+  );
+  const [loginErr, loginForm, loginPending] = useActionState<string | null, FormData>(
+    (_prev, fd) => wrapAction(loginAction, fd),
+    null
+  );
 
   return (
     <div className="form-tabs">
@@ -32,7 +57,7 @@ export function AuthTabs({
       </div>
 
       {tab === "signup" ? (
-        <form className="form" action={signupAction}>
+        <form className="form" action={signupForm}>
           <input type="hidden" name="redirect" value={redirectTo} />
           <label>닉네임</label>
           <input
@@ -58,14 +83,20 @@ export function AuthTabs({
           <p className="hint" style={{ marginTop: "0.25rem" }}>
             잊으면 복구할 수 없습니다.
           </p>
+          <FormError message={signupErr} />
           <div className="actions" style={{ marginTop: "0.85rem" }}>
-            <button type="submit" className="btn primary" style={{ width: "100%" }}>
-              계정 만들기
+            <button
+              type="submit"
+              className="btn primary"
+              style={{ width: "100%" }}
+              disabled={signupPending}
+            >
+              {signupPending ? "가입 중…" : "계정 만들기"}
             </button>
           </div>
         </form>
       ) : (
-        <form className="form" action={loginAction}>
+        <form className="form" action={loginForm}>
           <input type="hidden" name="redirect" value={redirectTo} />
           <label>닉네임</label>
           <input
@@ -82,9 +113,15 @@ export function AuthTabs({
             required
             maxLength={200}
           />
+          <FormError message={loginErr} />
           <div className="actions" style={{ marginTop: "0.85rem" }}>
-            <button type="submit" className="btn primary" style={{ width: "100%" }}>
-              로그인
+            <button
+              type="submit"
+              className="btn primary"
+              style={{ width: "100%" }}
+              disabled={loginPending}
+            >
+              {loginPending ? "확인 중…" : "로그인"}
             </button>
           </div>
         </form>

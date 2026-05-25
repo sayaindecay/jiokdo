@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { logoutAction, setNicknameAction } from "@/app/actions";
 
 export function NicknameBadge({
@@ -12,6 +12,15 @@ export function NicknameBadge({
   authenticated: boolean;
 }) {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [open]);
 
   // 정식 로그인 사용자
   if (authenticated && nickname) {

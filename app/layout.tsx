@@ -13,6 +13,7 @@ import { getAuthenticatedNickname, getNickname } from "@/lib/auth";
 import { NicknameBadge } from "@/components/NicknameBadge";
 import { SiteSearchTrigger } from "@/components/vtt/SiteSearchTrigger";
 import { ThemeBootstrap, ThemeToggle } from "@/components/vtt/ThemeToggle";
+import { NavLinks } from "@/components/vtt/NavLinks";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -78,11 +79,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <span className="brand-mark">d100</span>
               <span>지옥도</span>
             </Link>
-            <nav className="nav">
-              <Link href="/">홈</Link>
-              <Link href="/campaigns">캠페인</Link>
-              <Link href="/rulebook">룰북</Link>
-            </nav>
+            <NavLinks />
             <div style={{ marginLeft: "auto", display: "flex", gap: "0.5rem", alignItems: "center" }}>
               <SiteSearchTrigger />
               <ThemeToggle />
@@ -92,8 +89,20 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         </header>
         <main className="wrap wrap-wide main">{children}</main>
         <footer className="site-footer">
-          <div className="wrap wrap-wide">
-            지옥도 · 1928 Call of Cthulhu VTT
+          <div className="wrap wrap-wide footer-inner">
+            <div className="footer-brand">
+              <span className="brand-mark" aria-hidden="true">d100</span>
+              <span>지옥도 · 1928 Call of Cthulhu VTT</span>
+            </div>
+            <nav className="footer-nav" aria-label="푸터 메뉴">
+              <Link href="/rulebook">룰북</Link>
+              <Link href="/bestiary">베스티어리</Link>
+              <Link href="/campaigns">캠페인</Link>
+              <Link href="/search">검색</Link>
+            </nav>
+            <div className="footer-meta">
+              본 사이트의 굴림 결과는 작성 시점에 동결되어 보관됩니다.
+            </div>
           </div>
         </footer>
       </body>
