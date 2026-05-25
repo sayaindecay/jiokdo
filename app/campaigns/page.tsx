@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { getNickname } from "@/lib/auth";
 import {
-  listActivityFor, listCampaignMembers, listMyCampaigns,
+  listCampaignCharacters, listCampaignMembers, listMyCampaigns,
   listNotificationsFor, listSessions,
 } from "@/lib/db";
+import { campaignHueStyle } from "@/lib/hue";
+import type { Character, Campaign } from "@/lib/types";
 import { CampaignForms } from "@/components/CampaignForms";
 import { NicknameInline } from "@/components/vtt/NicknameInline";
 import { CampaignsTable, type CampaignTableRow } from "@/components/vtt/CampaignsTable";
-import { ActivityFeed } from "@/components/vtt/ActivityFeed";
 import { NotificationsCard } from "@/components/vtt/NotificationsCard";
 
 export const dynamic = "force-dynamic";
@@ -30,29 +31,37 @@ export default async function CampaignsDashboardPage() {
   const campaigns = await listMyCampaigns(nick);
   const notifications = await listNotificationsFor(nick, 8);
 
-  const rows: CampaignTableRow[] = await Promise.all(
+  const enriched = await Promise.all(
     campaigns.map(async (c) => {
-      const sessions = await listSessions(c.id);
-      const members = await listCampaignMembers(c.id);
+      const [sessions, members, chars] = await Promise.all([
+        listSessions(c.id),
+        listCampaignMembers(c.id),
+        listCampaignCharacters(c.id),
+      ]);
       const upcoming = sessions
         .filter((s) => s.scheduled_at && s.scheduled_at >= Date.now() && !s.ended_at)
         .sort((a, b) => (a.scheduled_at ?? 0) - (b.scheduled_at ?? 0));
-      const role = c.keeper_nick === nick ? "keeper" : "player";
-      return {
+      const role: "keeper" | "player" = c.keeper_nick === nick ? "keeper" : "player";
+      const row: CampaignTableRow = {
         campaign: c,
         role,
         next_session: upcoming[0] ?? null,
         characters_count: c.character_count ?? 0,
         members_count: members.length,
-        status: c.status, // DB 의 명시적 상태 사용 (키퍼 토글)
+        status: c.status,
       };
+      const myChars: { char: Character; campaign: Campaign }[] = chars
+        .filter((ch) => ch.owner_nick === nick)
+        .map((ch) => ({ char: ch, campaign: c }));
+      return { row, myChars };
     })
   );
+  const rows: CampaignTableRow[] = enriched.map((e) => e.row);
+  const myChars = enriched.flatMap((e) => e.myChars);
 
   const activeCount = rows.filter((r) => r.status === "active").length;
   const dormantCount = rows.filter((r) => r.status === "dormant").length;
   const closedCount = rows.filter((r) => r.status === "closed").length;
-  const activity = await listActivityFor(nick, 8);
 
   const keeperCount = campaigns.filter((c) => c.keeper_nick === nick).length;
   const playerCount = campaigns.length - keeperCount;
@@ -135,17 +144,38 @@ export default async function CampaignsDashboardPage() {
         <CampaignForms />
       </section>
 
-      {/* ─── 활동 피드 ─── */}
-      <section className="cl-section">
-        <div className="cl-section-head">
-          <div className="cl-section-eyebrow">CHRONICLE</div>
-          <h2>최근 활동</h2>
-          <p className="cl-section-hint">
-            내가 참여 중인 캠페인의 가장 최근 글 / 굴림 / 메모.
-          </p>
-        </div>
-        <ActivityFeed items={activity} />
-      </section>
+      {/* ─── 내 캐릭터 ─── */}
+      {myChars.length > 0 ? (
+        <section className="cl-section">
+          <div className="cl-section-head">
+            <div className="cl-section-eyebrow">DOSSIER · @{nick}</div>
+            <h2>내 캐릭터</h2>
+            <p className="cl-section-hint">
+              참여 중인 캠페인의 내 시트들. 클릭하면 해당 캐릭터 시트로 이동합니다.
+            </p>
+          </div>
+          <div className="my-chars-grid">
+            {myChars.map(({ char, campaign }) => (
+              <Link
+                key={char.id}
+                href={`/characters/${char.id}`}
+                className="my-char-card"
+                style={campaignHueStyle(campaign.slug)}
+                aria-label={`${char.name} · ${campaign.name}`}
+              >
+                <div className="mc-camp">{campaign.name}</div>
+                <div className="mc-name">{char.name}</div>
+                <div className="mc-occu">{char.occupation || "직업 미기재"}</div>
+                <dl className="mc-vitals" aria-hidden="true">
+                  <div><dt>HP</dt><dd>{char.hp}<span>/{char.hp_max}</span></dd></div>
+                  <div><dt>MP</dt><dd>{char.mp}<span>/{char.mp_max}</span></dd></div>
+                  <div><dt>SAN</dt><dd>{char.san}<span>/{char.san_max}</span></dd></div>
+                </dl>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }
