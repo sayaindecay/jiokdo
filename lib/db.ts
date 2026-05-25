@@ -147,9 +147,23 @@ function ensureReady(): Promise<void> {
       await client.execute("DELETE FROM bestiary WHERE created_by IS NULL");
     } catch { /* 실패해도 무시 */ }
 
-    // 더미 데이터 (김백윤) 제거 — 한 번이면 충분하지만 멱등적이라 매 부팅 시 무해
+    // 더미 데이터 (김백윤) 일회성 정리 — 마커 row 로 한 번만 실행
     try {
-      await client.execute("DELETE FROM bestiary WHERE name = '김백윤'");
+      await client.execute(`CREATE TABLE IF NOT EXISTS _migrations (
+        key TEXT PRIMARY KEY,
+        ran_at INTEGER NOT NULL
+      )`);
+      const check = await client.execute({
+        sql: "SELECT 1 FROM _migrations WHERE key = ?",
+        args: ["delete_kim_baekyoon_v1"],
+      });
+      if (check.rows.length === 0) {
+        await client.execute("DELETE FROM bestiary WHERE name = '김백윤'");
+        await client.execute({
+          sql: "INSERT OR IGNORE INTO _migrations (key, ran_at) VALUES (?, ?)",
+          args: ["delete_kim_baekyoon_v1", Date.now()],
+        });
+      }
     } catch { /* 실패해도 무시 */ }
 
     for (const s of RULE_SECTIONS) {

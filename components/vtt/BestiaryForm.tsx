@@ -6,11 +6,19 @@ import type { BestiaryEntry } from "@/lib/types";
 import { createBestiaryAction, updateBestiaryAction } from "@/app/actions";
 import { FormError } from "./FormError";
 
+function isNextRedirect(e: unknown): boolean {
+  if (e == null || typeof e !== "object") return false;
+  const digest = (e as { digest?: unknown }).digest;
+  return typeof digest === "string" && digest.startsWith("NEXT_REDIRECT");
+}
+
 async function wrap(action: (fd: FormData) => Promise<void>, fd: FormData) {
   try {
     await action(fd);
     return null;
   } catch (e) {
+    // Next.js 의 redirect() / notFound() 는 throw 로 동작 — 그대로 재전파해야 함
+    if (isNextRedirect(e)) throw e;
     return e instanceof Error ? e.message : "오류";
   }
 }
