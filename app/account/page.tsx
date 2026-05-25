@@ -26,114 +26,138 @@ export default async function AccountPage({
   if (!user) redirect("/login");
 
   const playerCamps = allCamps.filter((c) => c.keeper_nick !== nick);
+  const initial = nick.slice(0, 1).toUpperCase();
 
   return (
-    <>
+    <div className="acc-page">
       <div className="breadcrumb">
         <Link href="/">지옥도</Link>
         <span className="sep">/</span>
         <span>내 계정</span>
       </div>
 
-      <h1 className="page-title">내 계정</h1>
-      <p className="page-sub">@{nick} — 닉네임 + 비밀번호로 운영되는 계정입니다.</p>
+      {/* ─── 페이지 헤더 ─── */}
+      <header className="acc-header">
+        <div className="acc-eyebrow">ACCOUNT · @{nick}</div>
+        <h1 className="acc-title">내 계정</h1>
+        <p className="acc-sub">
+          닉네임과 비밀번호로 운영되는 계정. 정보·세션·키퍼 캠페인을 한 화면에서 관리합니다.
+        </p>
+      </header>
 
       {sp.changed === "password" ? (
-        <div
-          className="wiki-callout"
-          role="status"
-          style={{ marginBottom: "1rem" }}
-        >
-          <b>완료 ─</b> 비밀번호가 변경되었습니다. 다른 디바이스의 세션은 자동 로그아웃되었습니다.
+        <div className="acc-callout" role="status">
+          <span className="acc-callout-mark" aria-hidden="true">✓</span>
+          <span>
+            <b>비밀번호가 변경되었습니다.</b> 다른 디바이스의 세션은 자동으로 로그아웃되었습니다.
+          </span>
         </div>
       ) : null}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "1rem",
-          alignItems: "start",
-        }}
-      >
-        {/* 사용자 정보 */}
-        <section className="dash-card">
-          <h2>계정 정보</h2>
-          <div className="member-list">
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "0.45rem 0", borderBottom: "1px solid var(--line)" }}>
-              <span style={{ color: "var(--ink-3)", fontFamily: "var(--font-mono)", fontSize: "0.78rem", letterSpacing: "0.04em" }}>
-                닉네임
-              </span>
-              <span style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>{nick}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "0.45rem 0", borderBottom: "1px solid var(--line)" }}>
-              <span style={{ color: "var(--ink-3)", fontFamily: "var(--font-mono)", fontSize: "0.78rem", letterSpacing: "0.04em" }}>
-                가입일
-              </span>
-              <span style={{ fontFamily: "var(--font-mono)", color: "var(--ink-2)" }}>{formatTime(user.created_at)}</span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "0.45rem 0", borderBottom: "1px solid var(--line)" }}>
-              <span style={{ color: "var(--ink-3)", fontFamily: "var(--font-mono)", fontSize: "0.78rem", letterSpacing: "0.04em" }}>
-                마지막 로그인
-              </span>
-              <span style={{ fontFamily: "var(--font-mono)", color: "var(--ink-2)" }}>
-                {user.last_login_at ? formatTime(user.last_login_at) : "—"}
-              </span>
-            </div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "0.45rem 0" }}>
-              <span style={{ color: "var(--ink-3)", fontFamily: "var(--font-mono)", fontSize: "0.78rem", letterSpacing: "0.04em" }}>
-                활성 세션
-              </span>
-              <span style={{ fontFamily: "var(--font-mono)", color: "var(--ink-2)" }}>{sessionCount}개</span>
-            </div>
+      {/* ─── 신원 카드 ─── */}
+      <section className="acc-identity">
+        <div className="acc-id-stamp" aria-hidden="true">
+          <span className="acc-id-initial">{initial}</span>
+          <span className="acc-id-tag">@{nick}</span>
+        </div>
+        <dl className="acc-id-meta">
+          <div>
+            <dt>닉네임</dt>
+            <dd className="mono">{nick}</dd>
           </div>
-        </section>
+          <div>
+            <dt>가입일</dt>
+            <dd>{formatTime(user.created_at)}</dd>
+          </div>
+          <div>
+            <dt>마지막 로그인</dt>
+            <dd>{user.last_login_at ? formatTime(user.last_login_at) : "—"}</dd>
+          </div>
+          <div>
+            <dt>활성 세션</dt>
+            <dd>
+              <span className="acc-id-num">{sessionCount}</span>
+              <span className="acc-id-unit">개</span>
+            </dd>
+          </div>
+        </dl>
+      </section>
 
-        {/* 키퍼 캠페인 목록 */}
-        <section className="dash-card">
-          <h2>키퍼로 운영 중 ({keeperCamps.length})</h2>
+      {/* ─── 2단: 키퍼 캠페인 + 비밀번호 변경 ─── */}
+      <div className="acc-grid">
+        <section className="acc-card">
+          <header className="acc-card-head">
+            <div>
+              <div className="acc-card-eyebrow">KEEPER</div>
+              <h2>키퍼로 운영 중</h2>
+            </div>
+            <span className="acc-card-count">{keeperCamps.length}</span>
+          </header>
           {keeperCamps.length === 0 ? (
-            <p className="text-faint" style={{ fontFamily: "var(--font-anno)" }}>
+            <p className="acc-empty">
               현재 키퍼로 운영 중인 캠페인이 없습니다.
             </p>
           ) : (
-            <ul className="character-list">
+            <ul className="acc-camp-list">
               {keeperCamps.map((c) => (
-                <li key={c.id}>
-                  <Link href={`/campaigns/${c.id}`} style={{ flex: 1 }}>
-                    <span className="char-name">{c.name}</span>
-                    <span className="char-occu">{c.invite_code}</span>
+                <li key={c.id} className="acc-camp-row">
+                  <Link href={`/campaigns/${c.id}`} className="acc-camp-link">
+                    <span className="acc-camp-name">{c.name}</span>
+                    <span className="acc-camp-meta">
+                      <span className="acc-camp-stat" title="멤버">
+                        <span className="acs-label">멤버</span>
+                        <span className="acs-val">{c.member_count ?? 0}</span>
+                      </span>
+                      <span className="acc-camp-stat" title="캐릭터">
+                        <span className="acs-label">캐릭터</span>
+                        <span className="acs-val">{c.character_count ?? 0}</span>
+                      </span>
+                    </span>
                   </Link>
-                  <span className="text-faint small">
-                    👤 {c.member_count} · 📖 {c.character_count}
-                  </span>
+                  <code className="acc-camp-code" title="초대 코드">{c.invite_code}</code>
                 </li>
               ))}
             </ul>
           )}
           {playerCamps.length > 0 ? (
-            <p className="hint" style={{ marginTop: "0.7rem" }}>
-              플레이어로 참여 중인 캠페인 {playerCamps.length}개 있음 —{" "}
-              <Link href="/campaigns">목록 보기 →</Link>
-            </p>
+            <div className="acc-card-foot">
+              <span>
+                플레이어로 참여 중인 캠페인 <b>{playerCamps.length}개</b>
+              </span>
+              <Link href="/campaigns" className="acc-foot-link">
+                목록 보기 →
+              </Link>
+            </div>
           ) : null}
         </section>
 
-        {/* 비밀번호 변경 */}
-        <section className="dash-card">
-          <h2>비밀번호 변경</h2>
+        <section className="acc-card">
+          <header className="acc-card-head">
+            <div>
+              <div className="acc-card-eyebrow">SECURITY</div>
+              <h2>비밀번호 변경</h2>
+            </div>
+          </header>
           <ChangePasswordForm />
         </section>
-
-        {/* 계정 삭제 */}
-        <section className="dash-card" style={{ borderColor: "var(--accent)", background: "var(--accent-soft)" }}>
-          <h2 style={{ color: "var(--accent)" }}>계정 삭제</h2>
-          <DeleteAccountForm
-            nickname={nick}
-            keeperCampaignCount={keeperCamps.length}
-          />
-        </section>
       </div>
-    </>
+
+      {/* ─── 위험 영역: 계정 삭제 ─── */}
+      <div className="danger-divider" aria-hidden="true">
+        <span>위험 영역</span>
+      </div>
+      <section className="acc-danger">
+        <header className="acc-card-head">
+          <div>
+            <div className="acc-card-eyebrow danger">DANGER</div>
+            <h2>계정 삭제</h2>
+          </div>
+        </header>
+        <DeleteAccountForm
+          nickname={nick}
+          keeperCampaignCount={keeperCamps.length}
+        />
+      </section>
+    </div>
   );
 }
