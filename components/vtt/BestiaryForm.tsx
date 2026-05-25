@@ -1,25 +1,23 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { BestiaryEntry } from "@/lib/types";
 import { createBestiaryAction, updateBestiaryAction } from "@/app/actions";
 import { FormError } from "./FormError";
 
-function isNextRedirect(e: unknown): boolean {
-  if (e == null || typeof e !== "object") return false;
-  const digest = (e as { digest?: unknown }).digest;
-  return typeof digest === "string" && digest.startsWith("NEXT_REDIRECT");
-}
+type ActionResult = { ok: boolean; slug?: string; error?: string };
 
-async function wrap(action: (fd: FormData) => Promise<void>, fd: FormData) {
+async function wrap(
+  action: (fd: FormData) => Promise<{ slug: string }>,
+  fd: FormData
+): Promise<ActionResult> {
   try {
-    await action(fd);
-    return null;
+    const res = await action(fd);
+    return { ok: true, slug: res.slug };
   } catch (e) {
-    // Next.js 의 redirect() / notFound() 는 throw 로 동작 — 그대로 재전파해야 함
-    if (isNextRedirect(e)) throw e;
-    return e instanceof Error ? e.message : "오류";
+    return { ok: false, error: e instanceof Error ? e.message : "오류" };
   }
 }
 
@@ -40,13 +38,23 @@ export function BestiaryForm({
   initial?: BestiaryEntry;
   categories?: string[];
 }) {
+  const router = useRouter();
   const isEdit = !!initial;
   const action = isEdit ? updateBestiaryAction : createBestiaryAction;
-  const [err, formAction, pending] = useActionState<string | null, FormData>(
+  const [state, formAction, pending] = useActionState<ActionResult | null, FormData>(
     (_p, fd) => wrap(action, fd),
     null
   );
   const [category, setCategory] = useState(initial?.category ?? "");
+  const err = state?.error ?? null;
+
+  // 저장 성공 시 상세 페이지로 이동 — 서버 액션 안에서 redirect() 하던 것을
+  // 클라이언트에서 router.push 로 대체 (useActionState 환경에서 더 안정적).
+  useEffect(() => {
+    if (state?.ok && state.slug) {
+      router.push(`/bestiary/${encodeURIComponent(state.slug)}`);
+    }
+  }, [state, router]);
 
   // 기본 추천 + DB 의 기존 카테고리 (중복 제거, 등록 순서 유지)
   const seen = new Set<string>();

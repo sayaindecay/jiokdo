@@ -641,21 +641,22 @@ function parseBestiaryFormData(fd: FormData): {
   return { name, category, description, attrs, attacks, sanity_loss, source };
 }
 
-export async function createBestiaryAction(fd: FormData): Promise<void> {
+export async function createBestiaryAction(fd: FormData): Promise<{ slug: string }> {
   const nick = await requireAuthenticatedNickname();
   const parsed = parseBestiaryFormData(fd);
-  let slug = slugify(parsed.name) || `m-${Date.now()}`;
+  const base = slugify(parsed.name);
+  let slug = base || `m-${Date.now()}`;
   for (let i = 2; i < 20; i++) {
     if (!(await isBestiarySlugTaken(slug))) break;
-    slug = `${slugify(parsed.name)}-${i}`;
+    slug = base ? `${base}-${i}` : `m-${Date.now()}-${i}`;
   }
   await createBestiaryEntry({ ...parsed, slug, created_by: nick });
   revalidatePath("/bestiary");
   revalidatePath(`/bestiary/${slug}`);
-  redirect(`/bestiary/${slug}`);
+  return { slug };
 }
 
-export async function updateBestiaryAction(fd: FormData): Promise<void> {
+export async function updateBestiaryAction(fd: FormData): Promise<{ slug: string }> {
   const nick = await requireAuthenticatedNickname();
   const slug = text(fd, "slug", 80);
   const existing = await getBestiaryEntry(slug);
@@ -667,7 +668,7 @@ export async function updateBestiaryAction(fd: FormData): Promise<void> {
   await updateBestiaryEntry(slug, parsed);
   revalidatePath("/bestiary");
   revalidatePath(`/bestiary/${slug}`);
-  redirect(`/bestiary/${slug}`);
+  return { slug };
 }
 
 export async function deleteBestiaryAction(fd: FormData): Promise<void> {
