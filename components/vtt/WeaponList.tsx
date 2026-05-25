@@ -55,18 +55,18 @@ export function WeaponList({
             <span className="wc-skill" title="명중 기능치">{w.skill}%</span>
           </div>
           <div className="wc-meta">
-            <span className="wc-damage" title="피해">
+            <span className="wc-meta-row">
               <span className="wc-meta-label">피해</span>
               <span className="wc-meta-val">{w.damage || "—"}</span>
             </span>
             {w.range ? (
-              <span className="wc-range" title="사거리">
+              <span className="wc-meta-row">
                 <span className="wc-meta-label">사거리</span>
                 <span className="wc-meta-val">{w.range}</span>
               </span>
             ) : null}
             {w.attacks ? (
-              <span className="wc-attacks" title="공격 횟수">
+              <span className="wc-meta-row">
                 <span className="wc-meta-label">공격</span>
                 <span className="wc-meta-val">{w.attacks}</span>
               </span>
@@ -81,7 +81,6 @@ export function WeaponList({
                 disabled={pending}
                 title={`/cc ${w.name} ${w.skill}`}
               >
-                <span className="wc-roll-tag">d100</span>
                 명중 굴림
               </button>
               {w.damage ? (
@@ -92,7 +91,6 @@ export function WeaponList({
                   disabled={pending}
                   title={`/roll ${w.damage}`}
                 >
-                  <span className="wc-roll-tag">{w.damage}</span>
                   피해 굴림
                 </button>
               ) : null}

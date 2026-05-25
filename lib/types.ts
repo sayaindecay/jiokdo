@@ -89,6 +89,7 @@ export type Character = {
   skills: CocSkill[];
   weapons: CocWeapon[];
   backstory: string;
+  portrait_url: string | null;
   created_at: number;
 };
 

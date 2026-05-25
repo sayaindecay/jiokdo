@@ -43,16 +43,16 @@ export default async function BestiaryIndex({
   };
 
   return (
-    <>
-      <header className="bestiary-header">
-        <div className="bh-text">
-          <div className="bh-eyebrow">BESTIARY · 위협 도감</div>
-          <h1 className="bh-title">에너미</h1>
-          <p className="bh-sub">
+    <div className="bes-page">
+      <header className="bes-header">
+        <div className="bes-head-text">
+          <div className="bes-eyebrow">BESTIARY · 위협 도감</div>
+          <h1 className="bes-title">에너미</h1>
+          <p className="bes-sub">
             사용자가 등록한 NPC·생물·미지의 존재 자료집{total > 0 ? ` · ${total}개` : ""}
           </p>
         </div>
-        <div className="bh-actions">
+        <div className="bes-actions">
           {nick ? (
             <Link href="/bestiary/new" className="btn primary">
               + 새 항목
@@ -65,34 +65,39 @@ export default async function BestiaryIndex({
         </div>
       </header>
 
-      <form className="filter-bar" action="/bestiary" role="search">
-        <input
-          type="search"
-          name="q"
-          defaultValue={q ?? ""}
-          placeholder="이름·카테고리·설명 검색"
-        />
-        {cat ? <input type="hidden" name="cat" value={cat} /> : null}
-        <button type="submit" className="btn">검색</button>
-      </form>
+      {/* 통합 툴바: 검색 (좌) + 카테고리 필터 (우) */}
+      <div className="bes-toolbar">
+        <form className="bes-search" action="/bestiary" role="search">
+          <span className="bes-search-icon" aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            name="q"
+            defaultValue={q ?? ""}
+            placeholder="이름·카테고리·설명 검색"
+            aria-label="에너미 검색"
+          />
+          {cat ? <input type="hidden" name="cat" value={cat} /> : null}
+          <button type="submit" className="bes-search-submit">
+            검색
+          </button>
+        </form>
 
-      {/* 9.1 카테고리 필터 */}
-      <div className="bestiary-filter" role="group" aria-label="카테고리 필터">
-        <span className="label">카테고리</span>
-        {QUICK_CATEGORIES.map((c) => {
-          const isActive = (cat ?? "") === c.value;
-          const href = linkFor({ cat: c.value || undefined, page: 1 });
-          return (
-            <Link
-              key={c.label}
-              href={href}
-              className={`filter-chip${isActive ? " active" : ""}`}
-              aria-current={isActive ? "true" : undefined}
-            >
-              {c.label}
-            </Link>
-          );
-        })}
+        <div className="bes-filter" role="group" aria-label="카테고리 필터">
+          {QUICK_CATEGORIES.map((c) => {
+            const isActive = (cat ?? "") === c.value;
+            const href = linkFor({ cat: c.value || undefined, page: 1 });
+            return (
+              <Link
+                key={c.label}
+                href={href}
+                className={`bes-chip${isActive ? " active" : ""}`}
+                aria-current={isActive ? "true" : undefined}
+              >
+                {c.label}
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       {entries.length === 0 ? (
@@ -156,6 +161,6 @@ export default async function BestiaryIndex({
           ) : null}
         </>
       )}
-    </>
+    </div>
   );
 }

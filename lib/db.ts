@@ -137,6 +137,7 @@ function ensureReady(): Promise<void> {
       "ALTER TABLE bestiary ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0",
       "ALTER TABLE campaigns ADD COLUMN status TEXT NOT NULL DEFAULT 'active'",
       "ALTER TABLE campaigns ADD COLUMN illustration_url TEXT",
+      "ALTER TABLE characters ADD COLUMN portrait_url TEXT",
     ]) {
       try { await client.execute(stmt); } catch { /* 이미 존재 */ }
     }
@@ -404,6 +405,19 @@ export async function setCampaignIllustration(
   });
   return Number(res.rowsAffected) > 0;
 }
+
+export async function setCharacterPortrait(
+  id: number,
+  ownerNick: string,
+  url: string | null
+): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "UPDATE characters SET portrait_url = ? WHERE id = ? AND owner_nick = ?",
+    args: [url, id, ownerNick],
+  });
+  return Number(res.rowsAffected) > 0;
+}
 function randomCode(len = 6): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let s = "";
@@ -515,10 +529,12 @@ function rowToCharacter(r: Record<string, unknown>): Character {
     san: Number(r.san), san_max: Number(r.san_max),
     skills: JSON.parse(String(r.skills_json)) as CocSkill[],
     weapons: JSON.parse(String(r.weapons_json)) as CocWeapon[],
-    backstory: String(r.backstory), created_at: Number(r.created_at),
+    backstory: String(r.backstory),
+    portrait_url: r.portrait_url == null ? null : String(r.portrait_url),
+    created_at: Number(r.created_at),
   };
 }
-export async function createCharacter(input: Omit<Character, "id" | "created_at">): Promise<number> {
+export async function createCharacter(input: Omit<Character, "id" | "created_at" | "portrait_url">): Promise<number> {
   await ensureReady();
   const res = await client.execute({
     sql: `INSERT INTO characters (campaign_id, owner_nick, name, occupation, age, attrs_json, hp, hp_max, mp, mp_max, san, san_max, skills_json, weapons_json, backstory, created_at)

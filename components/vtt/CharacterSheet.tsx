@@ -7,6 +7,7 @@ import { RollButton } from "./RollButton";
 import { VitalsEditor } from "./VitalsEditor";
 import { WeaponList } from "./WeaponList";
 import { PortraitSilhouette } from "./Illustrations";
+import { CharacterPortraitEditor } from "./CharacterPortraitEditor";
 
 const ATTR_KEYS: { key: keyof Character["attrs"]; label: string }[] = [
   { key: "str", label: "STR" }, { key: "con", label: "CON" }, { key: "siz", label: "SIZ" },
@@ -46,10 +47,27 @@ export function CharacterSheet({
         </div>
       </div>
 
-      <div className={`sheet-shell${isOwner ? " is-owner" : ""}`}>
+      <div className={`sheet-frame${isOwner ? " is-owner" : ""}`}>
+        {isOwner ? (
+          <span className="sheet-owner-pin" aria-hidden="true">내 캐릭터</span>
+        ) : null}
+        <div className={`sheet-shell${isOwner ? " is-owner" : ""}`}>
         <div className="sheet-header">
-          <div className="sheet-portrait" title="초상화 업로드는 추후 지원 예정">
-            <PortraitSilhouette />
+          <div className="sheet-portrait">
+            {isOwner ? (
+              <CharacterPortraitEditor
+                characterId={character.id}
+                currentUrl={character.portrait_url}
+              />
+            ) : character.portrait_url ? (
+              <img
+                src={character.portrait_url}
+                alt={`${character.name} 프로필`}
+                className="sheet-portrait-img"
+              />
+            ) : (
+              <PortraitSilhouette />
+            )}
           </div>
           <div className="sheet-title">
             <h1>{character.name}</h1>
@@ -109,12 +127,13 @@ export function CharacterSheet({
                       characterId={character.id}
                       skillName={label}
                       skillValue={value}
-                      className="roll-btn"
+                      className="roll-btn roll-btn-icon"
                     >
-                      d100
+                      <span aria-hidden="true">⌬</span>
+                      <span className="sr-only">{label} 굴림</span>
                     </RollButton>
                   ) : (
-                    <span className="roll-btn" style={{ opacity: 0.4, cursor: "default" }}>d100</span>
+                    <span className="roll-btn roll-btn-icon" style={{ opacity: 0.4, cursor: "default" }} aria-hidden="true">⌬</span>
                   )}
                 </div>
               );
@@ -211,6 +230,7 @@ export function CharacterSheet({
               </div>
             )}
           </div>
+        </div>
         </div>
       </div>
     </>

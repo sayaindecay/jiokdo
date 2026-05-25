@@ -10,7 +10,7 @@ import {
   deleteCharacter, deleteOtherUserSessions, deleteUser, deleteUserSession,
   findUser, getBestiaryEntry, getCampaign, getCampaignByCode, getCharacter,
   isBestiarySlugTaken, joinCampaign, listKeperCampaigns, touchUserLogin,
-  setCampaignIllustration,
+  setCampaignIllustration, setCharacterPortrait,
   updateBestiaryEntry, updateCampaignProfile, updateCharacterProfile, updateCharacterVitals,
   updateUserPassword,
 } from "@/lib/db";
@@ -431,6 +431,37 @@ export async function updateCharacterProfileAction(fd: FormData): Promise<void> 
   });
   revalidatePath(`/characters/${id}`);
   redirect(`/characters/${id}`);
+}
+
+export async function setCharacterPortraitAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const id = num(fd, "character_id");
+  const ch = await getCharacter(id);
+  if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
+  if (ch.owner_nick !== nick) {
+    throw new Error("본인 캐릭터만 프로필 사진을 변경할 수 있습니다");
+  }
+  const raw = (fd.get("portrait_url") as string | null) ?? "";
+  const trimmed = raw.trim();
+
+  if (!trimmed) {
+    await setCharacterPortrait(id, nick, null);
+    revalidatePath(`/characters/${id}`);
+    return;
+  }
+
+  if (trimmed.length > 1_400_000) {
+    throw new Error("이미지가 너무 큽니다. 1MB 이하로 줄여 주세요.");
+  }
+
+  const isHttps = /^https?:\/\//i.test(trimmed);
+  const isDataImage = /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(trimmed);
+  if (!isHttps && !isDataImage) {
+    throw new Error("이미지 URL 또는 업로드한 이미지만 허용됩니다.");
+  }
+
+  await setCharacterPortrait(id, nick, trimmed);
+  revalidatePath(`/characters/${id}`);
 }
 
 export async function setCampaignIllustrationAction(fd: FormData): Promise<void> {
