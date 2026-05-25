@@ -401,8 +401,31 @@ export async function updateCharacterProfileAction(fd: FormData): Promise<void> 
     }
   }
 
+  // Weapons JSON payload
+  const weaponsJsonRaw = text(fd, "weapons_json", 12000);
+  let weapons: CocWeapon[] | undefined;
+  if (weaponsJsonRaw) {
+    try {
+      const parsed = JSON.parse(weaponsJsonRaw) as Array<{
+        name?: string; skill?: number; damage?: string; range?: string; attacks?: string;
+      }>;
+      if (!Array.isArray(parsed)) throw new Error("weapons_json 형식 오류");
+      weapons = parsed
+        .map((w) => ({
+          name: String(w.name ?? "").trim().slice(0, 60),
+          skill: clamp(Number(w.skill ?? 0), 0, 99),
+          damage: String(w.damage ?? "").trim().slice(0, 60),
+          range: w.range ? String(w.range).trim().slice(0, 40) : undefined,
+          attacks: w.attacks ? String(w.attacks).trim().slice(0, 20) : undefined,
+        }))
+        .filter((w) => w.name.length > 0);
+    } catch {
+      throw new Error("무기 데이터를 처리할 수 없습니다");
+    }
+  }
+
   await updateCharacterProfile(id, {
-    name, occupation, age, backstory, skills,
+    name, occupation, age, backstory, skills, weapons,
     attrs, hp_max, mp_max, san_max,
   });
   revalidatePath(`/characters/${id}`);

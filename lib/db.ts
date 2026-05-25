@@ -526,16 +526,20 @@ export async function updateCharacterProfile(id: number, profile: {
   age: number | null;
   backstory: string;
   skills: CocSkill[];
+  weapons?: CocWeapon[];
   attrs?: CocAttrs;
   hp_max?: number;
   mp_max?: number;
   san_max?: number;
 }): Promise<void> {
   await ensureReady();
+  const weaponsJson = profile.weapons != null ? JSON.stringify(profile.weapons) : null;
+
   if (profile.attrs && profile.hp_max != null && profile.mp_max != null && profile.san_max != null) {
     await client.execute({
       sql: `UPDATE characters SET name = ?, occupation = ?, age = ?, backstory = ?,
               skills_json = ?, attrs_json = ?,
+              weapons_json = COALESCE(?, weapons_json),
               hp_max = ?, mp_max = ?, san_max = ?,
               hp = MIN(hp, ?), mp = MIN(mp, ?), san = MIN(san, ?)
             WHERE id = ?`,
@@ -543,6 +547,7 @@ export async function updateCharacterProfile(id: number, profile: {
         profile.name, profile.occupation, profile.age,
         profile.backstory, JSON.stringify(profile.skills),
         JSON.stringify(profile.attrs),
+        weaponsJson,
         profile.hp_max, profile.mp_max, profile.san_max,
         profile.hp_max, profile.mp_max, profile.san_max,
         id,
@@ -551,10 +556,13 @@ export async function updateCharacterProfile(id: number, profile: {
     return;
   }
   await client.execute({
-    sql: `UPDATE characters SET name = ?, occupation = ?, age = ?, backstory = ?, skills_json = ? WHERE id = ?`,
+    sql: `UPDATE characters SET name = ?, occupation = ?, age = ?, backstory = ?,
+            skills_json = ?, weapons_json = COALESCE(?, weapons_json)
+          WHERE id = ?`,
     args: [
       profile.name, profile.occupation, profile.age,
-      profile.backstory, JSON.stringify(profile.skills), id,
+      profile.backstory, JSON.stringify(profile.skills),
+      weaponsJson, id,
     ],
   });
 }
@@ -1141,4 +1149,122 @@ export async function deleteUserSession(token: string): Promise<void> {
     sql: "DELETE FROM user_sessions WHERE token = ?",
     args: [token],
   });
+}
+
+// ───── 신규 알림 ─────
+export type Notification = {
+  id: string;
+  campaign_id: number;
+  campaign_name: string;
+  kind: "play" | "character" | "clue";
+  who: string;
+  what: string;
+  level?: string | null;
+  level_label?: string | null;
+  when: number;
+};
+
+export async function listNotificationsFor(nick: string, limit = 12): Promise<Notification[]> {
+  await ensureReady();
+  const { LEVEL_LABEL } = await import("./dice");
+
+  // 1. 최근 play_entries
+  const plays = await client.execute({
+    sql: `SELECT p.id, p.campaign_id, p.nickname, p.kind, p.segments_json, p.created_at,
+                 ch.name AS character_name, c.name AS campaign_name
+          FROM play_entries p
+          JOIN campaign_members m ON m.campaign_id = p.campaign_id AND m.nickname = ?
+          JOIN campaigns c ON c.id = p.campaign_id
+          LEFT JOIN characters ch ON ch.id = p.character_id
+          ORDER BY p.created_at DESC LIMIT ?`,
+    args: [nick, Math.ceil(limit * 1.5)],
+  });
+
+  // 2. 최근 characters (다른 멤버의 새 캐릭터)
+  const chars = await client.execute({
+    sql: `SELECT ch.id, ch.campaign_id, ch.owner_nick, ch.name, ch.occupation, ch.created_at,
+                 c.name AS campaign_name
+          FROM characters ch
+          JOIN campaign_members m ON m.campaign_id = ch.campaign_id AND m.nickname = ?
+          JOIN campaigns c ON c.id = ch.campaign_id
+          WHERE ch.owner_nick != ?
+          ORDER BY ch.created_at DESC LIMIT ?`,
+    args: [nick, nick, Math.ceil(limit / 2)],
+  });
+
+  // 3. 최근 clues
+  const clues = await client.execute({
+    sql: `SELECT cl.id, cl.campaign_id, cl.title, cl.body, cl.created_at,
+                 c.name AS campaign_name
+          FROM clues cl
+          JOIN campaign_members m ON m.campaign_id = cl.campaign_id AND m.nickname = ?
+          JOIN campaigns c ON c.id = cl.campaign_id
+          ORDER BY cl.created_at DESC LIMIT ?`,
+    args: [nick, Math.ceil(limit / 2)],
+  });
+
+  const out: Notification[] = [];
+
+  for (const r of plays.rows) {
+    const segs = JSON.parse(String(r.segments_json)) as Segment[];
+    const dice = segs.find((s) => s.type === "dice");
+    const text = segs.find((s) => s.type === "text") as { type: "text"; value: string } | undefined;
+    const who = String(r.character_name || r.nickname);
+    const kindRaw = String(r.kind);
+    let what: string;
+    let level: string | null = null;
+    let level_label: string | null = null;
+    if (dice && dice.type === "dice") {
+      if (dice.result.kind === "cc") {
+        what = `${dice.result.name ? `${dice.result.name} ` : ""}판정 → ${dice.result.roll}`;
+        level = dice.result.level;
+        level_label = LEVEL_LABEL[dice.result.level];
+      } else {
+        what = `${dice.result.notation} = ${dice.result.total}`;
+      }
+    } else if (text) {
+      const tag = kindRaw === "narration" ? "묘사" : kindRaw === "system" ? "시스템" : "발화";
+      what = `${tag}: ${text.value.slice(0, 60)}${text.value.length > 60 ? "…" : ""}`;
+    } else {
+      what = "빈 글";
+    }
+    out.push({
+      id: `play-${r.id}`,
+      campaign_id: Number(r.campaign_id),
+      campaign_name: String(r.campaign_name),
+      kind: "play",
+      who,
+      what,
+      level,
+      level_label,
+      when: Number(r.created_at),
+    });
+  }
+
+  for (const r of chars.rows) {
+    out.push({
+      id: `char-${r.id}`,
+      campaign_id: Number(r.campaign_id),
+      campaign_name: String(r.campaign_name),
+      kind: "character",
+      who: String(r.owner_nick),
+      what: `새 탐사자 「${r.name}」 ${r.occupation ? `· ${r.occupation}` : ""}`,
+      when: Number(r.created_at),
+    });
+  }
+
+  for (const r of clues.rows) {
+    out.push({
+      id: `clue-${r.id}`,
+      campaign_id: Number(r.campaign_id),
+      campaign_name: String(r.campaign_name),
+      kind: "clue",
+      who: "키퍼",
+      what: `단서 「${r.title}」 ${r.body ? `· ${String(r.body).slice(0, 40)}` : ""}`,
+      when: Number(r.created_at),
+    });
+  }
+
+  out.sort((a, b) => b.when - a.when);
+  return out.slice(0, limit);
 }

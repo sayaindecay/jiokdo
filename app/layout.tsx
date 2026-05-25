@@ -75,9 +75,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         <header className="site-header">
           <div className="wrap wrap-wide">
-            <Link href="/" className="brand">
-              <span className="brand-mark">d100</span>
-              <span>지옥도</span>
+            <Link href="/" className="brand" aria-label="지옥도 홈">
+              <span className="brand-stamp" aria-hidden="true">
+                <span className="bs-prefix">d</span>
+                <span className="bs-num">100</span>
+              </span>
+              <span className="brand-text">
+                <span className="brand-ko">지옥도</span>
+                <span className="brand-en">JIOKDO · EST. 2007</span>
+              </span>
             </Link>
             <NavLinks />
             <div style={{ marginLeft: "auto", display: "flex", gap: "0.5rem", alignItems: "center" }}>

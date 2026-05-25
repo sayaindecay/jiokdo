@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { getNickname } from "@/lib/auth";
 import {
-  countCharactersInDanger, getCampaignAggregates, getNextScheduledSession,
-  listActivityFor, listCampaignMembers, listMyCampaigns, listSessions,
+  listActivityFor, listCampaignMembers, listMyCampaigns,
+  listNotificationsFor, listSessions,
 } from "@/lib/db";
 import { CampaignForms } from "@/components/CampaignForms";
-import { DashHero, DashHeroEmpty } from "@/components/vtt/DashHero";
 import { NicknameInline } from "@/components/vtt/NicknameInline";
-import { SessionHistory } from "@/components/vtt/SessionHistory";
 import { CampaignsTable, type CampaignTableRow } from "@/components/vtt/CampaignsTable";
 import { ActivityFeed } from "@/components/vtt/ActivityFeed";
+import { NotificationsCard } from "@/components/vtt/NotificationsCard";
 
 export const dynamic = "force-dynamic";
 
@@ -29,37 +28,7 @@ export default async function CampaignsDashboardPage() {
   }
 
   const campaigns = await listMyCampaigns(nick);
-  const next = await getNextScheduledSession(nick);
-
-  let heroBlock;
-  let history: Awaited<ReturnType<typeof listSessions>> = [];
-
-  if (next) {
-    const [agg, danger] = await Promise.all([
-      getCampaignAggregates(next.campaign.id),
-      countCharactersInDanger(next.campaign.id),
-    ]);
-    heroBlock = (
-      <DashHero
-        campaign={next.campaign}
-        session={next.session}
-        stats={{
-          unresolved_clues: agg.unresolved_clues,
-          danger_pcs: danger,
-          total_sessions: agg.total_sessions,
-          total_play_ms: agg.total_play_ms,
-        }}
-      />
-    );
-    history = (await listSessions(next.campaign.id)).slice(0, 5);
-  } else {
-    heroBlock = (
-      <DashHeroEmpty
-        hasCampaign={campaigns.length > 0}
-        showForms={campaigns.length === 0}
-      />
-    );
-  }
+  const notifications = await listNotificationsFor(nick, 8);
 
   const rows: CampaignTableRow[] = await Promise.all(
     campaigns.map(async (c) => {
@@ -114,16 +83,19 @@ export default async function CampaignsDashboardPage() {
         </div>
       </header>
 
-      {/* ─── 다음 세션 hero ─── */}
-      <section className="cl-section cl-next-section">
+      {/* ─── 신규 알림 ─── */}
+      <section className="cl-section">
         <div className="cl-section-head">
-          <div className="cl-section-eyebrow">FOCUS</div>
-          <h2>{next ? "다음 세션" : "예정된 세션 없음"}</h2>
+          <div className="cl-section-eyebrow">FOCUS · 신규 알림</div>
+          <h2>최근 변동 사항</h2>
+          <p className="cl-section-hint">
+            참여 중인 캠페인의 최근 글·굴림·캐릭터 등록·단서. 클릭하면 해당 장소로 이동합니다.
+          </p>
         </div>
-        {heroBlock}
-        {next ? (
-          <SessionHistory campaignName={next.campaign.name} sessions={history} />
-        ) : null}
+        <NotificationsCard
+          notifications={notifications}
+          hasCampaigns={campaigns.length > 0}
+        />
       </section>
 
       {/* ─── 모든 캠페인 표 ─── */}

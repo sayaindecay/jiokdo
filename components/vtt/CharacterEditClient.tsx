@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useMemo, useState } from "react";
-import type { Character, CocAttrs, CocSkill, CocSkillGroup } from "@/lib/types";
+import type { Character, CocAttrs, CocSkill, CocSkillGroup, CocWeapon } from "@/lib/types";
 import { updateCharacterProfileAction } from "@/app/actions";
 import { FormError } from "./FormError";
 
@@ -21,6 +21,7 @@ const GROUP_OPTIONS: { value: CocSkillGroup; label: string }[] = [
 ];
 
 type SkillState = CocSkill & { id: string };
+type WeaponState = CocWeapon & { id: string };
 
 let _id = 0;
 const newId = () => `s${++_id}_${Date.now().toString(36)}`;
@@ -46,6 +47,7 @@ export function CharacterEditClient({ character }: { character: Character }) {
       mp_max: character.mp_max,
       san_max: character.san_max,
       skills: character.skills.map((s) => ({ ...s, _id: newId() })),
+      weapons: character.weapons.map((w) => ({ ...w, _id: newId() })),
     }),
     [character]
   );
@@ -61,6 +63,9 @@ export function CharacterEditClient({ character }: { character: Character }) {
 
   const [skills, setSkills] = useState<SkillState[]>(
     character.skills.map((s) => ({ ...s, id: newId() }))
+  );
+  const [weapons, setWeapons] = useState<WeaponState[]>(
+    character.weapons.map((w) => ({ ...w, id: newId() }))
   );
 
   const [err, formAction, pending] = useActionState<string | null, FormData>(
@@ -79,7 +84,9 @@ export function CharacterEditClient({ character }: { character: Character }) {
     Number(sanMax) !== initial.san_max ||
     JSON.stringify(attrs) !== JSON.stringify(initial.attrs) ||
     JSON.stringify(skills.map(({ id: _i, ...s }) => s)) !==
-      JSON.stringify(initial.skills.map(({ _id: _i, ...s }) => s));
+      JSON.stringify(initial.skills.map(({ _id: _i, ...s }) => s)) ||
+    JSON.stringify(weapons.map(({ id: _i, ...w }) => w)) !==
+      JSON.stringify(initial.weapons.map(({ _id: _i, ...w }) => w));
 
   const updateSkill = (id: string, patch: Partial<CocSkill>) => {
     setSkills((arr) => arr.map((s) => (s.id === id ? { ...s, ...patch } : s)));
@@ -89,6 +96,19 @@ export function CharacterEditClient({ character }: { character: Character }) {
   };
   const addSkill = () => {
     setSkills((arr) => [...arr, { id: newId(), name: "", value: 25, group: "other", used: false }]);
+  };
+
+  const updateWeapon = (id: string, patch: Partial<CocWeapon>) => {
+    setWeapons((arr) => arr.map((w) => (w.id === id ? { ...w, ...patch } : w)));
+  };
+  const removeWeapon = (id: string) => {
+    setWeapons((arr) => arr.filter((w) => w.id !== id));
+  };
+  const addWeapon = () => {
+    setWeapons((arr) => [
+      ...arr,
+      { id: newId(), name: "", skill: 25, damage: "1d3 + DB" },
+    ]);
   };
 
   // 검증
@@ -117,6 +137,17 @@ export function CharacterEditClient({ character }: { character: Character }) {
           skills.map(({ id: _i, ...s }) => ({
             ...s,
             name: s.name.trim(),
+          }))
+        )}
+      />
+      <input
+        type="hidden"
+        name="weapons_json"
+        value={JSON.stringify(
+          weapons.map(({ id: _i, ...w }) => ({
+            ...w,
+            name: w.name.trim(),
+            damage: (w.damage ?? "").trim(),
           }))
         )}
       />
@@ -327,6 +358,74 @@ export function CharacterEditClient({ character }: { character: Character }) {
               </div>
             );
           })
+        )}
+      </div>
+
+      {/* ─── 무기 (skills 와 같은 동적 패턴) ─── */}
+      <div className="section-head" style={{ marginTop: "1.25rem", marginBottom: "0.6rem" }}>
+        <h2 style={{ fontFamily: "var(--font-mono)", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--ink-3)" }}>
+          무기 ({weapons.length})
+        </h2>
+        <button type="button" className="btn ghost small" onClick={addWeapon}>
+          + 새 무기
+        </button>
+      </div>
+
+      <div className="weapon-edit-list">
+        {weapons.length === 0 ? (
+          <p className="text-faint" style={{ fontFamily: "var(--font-anno)" }}>
+            무기가 비어 있습니다. &quot;+ 새 무기&quot;로 추가하세요. (예: 권총 30% · 1d10 + DB)
+          </p>
+        ) : (
+          weapons.map((w) => (
+            <div className="weapon-edit-row" key={w.id}>
+              <input
+                type="text"
+                value={w.name}
+                onChange={(e) => updateWeapon(w.id, { name: e.target.value })}
+                placeholder="무기 이름 (예: 리볼버 .32)"
+                maxLength={60}
+              />
+              <input
+                type="number"
+                min={0}
+                max={99}
+                value={w.skill}
+                onChange={(e) =>
+                  updateWeapon(w.id, {
+                    skill: Math.max(0, Math.min(99, Number(e.target.value) || 0)),
+                  })
+                }
+                style={{ fontFamily: "var(--font-mono)", textAlign: "center" }}
+                title="기능치 (사격 / 격투 등)"
+              />
+              <input
+                type="text"
+                value={w.damage}
+                onChange={(e) => updateWeapon(w.id, { damage: e.target.value })}
+                placeholder="피해 (예: 1d10 + DB)"
+                maxLength={60}
+                style={{ fontFamily: "var(--font-mono)" }}
+              />
+              <input
+                type="text"
+                value={w.range ?? ""}
+                onChange={(e) => updateWeapon(w.id, { range: e.target.value })}
+                placeholder="사거리 (선택)"
+                maxLength={40}
+                style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem" }}
+              />
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => removeWeapon(w.id)}
+                aria-label={`${w.name || "이름 없는 무기"} 제거`}
+                style={{ color: "var(--accent)", fontFamily: "var(--font-mono)" }}
+              >
+                ✕
+              </button>
+            </div>
+          ))
         )}
       </div>
 

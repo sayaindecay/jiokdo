@@ -36,15 +36,30 @@ export default async function LandingPage() {
   const isFresh = totalSignal === 0;
 
   return (
-    <>
-      <section className="peek-hero">
-        <div className="peek-copy">
-          <span className="eyebrow">현장 보고서 №01 · 2007</span>
-          <h1 className="hero-title-quote">
-            어쩌겠습니까.<br />
-            <em>우리 세상은</em> 2000년대 초반부터<br />
-            그렇게 된 것을.
+    <div className="landing">
+      <section className="hero-doc">
+        <header className="hd-corners">
+          <div className="hd-stamp" aria-hidden="true">
+            <div className="hd-stamp-label">현장 보고서</div>
+            <div className="hd-stamp-num">№<b>01</b></div>
+          </div>
+          <div className="hd-meta">
+            <div className="hd-classification">CONFIDENTIAL · 대외비</div>
+            <div className="hd-date">SEOUL · 2007</div>
+            <div className="hd-file">FILE/01.SEOUL.2007</div>
+          </div>
+        </header>
+
+        <div className="hd-body">
+          <h1 className="hd-quote">
+            <span className="hd-q-mark" aria-hidden="true">“</span>
+            <span className="hd-q-text">
+              어쩌겠습니까.<br />
+              <em>우리 세상은</em> 2000년대 초반부터<br />
+              그렇게 된 것을.
+            </span>
           </h1>
+
           <div className="hero-questionnaire" role="list">
             <p role="listitem">이태백, 이소호, 최혜진, 천은이 모두 생존해있습니까?</p>
             <p role="listitem">안세인, 백진아, 권효명, 천경석이 모두 생존해있습니까?</p>
@@ -64,10 +79,14 @@ export default async function LandingPage() {
               이 모든 일을 끝낼 준비가 되셨습니까?
             </p>
           </div>
+        </div>
 
-          {/* 1.1 CTA 위계 강화 */}
-          <div className="cta-row">
-            <Link href={nick ? "/campaigns" : "/login?redirect=/campaigns"} className="btn primary large">
+        <footer className="hd-footer">
+          <div className="hd-cta-row">
+            <Link
+              href={nick ? "/campaigns" : "/login?redirect=/campaigns"}
+              className="btn primary large"
+            >
               {nick ? "내 캠페인 열기 →" : "지금 시작하기 →"}
             </Link>
             <Link href="/rulebook" className="btn ghost">
@@ -75,29 +94,34 @@ export default async function LandingPage() {
             </Link>
           </div>
 
-          {/* 1.2 / 1.6 통계 빈 상태 / 라벨 강조 */}
           {isFresh ? (
-            <div className="hero-fresh">
+            <div className="hd-fresh">
               <span aria-hidden="true">✦</span>
               초기 운영 중입니다. 첫 캠페인이 등록되면 통계가 여기에 누적됩니다.
             </div>
           ) : (
-            <div className="peek-stats">
-              <div className="stat">
-                <b>{stats.registered_nicks.toLocaleString()}</b>
-                <span>등록 닉네임</span>
+            <dl className="hd-stats">
+              <div>
+                <dt>등록 닉네임</dt>
+                <dd>{stats.registered_nicks.toLocaleString()}</dd>
               </div>
-              <div className="stat">
-                <b>{stats.total_dice_rolls.toLocaleString()}</b>
-                <span>누적 굴림</span>
+              <div>
+                <dt>누적 굴림</dt>
+                <dd>{stats.total_dice_rolls.toLocaleString()}</dd>
               </div>
-              <div className="stat">
-                <b>{stats.this_week_sessions.toLocaleString()}</b>
-                <span>이번 주 세션</span>
+              <div>
+                <dt>이번 주 세션</dt>
+                <dd>{stats.this_week_sessions.toLocaleString()}</dd>
               </div>
-            </div>
+            </dl>
           )}
-        </div>
+
+          <div className="hd-sign">— 비밀지식의 수호자 일동 —</div>
+        </footer>
+      </section>
+
+      <section className="hero-aside">
+        <div className="ha-eyebrow">최근 세션 · 미리보기</div>
         <PeekWindow
           items={peekItems}
           isDemo={peekItems.length === 0}
@@ -107,9 +131,8 @@ export default async function LandingPage() {
               : "jiokdo.app · 최근 세션"
           }
         />
+        <LiveTicker initial={tickerInitial} />
       </section>
-
-      <LiveTicker initial={tickerInitial} />
-    </>
+    </div>
   );
 }
