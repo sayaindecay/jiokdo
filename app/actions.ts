@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { contentToSegments } from "@/lib/dice";
 import {
-  createCampaign, createCharacter, createPlayEntry, deleteCharacter,
+  createCampaign, createCharacter, createPlayEntry, deleteCampaign, deleteCharacter,
   getCampaign, getCampaignByCode, getCharacter, joinCampaign,
   updateCharacterProfile, updateCharacterVitals,
 } from "@/lib/db";
@@ -236,6 +236,25 @@ export async function updateCharacterProfileAction(fd: FormData): Promise<void> 
   await updateCharacterProfile(id, { name, occupation, age, backstory, skills });
   revalidatePath(`/characters/${id}`);
   redirect(`/characters/${id}`);
+}
+
+export async function deleteCampaignAction(fd: FormData): Promise<void> {
+  const nick = await getNickname();
+  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const id = num(fd, "campaign_id");
+  const camp = await getCampaign(id);
+  if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
+  if (camp.keeper_nick !== nick) {
+    throw new Error("키퍼만 캠페인을 삭제할 수 있습니다");
+  }
+  const confirmName = text(fd, "confirm_name", 80);
+  if (confirmName !== camp.name) {
+    throw new Error("확인을 위해 캠페인 이름을 정확히 입력하세요");
+  }
+  const ok = await deleteCampaign(id, nick);
+  if (!ok) throw new Error("삭제에 실패했습니다");
+  revalidatePath("/campaigns");
+  redirect("/campaigns");
 }
 
 export async function deleteCharacterAction(fd: FormData): Promise<void> {

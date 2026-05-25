@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getNickname } from "@/lib/auth";
 import {
-  getCampaign, listCampaignCharacters, listCampaignMembers, listPlayEntries,
+  getCampaign, listClues, listCampaignCharacters, listCampaignMembers,
+  listPlayEntries, listSessions,
 } from "@/lib/db";
 import { formatTime } from "@/lib/format";
 import { CharacterCreateForm } from "@/components/CharacterCreateForm";
+import { CampaignDangerZone } from "@/components/vtt/CampaignDangerZone";
 
 export const dynamic = "force-dynamic";
 
@@ -18,10 +20,12 @@ export default async function CampaignDashboard({
   const camp = await getCampaign(id);
   if (!camp) notFound();
   const nick = await getNickname();
-  const [members, chars, entries] = await Promise.all([
+  const [members, chars, entries, sessions, clues] = await Promise.all([
     listCampaignMembers(id),
     listCampaignCharacters(id),
     listPlayEntries(id),
+    listSessions(id),
+    listClues(id),
   ]);
   const isKeeper = nick === camp.keeper_nick;
   const isMember = nick != null && members.some((m) => m.nickname === nick);
@@ -109,6 +113,20 @@ export default async function CampaignDashboard({
           </Link>
         </section>
       </div>
+
+      {isKeeper ? (
+        <CampaignDangerZone
+          campaignId={id}
+          campaignName={camp.name}
+          counts={{
+            members: members.length,
+            characters: chars.length,
+            sessions: sessions.length,
+            clues: clues.length,
+            play_entries: entries.length,
+          }}
+        />
+      ) : null}
     </>
   );
 }

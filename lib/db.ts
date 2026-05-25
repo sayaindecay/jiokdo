@@ -350,6 +350,15 @@ export async function updateCharacterVitals(id: number, vitals: { hp: number; mp
   });
 }
 
+export async function deleteCampaign(id: number, keeperNick: string): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "DELETE FROM campaigns WHERE id = ? AND keeper_nick = ?",
+    args: [id, keeperNick],
+  });
+  return Number(res.rowsAffected) > 0;
+}
+
 export async function deleteCharacter(id: number, ownerNick: string): Promise<boolean> {
   await ensureReady();
   const res = await client.execute({
