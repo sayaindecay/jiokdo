@@ -116,7 +116,7 @@ export default async function LandingPage() {
             </dl>
           )}
 
-          <div className="hd-sign">— 비밀지식의 수호자 일동 —</div>
+          <div className="hd-sign">— 서울경찰청 특수사건수사팀 —</div>
         </footer>
       </section>
 

@@ -1,5 +1,6 @@
 import "./globals.css";
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import {
   Inter,
@@ -76,14 +77,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <header className="site-header">
           <div className="wrap wrap-wide">
             <Link href="/" className="brand" aria-label="지옥도 홈">
-              <span className="brand-stamp" aria-hidden="true">
-                <span className="bs-prefix">d</span>
-                <span className="bs-num">100</span>
-              </span>
-              <span className="brand-text">
-                <span className="brand-ko">지옥도</span>
-                <span className="brand-kicker" aria-hidden="true">圖</span>
-              </span>
+              <Image
+                src="/jiokdo-mark.png"
+                alt=""
+                width={36}
+                height={36}
+                className="brand-mark-img"
+                priority
+              />
+              <span className="brand-ko">지옥도</span>
             </Link>
             <NavLinks />
             <div style={{ marginLeft: "auto", display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -97,8 +99,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <footer className="site-footer">
           <div className="wrap wrap-wide footer-inner">
             <div className="footer-brand">
-              <span className="brand-mark" aria-hidden="true">d100</span>
-              <span>지옥도 · 1928 Call of Cthulhu VTT</span>
+              <Image
+                src="/jiokdo-mark.png"
+                alt=""
+                width={28}
+                height={28}
+                className="footer-mark-img"
+              />
+              <span>지옥도</span>
             </div>
             <nav className="footer-nav" aria-label="푸터 메뉴">
               <Link href="/rulebook">룰북</Link>

@@ -127,13 +127,12 @@ export function CharacterSheet({
                       characterId={character.id}
                       skillName={label}
                       skillValue={value}
-                      className="roll-btn roll-btn-icon"
+                      className="roll-btn"
                     >
-                      <span aria-hidden="true">⌬</span>
-                      <span className="sr-only">{label} 굴림</span>
+                      d100
                     </RollButton>
                   ) : (
-                    <span className="roll-btn roll-btn-icon" style={{ opacity: 0.4, cursor: "default" }} aria-hidden="true">⌬</span>
+                    <span className="roll-btn" style={{ opacity: 0.4, cursor: "default" }}>d100</span>
                   )}
                 </div>
               );

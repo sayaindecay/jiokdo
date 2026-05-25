@@ -73,7 +73,6 @@ export function SkillList({
     >
       <span className="name">{s.name}</span>
       <span className="val">{s.value}</span>
-      {canRoll ? <span className="roll-hint" aria-hidden="true">d100 →</span> : null}
     </button>
   );
 
