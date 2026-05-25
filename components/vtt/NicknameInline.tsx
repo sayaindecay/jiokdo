@@ -1,36 +1,24 @@
-"use client";
-
-import { useState } from "react";
-import { setNicknameAction } from "@/app/actions";
+import Link from "next/link";
 
 export function NicknameInline({ redirect }: { redirect: string }) {
-  const [value, setValue] = useState("");
+  const q = encodeURIComponent(redirect);
   return (
     <div className="dash-hero" style={{ marginBottom: "1rem" }}>
-      <div className="label">먼저 닉네임이 필요합니다</div>
+      <div className="label">먼저 계정이 필요합니다</div>
       <div className="campaign" style={{ marginTop: "0.5rem" }}>
-        캠페인을 만들고 참여하려면 부를 이름을 알려주세요.
+        캠페인을 만들고 캐릭터를 보관하려면 닉네임 + 비밀번호로 계정을 만드세요.
       </div>
-      <div className="sub">가입은 없습니다. 이 이름은 캠페인 멤버 / 글 작성자 표시에 쓰입니다.</div>
-      <form
-        action={setNicknameAction}
-        style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", maxWidth: 460 }}
-      >
-        <input type="hidden" name="redirect" value={redirect} />
-        <input
-          name="nickname"
-          required
-          maxLength={24}
-          autoFocus
-          placeholder="예) 이상한꿈"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          style={{ flex: 1, fontFamily: "var(--font-mono)" }}
-        />
-        <button type="submit" className="btn primary" disabled={!value.trim()}>
-          시작하기 →
-        </button>
-      </form>
+      <div className="sub">
+        이메일은 받지 않습니다. 잊으면 복구되지 않으니 안전하게 보관하세요.
+      </div>
+      <div className="cta-row" style={{ marginTop: "1rem" }}>
+        <Link href={`/login?tab=signup&redirect=${q}`} className="btn primary">
+          가입하기 →
+        </Link>
+        <Link href={`/login?tab=login&redirect=${q}`} className="btn ghost">
+          이미 계정이 있어요
+        </Link>
+      </div>
     </div>
   );
 }

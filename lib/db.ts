@@ -112,6 +112,20 @@ function ensureReady(): Promise<void> {
         created_at INTEGER NOT NULL
       )`,
       `CREATE INDEX IF NOT EXISTS idx_clues_campaign ON clues(campaign_id, resolved)`,
+      `CREATE TABLE IF NOT EXISTS users (
+        nickname TEXT PRIMARY KEY,
+        password_hash TEXT NOT NULL,
+        password_salt TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        last_login_at INTEGER
+      )`,
+      `CREATE TABLE IF NOT EXISTS user_sessions (
+        token TEXT PRIMARY KEY,
+        nickname TEXT NOT NULL REFERENCES users(nickname) ON DELETE CASCADE,
+        created_at INTEGER NOT NULL,
+        expires_at INTEGER NOT NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at)`,
     ], "write");
 
     for (const s of RULE_SECTIONS) {
@@ -841,4 +855,83 @@ export async function countBestiary(): Promise<number> {
   await ensureReady();
   const res = await client.execute("SELECT COUNT(*) AS n FROM bestiary");
   return Number(res.rows[0]?.n ?? 0);
+}
+
+// ───── 사용자 / 세션 ─────
+export type UserRow = {
+  nickname: string;
+  password_hash: string;
+  password_salt: string;
+  created_at: number;
+  last_login_at: number | null;
+};
+
+export async function findUser(nickname: string): Promise<UserRow | null> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM users WHERE nickname = ?",
+    args: [nickname],
+  });
+  const r = res.rows[0];
+  if (!r) return null;
+  return {
+    nickname: String(r.nickname),
+    password_hash: String(r.password_hash),
+    password_salt: String(r.password_salt),
+    created_at: Number(r.created_at),
+    last_login_at: r.last_login_at == null ? null : Number(r.last_login_at),
+  };
+}
+
+export async function createUser(input: {
+  nickname: string;
+  password_hash: string;
+  password_salt: string;
+}): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: `INSERT INTO users (nickname, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?)`,
+    args: [input.nickname, input.password_hash, input.password_salt, Date.now()],
+  });
+}
+
+export async function touchUserLogin(nickname: string): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: "UPDATE users SET last_login_at = ? WHERE nickname = ?",
+    args: [Date.now(), nickname],
+  });
+}
+
+export async function createUserSessionRecord(input: {
+  token: string;
+  nickname: string;
+  expires_at: number;
+}): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: `INSERT INTO user_sessions (token, nickname, created_at, expires_at) VALUES (?, ?, ?, ?)`,
+    args: [input.token, input.nickname, Date.now(), input.expires_at],
+  });
+}
+
+export async function findUserSession(token: string): Promise<{ nickname: string; expires_at: number } | null> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT nickname, expires_at FROM user_sessions WHERE token = ?",
+    args: [token],
+  });
+  const r = res.rows[0];
+  if (!r) return null;
+  const expiresAt = Number(r.expires_at);
+  if (expiresAt < Date.now()) return null;
+  return { nickname: String(r.nickname), expires_at: expiresAt };
+}
+
+export async function deleteUserSession(token: string): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: "DELETE FROM user_sessions WHERE token = ?",
+    args: [token],
+  });
 }

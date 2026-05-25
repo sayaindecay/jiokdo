@@ -3,14 +3,29 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { contentToSegments } from "@/lib/dice";
+import { cookies } from "next/headers";
 import {
-  createCampaign, createCharacter, createPlayEntry, deleteCampaign, deleteCharacter,
-  getCampaign, getCampaignByCode, getCharacter, joinCampaign,
+  createCampaign, createCharacter, createPlayEntry, createUser, createUserSessionRecord,
+  deleteCampaign, deleteCharacter, deleteUserSession, findUser, getCampaign,
+  getCampaignByCode, getCharacter, joinCampaign, touchUserLogin,
   updateCharacterProfile, updateCharacterVitals,
 } from "@/lib/db";
-import { clearNickname, getNickname, setNicknameCookie } from "@/lib/auth";
+import {
+  clearAuthCookies, clearNickname, getAuthenticatedNickname, setNicknameCookie,
+  setSessionCookie, SESSION_DURATION_MS,
+} from "@/lib/auth";
+import {
+  generateSessionToken, hashPassword, validateNickname, validatePassword,
+  verifyPassword,
+} from "@/lib/password";
 import { SAMPLE_CHARACTER_TEMPLATE } from "@/lib/seed-data";
 import type { CocAttrs, CocSkill, CocWeapon } from "@/lib/types";
+
+async function requireAuthenticatedNickname(): Promise<string> {
+  const nick = await getAuthenticatedNickname();
+  if (!nick) throw new Error("먼저 로그인하세요");
+  return nick;
+}
 
 function text(fd: FormData, key: string, max: number): string {
   const v = fd.get(key);
@@ -22,6 +37,61 @@ function num(fd: FormData, key: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+// ───── 인증 (정식 가입 / 로그인) ─────
+
+async function startSessionFor(nick: string): Promise<void> {
+  const token = generateSessionToken();
+  const expires = Date.now() + SESSION_DURATION_MS;
+  await createUserSessionRecord({ token, nickname: nick, expires_at: expires });
+  await setSessionCookie(token, expires);
+  await touchUserLogin(nick);
+}
+
+export async function signupAction(fd: FormData): Promise<void> {
+  const nickRaw = text(fd, "nickname", 32);
+  const nickCheck = validateNickname(nickRaw);
+  if (!nickCheck.ok) throw new Error(nickCheck.reason);
+  const password = text(fd, "password", 200);
+  const pwCheck = validatePassword(password);
+  if (!pwCheck.ok) throw new Error(pwCheck.reason);
+
+  const existing = await findUser(nickRaw);
+  if (existing) {
+    throw new Error("이미 사용 중인 닉네임입니다. 로그인하세요.");
+  }
+
+  const { hash, salt } = await hashPassword(password);
+  await createUser({ nickname: nickRaw, password_hash: hash, password_salt: salt });
+  await startSessionFor(nickRaw);
+
+  const redirectTo = text(fd, "redirect", 200);
+  redirect(redirectTo || "/campaigns");
+}
+
+export async function loginAction(fd: FormData): Promise<void> {
+  const nickRaw = text(fd, "nickname", 32);
+  const password = text(fd, "password", 200);
+  if (!nickRaw || !password) throw new Error("닉네임과 비밀번호를 입력하세요");
+
+  const user = await findUser(nickRaw);
+  if (!user) throw new Error("닉네임 또는 비밀번호가 올바르지 않습니다");
+  const ok = await verifyPassword(password, user.password_hash, user.password_salt);
+  if (!ok) throw new Error("닉네임 또는 비밀번호가 올바르지 않습니다");
+
+  await startSessionFor(user.nickname);
+  const redirectTo = text(fd, "redirect", 200);
+  redirect(redirectTo || "/campaigns");
+}
+
+export async function logoutAction(): Promise<void> {
+  const c = await cookies();
+  const token = c.get("jiokdo_session")?.value;
+  if (token) await deleteUserSession(token);
+  await clearAuthCookies();
+  redirect("/");
+}
+
+// 기존 호환 (legacy nickname-only cookie). 새 가입 권장이지만 인라인 폼은 유지.
 export async function setNicknameAction(fd: FormData): Promise<void> {
   const nick = text(fd, "nickname", 24);
   if (!nick) return;
@@ -36,8 +106,7 @@ export async function clearNicknameAction(): Promise<void> {
 }
 
 export async function createCampaignAction(fd: FormData): Promise<void> {
-  const nick = await getNickname();
-  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const nick = await requireAuthenticatedNickname();
   const name = text(fd, "name", 80);
   const description = text(fd, "description", 600);
   if (!name) throw new Error("캠페인 이름을 입력하세요");
@@ -47,8 +116,7 @@ export async function createCampaignAction(fd: FormData): Promise<void> {
 }
 
 export async function joinCampaignAction(fd: FormData): Promise<void> {
-  const nick = await getNickname();
-  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const nick = await requireAuthenticatedNickname();
   const code = text(fd, "code", 16).toUpperCase();
   if (!code) throw new Error("초대 코드를 입력하세요");
   const c = await getCampaignByCode(code);
@@ -59,8 +127,7 @@ export async function joinCampaignAction(fd: FormData): Promise<void> {
 }
 
 export async function createCharacterAction(fd: FormData): Promise<void> {
-  const nick = await getNickname();
-  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const nick = await requireAuthenticatedNickname();
   const campaign_id = num(fd, "campaign_id");
   const camp = await getCampaign(campaign_id);
   if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
@@ -162,8 +229,7 @@ export async function createCharacterAction(fd: FormData): Promise<void> {
 }
 
 export async function rollCharacterCheckAction(fd: FormData): Promise<void> {
-  const nick = await getNickname();
-  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const nick = await requireAuthenticatedNickname();
   const characterId = num(fd, "character_id");
   const ch = await getCharacter(characterId);
   if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
@@ -196,8 +262,7 @@ export async function rollCharacterCheckAction(fd: FormData): Promise<void> {
 }
 
 export async function updateCharacterProfileAction(fd: FormData): Promise<void> {
-  const nick = await getNickname();
-  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const nick = await requireAuthenticatedNickname();
   const id = num(fd, "character_id");
   const ch = await getCharacter(id);
   if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
@@ -239,8 +304,7 @@ export async function updateCharacterProfileAction(fd: FormData): Promise<void> 
 }
 
 export async function deleteCampaignAction(fd: FormData): Promise<void> {
-  const nick = await getNickname();
-  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const nick = await requireAuthenticatedNickname();
   const id = num(fd, "campaign_id");
   const camp = await getCampaign(id);
   if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
@@ -258,8 +322,7 @@ export async function deleteCampaignAction(fd: FormData): Promise<void> {
 }
 
 export async function deleteCharacterAction(fd: FormData): Promise<void> {
-  const nick = await getNickname();
-  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const nick = await requireAuthenticatedNickname();
   const id = num(fd, "character_id");
   const ch = await getCharacter(id);
   if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
@@ -275,8 +338,7 @@ export async function deleteCharacterAction(fd: FormData): Promise<void> {
 }
 
 export async function updateCharacterVitalsAction(fd: FormData): Promise<void> {
-  const nick = await getNickname();
-  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const nick = await requireAuthenticatedNickname();
   const id = num(fd, "character_id");
   const ch = await getCharacter(id);
   if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
@@ -290,8 +352,7 @@ export async function updateCharacterVitalsAction(fd: FormData): Promise<void> {
 }
 
 export async function postPlayEntryAction(fd: FormData): Promise<void> {
-  const nick = await getNickname();
-  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const nick = await requireAuthenticatedNickname();
   const campaign_id = num(fd, "campaign_id");
   const character_id_raw = fd.get("character_id");
   const character_id = character_id_raw && character_id_raw !== "" ? Number(character_id_raw) : null;

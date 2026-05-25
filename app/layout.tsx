@@ -9,7 +9,7 @@ import {
   Caveat,
   Noto_Serif_KR,
 } from "next/font/google";
-import { getNickname } from "@/lib/auth";
+import { getAuthenticatedNickname, getNickname } from "@/lib/auth";
 import { NicknameBadge } from "@/components/NicknameBadge";
 import { SiteSearchTrigger } from "@/components/vtt/SiteSearchTrigger";
 
@@ -56,7 +56,11 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const nickname = await getNickname();
+  const [nickname, authNick] = await Promise.all([
+    getNickname(),
+    getAuthenticatedNickname(),
+  ]);
+  const authenticated = !!authNick;
   const fontVars = [
     inter.variable, mono.variable, display.variable,
     anno.variable, script.variable, kr.variable,
@@ -77,7 +81,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </nav>
             <div style={{ marginLeft: "auto", display: "flex", gap: "0.5rem", alignItems: "center" }}>
               <SiteSearchTrigger />
-              <NicknameBadge nickname={nickname} />
+              <NicknameBadge nickname={nickname} authenticated={authenticated} />
             </div>
           </div>
         </header>
