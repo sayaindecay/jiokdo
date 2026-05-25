@@ -3147,3 +3147,249 @@ select:focus-visible {
 }
 
 .btn.small { padding: 0.3rem 0.7rem; font-size: 0.78rem; }
+
+/* ════════════════════════════════════════════════
+   캐릭터 시트 (7번 묶음)
+   ════════════════════════════════════════════════ */
+
+/* 7.2 occupation 구분자 mono 일관성 */
+.sheet-header .occupation {
+  font-family: var(--font-anno);
+}
+.sheet-header .occupation .sep {
+  font-family: var(--font-mono);
+  color: var(--ink-3);
+  margin: 0 0.4rem;
+  font-size: 0.85em;
+}
+.sheet-header .meta {
+  font-family: var(--font-mono);
+}
+.sheet-header .meta .sep {
+  color: var(--line-strong);
+  margin: 0 0.35rem;
+}
+
+/* 7.3 d100 버튼 터치 영역 확대 */
+.roll-btn {
+  min-width: 44px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.char-row .roll-btn {
+  min-width: 50px;
+}
+@media (max-width: 720px) {
+  .roll-btn { min-height: 36px; min-width: 48px; }
+}
+
+/* 7.4 meter 색 변형 강화 */
+.meter.hp .meter-bar i { background: linear-gradient(90deg, var(--red), #c14e4e); }
+.meter.mp .meter-bar i { background: linear-gradient(90deg, var(--blue), #4682b4); }
+.meter.san .meter-bar i { background: linear-gradient(90deg, var(--purple), #7d5fa3); }
+.meter.luck .meter-bar i { background: linear-gradient(90deg, var(--green), #6a9655); }
+.meter.hp .meter-head .label  { color: var(--red); }
+.meter.mp .meter-head .label  { color: var(--blue); }
+.meter.san .meter-head .label { color: var(--purple); }
+.meter.luck .meter-head .label{ color: var(--green); }
+.meter .meter-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.meter .meter-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width var(--tx);
+}
+/* SAN 30↓ 위험 시 펄스 */
+.meter.san[data-danger="1"] .meter-bar i {
+  animation: sanPulse 1.6s ease-in-out infinite;
+}
+@keyframes sanPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meter.san[data-danger="1"] .meter-bar i { animation: none; }
+}
+
+/* 7.5 기능 카테고리 그룹 헤더 */
+.skill-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 1rem 0 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px dashed var(--line);
+}
+.skill-group-head:first-child { margin-top: 0.4rem; }
+.skill-group-head .label {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.skill-group-head .num {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-3);
+}
+
+/* 7.6 무기 굴림 카드 */
+.weapon-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.weapon-row {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.6rem;
+  display: grid;
+  grid-template-columns: 1.2fr auto auto auto;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.85rem;
+}
+.weapon-row .w-name { font-weight: 600; color: var(--ink); }
+.weapon-row .w-skill {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.weapon-row .w-damage {
+  font-family: var(--font-mono);
+  color: var(--ink-2);
+  font-size: 0.78rem;
+}
+.weapon-row .w-rolls {
+  display: flex;
+  gap: 0.25rem;
+}
+.weapon-row .w-rolls .roll-btn {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  min-height: 28px;
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .weapon-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .weapon-row .w-rolls { grid-column: span 2; justify-content: flex-end; }
+}
+
+/* 7.7 note-block 색조 변주 */
+.note-block.note-ideology   { border-left: 3px solid var(--accent); background: linear-gradient(180deg, var(--accent-soft), transparent 60%); }
+.note-block.note-person     { border-left: 3px solid var(--gold);   background: linear-gradient(180deg, var(--gold-bg), transparent 60%); }
+.note-block.note-place      { border-left: 3px solid var(--green);  background: linear-gradient(180deg, var(--green-bg), transparent 60%); }
+.note-block.note-treasure   { border-left: 3px solid var(--blue);   background: linear-gradient(180deg, var(--blue-bg), transparent 60%); }
+.note-block.note-trait      { border-left: 3px solid var(--purple); background: linear-gradient(180deg, var(--purple-bg), transparent 60%); }
+.note-block .note-title {
+  font-family: var(--font-anno);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 0.3rem;
+}
+
+/* 7.8 최근 굴림 가독성 */
+.recent-rolls .dice-block {
+  font-size: 0.85rem;
+  padding: 0.55rem 0.75rem;
+}
+.recent-rolls .dice-block .total {
+  font-size: 1rem;
+}
+.recent-rolls .dice-block .expr {
+  font-size: 0.8rem;
+}
+
+/* 7.10 본인 시트 시각 강조 */
+.sheet-shell.is-owner {
+  border-color: var(--accent);
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.sheet-shell.is-owner::after {
+  content: "내 캐릭터";
+  position: absolute;
+  top: -10px;
+  right: 1.2rem;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* 7.9 인쇄 스타일 */
+@media print {
+  .site-header,
+  .site-footer,
+  .breadcrumb,
+  .sheet-actions,
+  .sheet-sticky-summary,
+  .vitals-editor,
+  .skill-row.rollable .roll-hint,
+  .roll-btn,
+  .weapon-row .w-rolls,
+  .empty,
+  .empty-state {
+    display: none !important;
+  }
+  body, html {
+    background: #fff !important;
+    color: #000 !important;
+    background-image: none !important;
+  }
+  .sheet-shell {
+    box-shadow: none !important;
+    border-color: #000 !important;
+    background: #fff !important;
+    border-width: 1px !important;
+  }
+  .sheet-shell.is-owner::after { display: none !important; }
+  .sheet-header {
+    background: #fff !important;
+    border-bottom: 1px solid #000 !important;
+  }
+  .sheet-portrait {
+    border: 1px solid #000 !important;
+  }
+  .sheet-portrait svg { color: #000 !important; opacity: 1 !important; }
+  .sheet-col { border-color: #aaa !important; }
+  .char-row, .skill-row, .meter, .weapon-row, .note-block {
+    background: #fff !important;
+    border-color: #999 !important;
+    page-break-inside: avoid;
+  }
+  .meter .meter-bar { background: #fff !important; border-color: #000 !important; }
+  .meter .meter-bar i { background: #000 !important; }
+  .dice-block, .recent-rolls { display: none !important; }
+  .level { background: #fff !important; color: #000 !important; border-color: #000 !important; }
+  a { color: #000 !important; text-decoration: none !important; }
+  .main { padding: 0 !important; }
+  h1, h2, h3 { color: #000 !important; }
+  .sheet-body {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 0.5rem !important;
+  }
+}

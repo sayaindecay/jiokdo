@@ -283,6 +283,32 @@ export async function createCharacterAction(fd: FormData): Promise<void> {
   redirect(`/characters/${id}`);
 }
 
+export async function rollGenericAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const characterId = num(fd, "character_id");
+  const ch = await getCharacter(characterId);
+  if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
+  if (ch.owner_nick !== nick) throw new Error("자신의 캐릭터만 굴릴 수 있습니다");
+  const expression = text(fd, "expression", 60);
+  if (!expression) throw new Error("굴림 식을 입력하세요");
+
+  // /roll 형태로 명령화 → contentToSegments 가 NdM[±K] 파싱
+  const sanitized = expression.replace(/[^0-9dD+\-x* ]/g, "");
+  const line = `/roll ${sanitized}`;
+  const segments = contentToSegments(line);
+  if (segments.length === 0 || !segments.some((s) => s.type === "dice")) {
+    throw new Error(`굴림 식을 인식할 수 없습니다: ${expression}`);
+  }
+  await createPlayEntry({
+    campaign_id: ch.campaign_id,
+    nickname: nick,
+    character_id: ch.id,
+    kind: "dialogue",
+    segments,
+  });
+  revalidatePath(`/characters/${ch.id}`);
+}
+
 export async function rollCharacterCheckAction(fd: FormData): Promise<void> {
   const nick = await requireAuthenticatedNickname();
   const characterId = num(fd, "character_id");

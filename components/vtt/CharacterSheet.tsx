@@ -5,6 +5,7 @@ import { Meter } from "./Meter";
 import { SkillList } from "./SkillList";
 import { RollButton } from "./RollButton";
 import { VitalsEditor } from "./VitalsEditor";
+import { WeaponList } from "./WeaponList";
 import { PortraitSilhouette } from "./Illustrations";
 
 const ATTR_KEYS: { key: keyof Character["attrs"]; label: string }[] = [
@@ -45,7 +46,7 @@ export function CharacterSheet({
         </div>
       </div>
 
-      <div className="sheet-shell">
+      <div className={`sheet-shell${isOwner ? " is-owner" : ""}`}>
         <div className="sheet-header">
           <div className="sheet-portrait" title="초상화 업로드는 추후 지원 예정">
             <PortraitSilhouette />
@@ -54,11 +55,20 @@ export function CharacterSheet({
             <h1>{character.name}</h1>
             <div className="occupation">
               {character.occupation || "무직"}
-              {character.age ? ` · 1928 · 경성 · ${character.age}세` : " · 1928"}
+              <span className="sep">·</span>
+              <span>1928 · 경성</span>
+              {character.age ? (
+                <>
+                  <span className="sep">·</span>
+                  <span>{character.age}세</span>
+                </>
+              ) : null}
             </div>
             <div className="meta">
-              <span>POW {character.attrs.pow}</span><span>·</span>
-              <span>EDU {character.attrs.edu}</span><span>·</span>
+              <span>POW {character.attrs.pow}</span>
+              <span className="sep">·</span>
+              <span>EDU {character.attrs.edu}</span>
+              <span className="sep">·</span>
               <span>SAN {character.san}/{character.san_max}</span>
             </div>
           </div>
@@ -108,7 +118,13 @@ export function CharacterSheet({
             <h3>상태 / Status</h3>
             <Meter label="HP" current={character.hp} max={character.hp_max} variant="hp" />
             <Meter label="MP" current={character.mp} max={character.mp_max} variant="mp" />
-            <Meter label="SAN" current={character.san} max={character.san_max} variant="san" />
+            <Meter
+              label="SAN"
+              current={character.san}
+              max={character.san_max}
+              variant="san"
+              danger={character.san < 30}
+            />
             <Meter label="LUCK" current={character.attrs.luck} max={99} variant="luck" />
 
             <div className="condition-row">
@@ -141,28 +157,23 @@ export function CharacterSheet({
           <div className="sheet-col">
             <h3>배경 / Backstory</h3>
             {character.backstory ? (
-              <div className="note-block">
+              <div className="note-block note-ideology">
                 <div className="note-title">배경 노트</div>
                 {character.backstory}
               </div>
             ) : (
-              <div className="note-block" style={{ color: "var(--ink-3)" }}>
+              <div className="note-block note-trait" style={{ color: "var(--ink-3)" }}>
                 <div className="note-title">아직 비어 있음</div>
                 이상·의미 있는 사람·소중한 장소를 적어보세요.
               </div>
             )}
 
-            <h3>무기 · 소지품</h3>
-            <ul className="inv-list">
-              {character.weapons.map((w, i) => (
-                <li key={`w-${i}`}>
-                  {w.name} <span className="qty">{w.damage}</span>
-                </li>
-              ))}
-              {character.weapons.length === 0 ? (
-                <li style={{ color: "var(--ink-3)" }}>등록된 무기 없음</li>
-              ) : null}
-            </ul>
+            <h3>무기 / Weapons</h3>
+            <WeaponList
+              characterId={character.id}
+              weapons={character.weapons}
+              canRoll={isOwner}
+            />
 
             <h3 data-recent-rolls>최근 굴림</h3>
             {recentRolls.length === 0 ? (
@@ -170,14 +181,14 @@ export function CharacterSheet({
                 아직 굴림 기록이 없습니다.
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+              <div className="recent-rolls" style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                 {recentRolls.map((entry) =>
                   entry.segments.flatMap((seg, segIdx) => {
                     if (seg.type !== "dice") return [];
                     const r = seg.result;
                     if (r.kind === "cc") {
                       return [
-                        <div key={`${entry.id}-${segIdx}`} className="dice-block cc" style={{ fontSize: "0.78rem", padding: "0.4rem 0.6rem" }}>
+                        <div key={`${entry.id}-${segIdx}`} className="dice-block cc">
                           <span className="expr">{r.name ? `${r.name} (${r.skill})` : `1d100 ≤ ${r.skill}`}</span>
                           <span className="total">→ {r.roll}</span>
                           <span className={`level ${r.level}`}>{LEVEL_LABEL[r.level]}</span>
@@ -185,7 +196,7 @@ export function CharacterSheet({
                       ];
                     }
                     return [
-                      <div key={`${entry.id}-${segIdx}`} className="dice-block" style={{ fontSize: "0.78rem", padding: "0.4rem 0.6rem" }}>
+                      <div key={`${entry.id}-${segIdx}`} className="dice-block">
                         <span className="expr">{r.notation}</span>
                         <span className="total">= {r.total}</span>
                       </div>,
