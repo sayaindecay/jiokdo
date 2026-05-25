@@ -53,12 +53,15 @@ export function PeekWindow({
   }, [visible]);
 
   return (
-    <div className="peek-window" id="peek-window">
+    <div className={`peek-window${isDemo ? " is-demo" : " is-live"}`} id="peek-window">
+      {isDemo ? (
+        <div className="peek-watermark" aria-hidden="true">예시 흐름</div>
+      ) : null}
       <div className="titlebar">
         <span className="dots"><i></i><i></i><i></i></span>
         <span>{campaignTitle}</span>
-        <span className="tag">
-          {isDemo ? "예시" : "● LIVE"}
+        <span className={`tag${isDemo ? " demo" : " live"}`}>
+          {isDemo ? "DEMO" : "● LIVE"}
         </span>
       </div>
       <div className="peek-feed" id="peek-feed" ref={feedRef}>

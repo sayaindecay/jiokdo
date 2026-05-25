@@ -63,8 +63,12 @@ export function LiveTicker({ initial }: { initial: Row[] }) {
       </div>
       <div className="feed">
         {rows.length === 0 ? (
-          <div className="row" style={{ fontFamily: "var(--font-anno)", color: "var(--ink-3)", justifyContent: "center" }}>
-            첫 굴림을 기다리고 있습니다 — 캠페인을 만들고 본문에 <code style={{ marginLeft: 4 }}>/cc 도서관 60</code> 를 적어 보세요.
+          <div className="ticker-empty" data-empty="1">
+            <div className="te-icon" aria-hidden="true">⌬</div>
+            <div className="te-title">첫 굴림을 기다리고 있습니다</div>
+            <div className="te-hint">
+              캠페인을 만들고 본문에 <code>/cc 도서관 60</code> 한 줄을 적어 보세요.
+            </div>
           </div>
         ) : (
           rows.map((r) => (
