@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { PeekWindow } from "@/components/vtt/PeekWindow";
+import { LiveTicker } from "@/components/vtt/LiveTicker";
 import { getNickname } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -7,73 +9,58 @@ export default async function LandingPage() {
   const nick = await getNickname();
   return (
     <>
-      <section className="hero">
-        <div className="hero-tag">Call of Cthulhu · 비동기 VTT</div>
-        <h1 className="hero-title">
-          글로 굴리고,<br />
-          영원히 기록되는 다이스.
-        </h1>
-        <p className="hero-sub">
-          지옥도는 비동기 텍스트 기반의 가상 테이블탑입니다.
-          본문에 명령을 끼워 굴리면, 결과가 글에 새겨져 사후 조작이 불가능해집니다.
-          시간대가 다른 친구들과 한 세션을 며칠에 걸쳐 천천히 진행하세요.
-        </p>
-        <div className="hero-cta">
-          <Link href="/campaigns" className="btn large">
-            {nick ? "내 캠페인으로" : "시작하기"}
-          </Link>
-          <Link href="/rules" className="btn ghost large">룰북 보기</Link>
-        </div>
-      </section>
-
-      <section className="feature-grid">
-        <Link href="/rules" className="feature-card">
-          <div className="feature-icon">📜</div>
-          <h3>룰북 열람</h3>
-          <p>핵심 규칙, 판정, 전투, 이성. 옆에 둔 채로 진행합니다.</p>
-        </Link>
-        <Link href="/bestiary" className="feature-card">
-          <div className="feature-icon">🐙</div>
-          <h3>스탯블록 / 몬스터</h3>
-          <p>딥 원부터 쇼고스까지. 한 클릭으로 능력치 인용.</p>
-        </Link>
-        <Link href="/campaigns" className="feature-card">
-          <div className="feature-icon">🎲</div>
-          <h3>캠페인 대시보드</h3>
-          <p>플레이어, 캐릭터, 세션 로그를 한 화면에서 관리.</p>
-        </Link>
-        <Link href={nick ? "/campaigns" : "/campaigns"} className="feature-card">
-          <div className="feature-icon">📖</div>
-          <h3>캐릭터 시트</h3>
-          <p>능력치/HP/SAN/기능치. 시트에서 바로 판정 굴림.</p>
-        </Link>
-      </section>
-
-      <section className="how-section">
-        <h2 className="section-title">어떻게 동작하나요</h2>
-        <div className="steps">
-          <div className="step">
-            <div className="step-num">1</div>
-            <h4>닉네임 설정</h4>
-            <p>가입 없이 닉네임만으로. 우측 상단에서 설정하세요.</p>
+      <section className="peek-hero">
+        <div className="peek-copy">
+          <span className="eyebrow">현장 보고서 №01 · 1928</span>
+          <h1>
+            TRPG 한 판,<br />
+            <em>한 줄</em> 굴림으로.
+          </h1>
+          <p className="lede">
+            지옥도는 글과 다이스를 한 곳에서 굴립니다. Call of Cthulhu의 1d100 판정부터
+            일반 NdM까지, 본문 안에 굴림을 끼워 넣고 세션을 그대로 보존합니다.
+          </p>
+          <div className="cta-row">
+            <Link href="/campaigns" className="btn primary">
+              {nick ? "내 캠페인 열기" : "캠페인 시작"}
+            </Link>
+            <Link href="/rules" className="btn ghost">룰북 보기</Link>
           </div>
-          <div className="step">
-            <div className="step-num">2</div>
-            <h4>캠페인 생성 또는 참여</h4>
-            <p>키퍼는 캠페인을 만들고, 플레이어는 초대 코드로 참여합니다.</p>
-          </div>
-          <div className="step">
-            <div className="step-num">3</div>
-            <h4>캐릭터 생성</h4>
-            <p>샘플 시트로 빠르게 시작하거나 백지에서 채워 넣으세요.</p>
-          </div>
-          <div className="step">
-            <div className="step-num">4</div>
-            <h4>플레이</h4>
-            <p>플레이 페이지에 글을 남기고, 본문에 <code>/cc 탐색 65</code> 한 줄로 굴립니다.</p>
+          <div className="peek-stats">
+            <div className="stat"><b>3,418</b><span>등록 탐사자</span></div>
+            <div className="stat"><b>12,907</b><span>누적 굴림</span></div>
+            <div className="stat"><b>847</b><span>이번 주 세션</span></div>
           </div>
         </div>
+        <PeekWindow />
       </section>
+
+      <LiveTicker />
+
+      <div className="section-head">
+        <h2>들어가기</h2>
+        <span className="count">3개 입구</span>
+      </div>
+      <div className="board-grid">
+        <Link href="/campaigns" className="board-card">
+          <h2>캠페인</h2>
+          <p className="desc">내가 키퍼·플레이어로 참여 중인 사건</p>
+          <div className="stats"><span><b>247</b> 활성</span><span><b>1.2k</b> 세션</span></div>
+          <div className="recent"><b>방금</b> · 이도윤: 「토요일 9시 켈러 시나리오 4인 모집 中…」</div>
+        </Link>
+        <Link href="/rules" className="board-card">
+          <h2>룰북</h2>
+          <p className="desc">CoC 7판 핵심 규칙 · 판정 · 전투 · 이성</p>
+          <div className="stats"><span><b>96</b> 섹션</span><span><b>540</b> 참조</span></div>
+          <div className="recent"><b>3분 전</b> · 키퍼 박: 「하드/극단 판정 §4 — 인용함…」</div>
+        </Link>
+        <Link href="/bestiary" className="board-card">
+          <h2>몬스터</h2>
+          <p className="desc">스탯블록 · 신화 생물 · NPC</p>
+          <div className="stats"><span><b>312</b> 항목</span><span><b>4.8k</b> 참조</span></div>
+          <div className="recent"><b>1시간 전</b> · 박씨: 「쇼고스 등장 — 1d6/1d20 SAN…」</div>
+        </Link>
+      </div>
     </>
   );
 }

@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>지옥도 VTT — 7화면 프로토타입</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Special+Elite&family=Noto+Serif+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="extensions.css" />
+
+<template id="__bundler_thumbnail" data-bg-color="#f5f3ee">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#f5f3ee"/>
+    <circle cx="600" cy="380" r="160" fill="none" stroke="#1a1714" stroke-width="6"/>
+    <text x="600" y="408" text-anchor="middle" font-family="Special Elite, Courier, monospace" font-size="120" fill="#8a1c1c" font-weight="700">d100</text>
+    <text x="600" y="600" text-anchor="middle" font-family="Special Elite, Courier, monospace" font-size="56" fill="#1a1714">지옥도</text>
+    <text x="600" y="660" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="22" fill="#7a7268" letter-spacing="4">TRPG · VTT</text>
+  </svg>
+</template>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap wrap-wide">
+    <a href="#home" class="brand">
+      <span class="brand-mark">d100</span>
+      <span>지옥도</span>
+    </a>
+    <nav class="nav">
+      <a href="#home" data-route="home">홈</a>
+      <a href="#dashboard" data-route="dashboard">내 캠페인</a>
+      <a href="#rulebook" data-route="rulebook">룰북</a>
+      <a href="#help">도움말</a>
+    </nav>
+    <div class="search-trigger" onclick="location.hash='search'">
+      🔍 검색 <kbd>⌘K</kbd>
+    </div>
+  </div>
+</header>
+
+<main class="wrap wrap-wide main">
+
+  <nav class="proto-nav">
+    <a href="#home"            data-route="home"><span class="n">01</span> 홈/랜딩</a>
+    <a href="#rulebook"        data-route="rulebook"><span class="n">02</span> 룰북</a>
+    <a href="#sheet"           data-route="sheet"><span class="n">03</span> 캐릭터 시트</a>
+    <a href="#statblock"       data-route="statblock"><span class="n">04</span> 스탯블록</a>
+    <a href="#session"         data-route="session"><span class="n">05</span> 세션 플레이</a>
+    <a href="#search"          data-route="search"><span class="n">06</span> 검색</a>
+    <a href="#dashboard"       data-route="dashboard"><span class="n">07</span> 캠페인 대시보드</a>
+  </nav>
+
+  <div id="screen" aria-live="polite">
+    <!-- screens injected here -->
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap wrap-wide">
+    <span>지옥도 · TRPG 가상 테이블 프로토타입 · 기존 디자인 시스템 그대로 적용</span>
+  </div>
+</footer>
+
+<!-- screens -->
+<script type="text/x-screen" id="screen-home" data-label="01 홈/랜딩 · V3 Live Product Peek">
+  <section class="peek-hero">
+    <div class="peek-copy">
+      <h1>TRPG 한 판,<br/><em>한 줄</em> 굴림으로.</h1>
+      <p class="lede">
+        지옥도는 글과 다이스를 한 곳에서 굴립니다. Call of Cthulhu의 1d100 판정부터
+        일반 NdM까지, 본문 안에 굴림을 끼워 넣고 세션을 그대로 보존합니다.
+      </p>
+      <div class="cta-row">
+        <a href="#dashboard" class="btn">내 캠페인 열기</a>
+        <a href="#rulebook" class="btn ghost">룰북 보기</a>
+      </div>
+      <div class="peek-stats">
+        <div class="stat"><b>3,418</b><span>등록 탐사자</span></div>
+        <div class="stat"><b>12,907</b><span>누적 굴림</span></div>
+        <div class="stat"><b>847</b><span>이번 주 세션</span></div>
+      </div>
+    </div>
+
+    <div class="peek-window" id="peek-window">
+      <div class="titlebar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span>jiokdo.app / 검은 4월 / §3 부두</span>
+        <span class="tag">● LIVE</span>
+      </div>
+      <div class="peek-feed" id="peek-feed"></div>
+      <div class="peek-input">
+        <span class="caret">›</span>
+        <span id="peek-typing"></span>
+        <span class="cursor"></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="live-ticker">
+    <div class="head">
+      <span class="dot"></span>
+      지금 굴려지는 다이스
+      <span class="count" id="ticker-count">847개 · 오늘</span>
+    </div>
+    <div class="feed" id="ticker-feed"></div>
+  </div>
+
+  <div class="section-head">
+    <h2>게시판</h2>
+    <span class="count">3개</span>
+  </div>
+  <div class="board-grid">
+    <a href="#dashboard" class="board-card">
+      <h2>로비</h2>
+      <p class="desc">자유게시판 · 모집 · 잡담</p>
+      <div class="stats"><span><b>247</b> 글</span><span><b>1.2k</b> 댓글</span></div>
+      <div class="recent"><b>방금</b> · 이도윤: 「토요일 9시 켈러 시나리오 4인 모집 中…」</div>
+    </a>
+    <a href="#dashboard" class="board-card">
+      <h2>시나리오</h2>
+      <p class="desc">키퍼가 운영하는 시나리오 글</p>
+      <div class="stats"><span><b>96</b> 글</span><span><b>540</b> 댓글</span></div>
+      <div class="recent"><b>3분 전</b> · 키퍼 박: 「검은 4월 §3 부두편 시작합니다…」</div>
+    </a>
+    <a href="#dashboard" class="board-card">
+      <h2>세션</h2>
+      <p class="desc">진행 중인 세션의 로그</p>
+      <div class="stats"><span><b>312</b> 글</span><span><b>4.8k</b> 댓글</span></div>
+      <div class="recent"><b>1시간 전</b> · 박씨: 「청각 03 → 결정적 성공! 단서 +1」</div>
+    </a>
+  </div>
+</script>
+
+<script type="text/x-screen" id="screen-rulebook" data-label="02 룰북 · V4 Wiki / 검색-우선">
+  <div class="breadcrumb">
+    <a href="#home">지옥도</a><span class="sep">/</span><span>룰북</span>
+  </div>
+
+  <div class="wiki-layout">
+    <aside class="wiki-sidebar">
+      <div class="search-box" onclick="location.hash='search'">
+        🔍 룰북에서 찾기 <kbd>⌘K</kbd>
+      </div>
+      <div class="group">
+        <div class="group-title">기본</div>
+        <a href="#rulebook">1. 시작하기</a>
+        <a href="#rulebook">2. 캐릭터 만들기</a>
+        <a href="#rulebook">3. 기능 (Skills)</a>
+      </div>
+      <div class="group">
+        <div class="group-title">판정</div>
+        <a href="#rulebook" class="active">4. 1d100 판정 ●</a>
+        <a href="#rulebook" class="sub">4.1 단계 (Levels)</a>
+        <a href="#rulebook" class="sub active">4.2 어려운/극단적</a>
+        <a href="#rulebook" class="sub">4.3 결정적·펌블</a>
+        <a href="#rulebook">5. 추진력 굴림</a>
+        <a href="#rulebook">6. 전투</a>
+        <a href="#rulebook">7. 정신감응 · SAN</a>
+      </div>
+      <div class="group">
+        <div class="group-title">기타</div>
+        <a href="#rulebook">8. 응급처치</a>
+        <a href="#rulebook">9. 마법</a>
+        <a href="#help">도움말 — 명령어</a>
+      </div>
+    </aside>
+
+    <article class="wiki-main">
+      <h1>1d100 판정</h1>
+      <div class="subhead">
+        <span>§4</span><span>·</span><span>읽기 약 6분</span><span>·</span><span class="tag-pill accent">자주 쓰임</span>
+      </div>
+
+      <div class="wiki-section">
+        <h2>4.1 판정 단계 <span class="anchor">#levels</span> <span class="en">Difficulty Levels</span></h2>
+        <p>
+          Call of Cthulhu의 모든 능력·기능 판정은 <b>d100</b>을 굴려 기능치와 비교합니다.
+          지옥도에서는 본문에 <code>/cc [이름] 기능치</code> 한 줄을 적어 굴립니다.
+          예) <code>/cc 도서관 이용 85</code>
+        </p>
+        <div class="wiki-callout">
+          <b>핵심 ─</b> 굴림은 항상 d100. 기능치는 1~100 사이 정수.
+          기능치를 기준으로 5단계 결과로 나뉩니다.
+        </div>
+        <table class="wiki-table">
+          <thead>
+            <tr><th>단계</th><th>조건</th><th>예 (기능치 60)</th><th>의미</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>결정적 성공</td><td>굴림 = 1</td><td>1</td><td>최고 결과·서술 보너스</td></tr>
+            <tr><td>극단적 성공</td><td>굴림 ≤ 기능치 / 5</td><td>2 ~ 12</td><td>큰 성공·정보 +1</td></tr>
+            <tr><td>어려운 성공</td><td>굴림 ≤ 기능치 / 2</td><td>13 ~ 30</td><td>난이도 높은 상황 통과</td></tr>
+            <tr><td>일반 성공</td><td>굴림 ≤ 기능치</td><td>31 ~ 60</td><td>보통 성공</td></tr>
+            <tr><td>실패</td><td>굴림 &gt; 기능치</td><td>61 ~ 99</td><td>실패</td></tr>
+            <tr><td>펌블</td><td>기능치 &lt; 50 일 때 96~100<br/>그 외 100</td><td>96 ~ 100</td><td>심각한 부작용</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="wiki-section">
+        <h2>4.2 어려운·극단적 굴림 <span class="anchor">#hard-extreme</span> <span class="en">Hard / Extreme Rolls</span></h2>
+        <p>
+          상황에 따라 키퍼가 <b>어려운</b>이나 <b>극단적</b> 굴림을 요구할 수 있습니다.
+          이때는 단계별 임계값을 통과해야만 성공합니다.
+        </p>
+        <div class="dice-block cc">
+          <span class="label">CoC 판정</span>
+          <span class="expr">도서관 이용 (어려운)</span>
+          <span class="expr">1d100 ≤ 42</span>
+          <span class="total">→ 27</span>
+          <span class="level hard">어려운 성공</span>
+        </div>
+        <p style="margin-top: 0.85rem">
+          지옥도에서 어려운/극단적 굴림은 키퍼가 본문에 표시하는 방식을 권장합니다.
+          판정 결과 자체는 단계가 자동 계산되어 위 다이스 블록으로 표시됩니다.
+        </p>
+        <div class="wiki-callout">
+          <b>키퍼 노트 ─</b> 한 판정에 여러 단계를 동시에 표시할 수도 있습니다.
+          예: 「열쇠를 열려면 잠금장치 일반, 시간 안에 열려면 어려운」.
+        </div>
+      </div>
+
+      <div class="wiki-section">
+        <h2>4.3 결정적 성공과 펌블 <span class="anchor">#crit-fumble</span> <span class="en">Critical &amp; Fumble</span></h2>
+        <p>판정에서 가장 극단적인 두 결과입니다. 키퍼는 서술적 보너스/페널티를 부여하세요.</p>
+        <ul>
+          <li><b>결정적 성공</b> — 굴림이 정확히 <code>1</code>. 단계와 무관하게 최상위 결과.</li>
+          <li><b>펌블</b> — 기능치 50 미만이면 96~100, 50 이상이면 정확히 100.</li>
+        </ul>
+        <div class="dice-block cc">
+          <span class="label">CoC 판정</span>
+          <span class="expr">청각</span>
+          <span class="expr">1d100 ≤ 60</span>
+          <span class="total">→ 1</span>
+          <span class="level critical">결정적 성공</span>
+        </div>
+      </div>
+    </article>
+
+    <aside class="wiki-aside">
+      <div class="group">
+        <div class="group-title">이 문서 안에서</div>
+        <a href="#levels">4.1 판정 단계</a>
+        <a href="#hard-extreme" class="active">4.2 어려운·극단적</a>
+        <a href="#crit-fumble">4.3 결정·펌블</a>
+      </div>
+      <div class="quick">
+        <div class="quick-title">관련 명령어</div>
+        <a href="#help">/cc 기능명 60</a>
+        <a href="#help">/roll 1d100</a>
+        <a href="#help">/roll 3d6</a>
+      </div>
+      <div class="quick">
+        <div class="quick-title">관련 글</div>
+        <a href="#search">「펌블이 자주 나오는데…」</a>
+        <a href="#search">「극단적 굴림 운용 팁」</a>
+      </div>
+    </aside>
+  </div>
+</script>
+
+<script type="text/x-screen" id="screen-sheet" data-label="03 캐릭터 시트 · V1 Classic 3-Column">
+  <div class="breadcrumb">
+    <a href="#dashboard">검은 4월</a><span class="sep">/</span>
+    <a href="#dashboard">캐릭터</a><span class="sep">/</span>
+    <span>이도윤</span>
+  </div>
+
+  <div class="sheet-shell">
+    <div class="sheet-header">
+      <div class="sheet-portrait">📷</div>
+      <div class="sheet-title">
+        <h1>이도윤</h1>
+        <div class="occupation">私立 도서관 사서 · 1928 · 경성 · 28세</div>
+        <div class="meta">
+          <span>POW 60</span><span>·</span>
+          <span>EDU 90</span><span>·</span>
+          <span>SAN 48/60</span>
+        </div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn ghost">편집</button>
+        <button class="btn">세션에 연결</button>
+      </div>
+    </div>
+
+    <div class="sheet-body">
+      <!-- col 1: characteristics + status -->
+      <div class="sheet-col">
+        <h3>특성 / Characteristics</h3>
+        <div class="char-row"><span class="key">STR</span><span class="val">45</span><span class="halves">½ 22 · ⅕ 9</span><button class="roll-btn">d100</button></div>
+        <div class="char-row"><span class="key">CON</span><span class="val">60</span><span class="halves">½ 30 · ⅕ 12</span><button class="roll-btn">d100</button></div>
+        <div class="char-row"><span class="key">SIZ</span><span class="val">50</span><span class="halves">½ 25 · ⅕ 10</span><button class="roll-btn">d100</button></div>
+        <div class="char-row"><span class="key">DEX</span><span class="val">65</span><span class="halves">½ 32 · ⅕ 13</span><button class="roll-btn">d100</button></div>
+        <div class="char-row"><span class="key">APP</span><span class="val">70</span><span class="halves">½ 35 · ⅕ 14</span><button class="roll-btn">d100</button></div>
+        <div class="char-row"><span class="key">INT</span><span class="val">85</span><span class="halves">½ 42 · ⅕ 17</span><button class="roll-btn">d100</button></div>
+        <div class="char-row"><span class="key">POW</span><span class="val">60</span><span class="halves">½ 30 · ⅕ 12</span><button class="roll-btn">d100</button></div>
+        <div class="char-row"><span class="key">EDU</span><span class="val">90</span><span class="halves">½ 45 · ⅕ 18</span><button class="roll-btn">d100</button></div>
+
+        <h3>상태 / Status</h3>
+        <div class="meter hp">
+          <div class="meter-head"><span class="label">HP</span><span class="num">11 / 11</span></div>
+          <div class="meter-bar"><i style="width: 100%"></i></div>
+        </div>
+        <div class="meter mp">
+          <div class="meter-head"><span class="label">MP</span><span class="num">9 / 12</span></div>
+          <div class="meter-bar"><i style="width: 75%"></i></div>
+        </div>
+        <div class="meter san">
+          <div class="meter-head"><span class="label">SAN</span><span class="num">48 / 60</span></div>
+          <div class="meter-bar"><i style="width: 80%"></i></div>
+        </div>
+        <div class="meter luck">
+          <div class="meter-head"><span class="label">LUCK</span><span class="num">55 / 80</span></div>
+          <div class="meter-bar"><i style="width: 68%"></i></div>
+        </div>
+        <div class="condition-row">
+          <span class="tag-pill">경상</span>
+          <span class="tag-pill red">장기 부상</span>
+          <span class="tag-pill">일시 광기</span>
+        </div>
+      </div>
+
+      <!-- col 2: skills -->
+      <div class="sheet-col">
+        <h3>기능 / Skills <span style="font-weight:500; color:var(--text-faint); margin-left:auto; font-family:ui-monospace,monospace; font-size:0.7rem">43개 · ●=자주씀</span></h3>
+        <div class="dice-toolbar" style="margin-bottom: 0.85rem">
+          <span class="chip" style="background: var(--accent); color: #fff; border-color: var(--accent)">전부</span>
+          <span class="chip">전투</span>
+          <span class="chip">조사</span>
+          <span class="chip">사회</span>
+          <span class="chip">학문</span>
+        </div>
+        <div class="skill-list">
+          <div class="skill-row used"><span class="name">도서관 이용</span><span class="val">85</span></div>
+          <div class="skill-row used"><span class="name">역사</span><span class="val">80</span></div>
+          <div class="skill-row used"><span class="name">심리학</span><span class="val">60</span></div>
+          <div class="skill-row"><span class="name">언어 (영)</span><span class="val">70</span></div>
+          <div class="skill-row"><span class="name">언어 (라틴)</span><span class="val">50</span></div>
+          <div class="skill-row"><span class="name">오컬트</span><span class="val">45</span></div>
+          <div class="skill-row"><span class="name">설득</span><span class="val">55</span></div>
+          <div class="skill-row"><span class="name">매혹</span><span class="val">40</span></div>
+          <div class="skill-row"><span class="name">응급처치</span><span class="val">40</span></div>
+          <div class="skill-row"><span class="name">의학</span><span class="val">25</span></div>
+          <div class="skill-row"><span class="name">권총</span><span class="val">30</span></div>
+          <div class="skill-row"><span class="name">근접 (격투)</span><span class="val">25</span></div>
+          <div class="skill-row"><span class="name">회피</span><span class="val">32</span></div>
+          <div class="skill-row"><span class="name">은밀</span><span class="val">25</span></div>
+          <div class="skill-row"><span class="name">탐색</span><span class="val">50</span></div>
+          <div class="skill-row"><span class="name">청각</span><span class="val">35</span></div>
+          <div class="skill-row"><span class="name">잠금장치</span><span class="val">5</span></div>
+          <div class="skill-row"><span class="name">기계 수리</span><span class="val">10</span></div>
+          <div class="skill-row"><span class="name">자동차 운전</span><span class="val">20</span></div>
+          <div class="skill-row"><span class="name">수영</span><span class="val">25</span></div>
+        </div>
+      </div>
+
+      <!-- col 3: background + inventory -->
+      <div class="sheet-col">
+        <h3>배경 / Backstory</h3>
+        <div class="note-block">
+          <div class="note-title">이상 · Ideology</div>
+          진실은 책 사이에 있다. 모든 사건은 기록될 가치가 있다.
+        </div>
+        <div class="note-block">
+          <div class="note-title">의미 있는 사람</div>
+          오빠 이도혁 — 1925년 만주에서 실종.
+          유품 회중시계.
+        </div>
+        <div class="note-block">
+          <div class="note-title">소중한 장소</div>
+          남대문 시립도서관 2층 동양고서실.
+        </div>
+
+        <h3>소지품 / Inventory</h3>
+        <ul class="inv-list">
+          <li>리볼버 .32 <span class="qty">탄 6/6</span></li>
+          <li>손전등 <span class="qty">×1</span></li>
+          <li>노트 · 만년필 <span class="qty">×2</span></li>
+          <li>회중시계 (오빠) <span class="qty">유품</span></li>
+          <li>사진 (오빠) <span class="qty">×1</span></li>
+          <li>현금 <span class="qty">₩42</span></li>
+        </ul>
+
+        <h3>최근 굴림</h3>
+        <div class="dice-block cc" style="font-size: 0.8rem; padding: 0.4rem 0.6rem;">
+          <span class="expr">도서관 (85)</span>
+          <span class="total">→ 42</span>
+          <span class="level regular">일반 성공</span>
+        </div>
+        <div class="dice-block cc" style="margin-top: 0.35rem; font-size: 0.8rem; padding: 0.4rem 0.6rem;">
+          <span class="expr">SAN</span>
+          <span class="total">→ 67</span>
+          <span class="level fail">실패</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-screen" id="screen-statblock" data-label="04 스탯블록 · V1 카드 + V3 트래커 혼합">
+  <div class="breadcrumb">
+    <a href="#dashboard">검은 4월</a><span class="sep">/</span>
+    <a href="#dashboard">세션 #12</a><span class="sep">/</span>
+    <span>장면: 부두</span>
+  </div>
+
+  <div class="section-head">
+    <h2>장면 트래커</h2>
+    <span class="count">라운드 · NPC · HP 추적</span>
+  </div>
+
+  <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap: 1.25rem; align-items: flex-start">
+    <!-- V3: Initiative tracker -->
+    <div class="initiative">
+      <div class="ini-head">
+        <span>이니셔티브 (DEX 순)</span>
+        <span>라운드 <span class="round">3</span></span>
+      </div>
+      <div class="ini-row">
+        <span class="dex">65</span>
+        <span class="name">이도윤 <span class="muted" style="font-size:0.74rem">PC</span></span>
+        <span class="hp">11/11</span>
+      </div>
+      <div class="ini-row active">
+        <span class="dex">55</span>
+        <span class="name">깊은 자 #1 ← 지금 행동</span>
+        <span class="hp">14/14</span>
+      </div>
+      <div class="ini-row">
+        <span class="dex">55</span>
+        <span class="name">깊은 자 #2</span>
+        <span class="hp">6/14</span>
+      </div>
+      <div class="ini-row dead">
+        <span class="dex">55</span>
+        <span class="name">깊은 자 #3 <span class="muted" style="font-size:0.74rem">사망</span></span>
+        <span class="hp">0/14</span>
+      </div>
+      <div class="ini-row">
+        <span class="dex">50</span>
+        <span class="name">윤상호 <span class="muted" style="font-size:0.74rem">PC</span></span>
+        <span class="hp">9/12</span>
+      </div>
+      <div class="ini-row">
+        <span class="dex">45</span>
+        <span class="name">박씨 <span class="muted" style="font-size:0.74rem">PC</span></span>
+        <span class="hp">11/11</span>
+      </div>
+      <div class="form actions" style="margin-top: 0.6rem; padding: 0; background: none; border: none; box-shadow: none">
+        <button class="btn ghost">↺ 라운드 초기화</button>
+        <button class="btn">다음 라운드 →</button>
+      </div>
+    </div>
+
+    <!-- V1: Statblock card -->
+    <div class="statblock">
+      <div class="sb-head">
+        <h2>깊은 자 #1</h2>
+        <div class="en">DEEP ONE · 신화 생물 · 인간형 · 핸드북 p.217</div>
+      </div>
+      <div class="sb-body">
+        <div class="stat-grid">
+          <div><div class="k">STR</div><div class="v">80</div></div>
+          <div><div class="k">CON</div><div class="v">75</div></div>
+          <div><div class="k">SIZ</div><div class="v">60</div></div>
+          <div><div class="k">DEX</div><div class="v">55</div></div>
+          <div><div class="k">INT</div><div class="v">55</div></div>
+          <div><div class="k">POW</div><div class="v">55</div></div>
+        </div>
+        <div class="sb-meta">
+          <div class="mrow"><span class="k">HP</span><span class="v">14 / 14</span></div>
+          <div class="mrow"><span class="k">이동</span><span class="v">8 / 10 수영</span></div>
+          <div class="mrow"><span class="k">장갑</span><span class="v">1</span></div>
+          <div class="mrow"><span class="k">SAN 손실</span><span class="v">0 / 1d6</span></div>
+          <div class="mrow"><span class="k">회피</span><span class="v">27%</span></div>
+          <div class="mrow"><span class="k">대응</span><span class="v">50%</span></div>
+        </div>
+
+        <h3 style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint); margin: 0.5rem 0 0.4rem">공격 / Attacks</h3>
+        <div class="attacks">
+          <div class="attack-row">
+            <span class="name">발톱 ×2</span>
+            <span class="formula">40% · 1d6 + DB</span>
+            <button class="roll-btn">d100</button>
+          </div>
+          <div class="attack-row">
+            <span class="name">물기</span>
+            <span class="formula">30% · 1d4 + DB</span>
+            <button class="roll-btn">d100</button>
+          </div>
+        </div>
+
+        <div class="wiki-callout" style="margin-top: 0.85rem">
+          <b>키퍼 메모 ─</b> 첫 등장 시 SAN 0/1d6 손실. 첫 라운드 후
+          물 속으로 회피 가능 (수영 90).
+        </div>
+
+        <div class="dice-toolbar" style="margin-top: 0.85rem; margin-bottom: 0">
+          <span class="chip">-1d6 HP</span>
+          <span class="chip">-1d4 HP</span>
+          <span class="chip">상태: 출혈</span>
+          <span class="chip">상태: 기절</span>
+          <span class="chip">+ NPC 복제</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>오늘 세션의 다른 NPC</h2>
+    <span class="count">4개</span>
+  </div>
+  <div class="board-grid">
+    <div class="board-card" style="cursor:default">
+      <h2>사교도</h2>
+      <p class="desc">인간 · 마법사</p>
+      <div class="stats"><span>HP <b>9</b></span><span>POW <b>60</b></span><span>회피 <b>30</b></span></div>
+    </div>
+    <div class="board-card" style="cursor:default">
+      <h2>요그-소토스의 종</h2>
+      <p class="desc">신화 생물 · 외계</p>
+      <div class="stats"><span>HP <b>22</b></span><span>POW <b>100</b></span><span>장갑 <b>3</b></span></div>
+    </div>
+    <div class="board-card" style="cursor:default">
+      <h2>꿈의 사자</h2>
+      <p class="desc">정신적 존재</p>
+      <div class="stats"><span>HP <b>—</b></span><span>POW <b>75</b></span><span>SAN <b>1d4/1d10</b></span></div>
+    </div>
+    <div class="board-card" style="cursor:default">
+      <h2>경찰서장 김</h2>
+      <p class="desc">인간 · NPC</p>
+      <div class="stats"><span>HP <b>13</b></span><span>설득 <b>70</b></span><span>권총 <b>55</b></span></div>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-screen" id="screen-session" data-label="05 세션 플레이 · V4 시네마틱">
+  <div class="breadcrumb">
+    <a href="#dashboard">검은 4월</a><span class="sep">/</span>
+    <a href="#dashboard">세션 #12</a><span class="sep">/</span>
+    <span>§3 부두</span>
+  </div>
+
+  <div class="scene-side">
+    <div class="scene">
+      <div class="scene-bg"></div>
+
+      <div class="scene-top">
+        <span>§3 부두 · 1928.11.14 · 23:48</span>
+        <span style="display: flex; align-items: center; gap: 0.4rem">
+          <span class="live-pip"></span> 4명 접속 · 라운드 3
+        </span>
+      </div>
+
+      <div class="scene-center">
+        <div class="scene-illustration">[ 장면 일러스트 · 안개 낀 부두 ]</div>
+      </div>
+
+      <div class="scene-narration">
+        <div class="who">키퍼</div>
+        <p>
+          발자국 소리가 점점 가까워진다. 손전등 빛이 흔들렸다 —
+          <em>무언가</em> 가 있었다. 비린내가 코를 찌른다.
+        </p>
+      </div>
+
+      <div class="scene-hud">
+        <div class="skills">
+          <button class="skill-chip">청각 <span class="val">35</span></button>
+          <button class="skill-chip">탐색 <span class="val">50</span></button>
+          <button class="skill-chip">권총 <span class="val">30</span></button>
+          <button class="skill-chip">회피 <span class="val">32</span></button>
+        </div>
+        <div class="vitals">
+          <span>HP <b>11/11</b></span>
+          <span>SAN <b>48/60</b></span>
+        </div>
+        <button class="speak">💬 말하기</button>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 1rem">
+      <div class="scene-roster">
+        <div class="head">참여자 · 4명</div>
+        <div class="member">
+          <div class="av">키</div>
+          <div>
+            <div class="name">키퍼 박</div>
+            <div class="info">GM · 운영 중</div>
+          </div>
+        </div>
+        <div class="member">
+          <div class="av">이</div>
+          <div>
+            <div class="name">이도윤 (당신)</div>
+            <div class="info">SAN 48 · HP 11</div>
+          </div>
+        </div>
+        <div class="member">
+          <div class="av">박</div>
+          <div>
+            <div class="name">박씨</div>
+            <div class="info">SAN 55 · HP 11</div>
+          </div>
+        </div>
+        <div class="member">
+          <div class="av">윤</div>
+          <div>
+            <div class="name">윤상호</div>
+            <div class="info">SAN 30 ⚠ · HP 9</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scene-roster">
+        <div class="head">이 장면의 단서</div>
+        <div class="member" style="display: block; padding: 0.7rem 0.85rem">
+          <div class="name">📌 검은 봉투</div>
+          <div class="info" style="font-family: inherit; color: var(--text-dim); margin-top: 0.1rem">라틴어 메모 포함</div>
+        </div>
+        <div class="member" style="display: block; padding: 0.7rem 0.85rem">
+          <div class="name">📌 발자국</div>
+          <div class="info" style="font-family: inherit; color: var(--text-dim); margin-top: 0.1rem">물갈퀴 모양</div>
+        </div>
+        <div class="member" style="display: block; padding: 0.7rem 0.85rem">
+          <div class="name">📌 신문 스크랩</div>
+          <div class="info" style="font-family: inherit; color: var(--text-dim); margin-top: 0.1rem">1928.11.13 사건</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-head">
+    <h2>세션 로그</h2>
+    <span class="count">최근 8개 · <a href="#search">전체 검색 →</a></span>
+  </div>
+  <div class="post-list">
+    <div class="post-row">
+      <div>
+        <span class="title">키퍼 박: 발자국 소리가 점점 가까워진다…</span>
+        <span class="comment-count">방금</span>
+      </div>
+      <div class="meta">묘사 · 라운드 3</div>
+    </div>
+    <div class="post-row">
+      <div>
+        <span class="title">박씨: /cc 청각 60 → 03 결정적 성공</span>
+        <span class="comment-count">단서+1</span>
+      </div>
+      <div class="meta">굴림 · 라운드 3</div>
+    </div>
+    <div class="post-row">
+      <div>
+        <span class="title">이도윤: /cc SAN 48 → 67 실패</span>
+        <span class="comment-count">SAN -3</span>
+      </div>
+      <div class="meta">굴림 · 라운드 2</div>
+    </div>
+    <div class="post-row">
+      <div>
+        <span class="title">윤상호: /roll 1d6+2 → 7 피해</span>
+      </div>
+      <div class="meta">굴림 · 라운드 2</div>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-screen" id="screen-search" data-label="06 검색 · V1 출처별 그룹">
+  <div class="breadcrumb">
+    <a href="#home">지옥도</a><span class="sep">/</span><span>검색</span>
+  </div>
+
+  <div class="search-bar">
+    <span>🔍</span>
+    <input type="text" value="권총" placeholder="룰북·캠페인·시트·노트에서 검색" autofocus />
+    <span class="total">23건</span>
+    <span class="clear">esc</span>
+  </div>
+
+  <div class="search-layout">
+    <aside class="facets">
+      <div class="group">
+        <div class="group-title">출처</div>
+        <div class="facet active"><span>📦 전부</span><span class="num">23</span></div>
+        <div class="facet"><span>📖 룰북</span><span class="num">12</span></div>
+        <div class="facet"><span>📚 캠페인 · 글</span><span class="num">4</span></div>
+        <div class="facet"><span>👤 캐릭터 시트</span><span class="num">3</span></div>
+        <div class="facet"><span>🗒 노트 · 단서</span><span class="num">4</span></div>
+      </div>
+      <div class="group">
+        <div class="group-title">언어</div>
+        <div class="facet"><span>한국어</span><span class="num">16</span></div>
+        <div class="facet"><span>English</span><span class="num">7</span></div>
+      </div>
+      <div class="group">
+        <div class="group-title">기간</div>
+        <div class="facet"><span>전체</span><span class="num">23</span></div>
+        <div class="facet"><span>이번 주</span><span class="num">5</span></div>
+        <div class="facet"><span>이번 달</span><span class="num">12</span></div>
+      </div>
+    </aside>
+
+    <div>
+      <div class="search-group">
+        <div class="group-head">
+          <span class="label">📖 룰북</span>
+          <span class="num">12건</span>
+          <span class="sort">관련도 순</span>
+        </div>
+        <div class="search-result">
+          <div class="r-title">6.3.2 <mark>권총</mark> <span class="muted" style="font-family:ui-monospace,monospace; font-weight:500; font-size:0.85em">Handgun</span></div>
+          <div class="r-snippet">근거리 사격무기. 데미지 <mark>1d10</mark>. 사정거리 15m. 한 라운드에 1발 사격 가능 (속사 시 보정).</div>
+          <div class="r-meta"><span>핸드북 p.92</span><span>·</span><span>7판</span><span>·</span><span>한국어</span></div>
+        </div>
+        <div class="search-result">
+          <div class="r-title"><mark>권총</mark> — 무기 데미지표</div>
+          <div class="r-snippet">권총 .32 · 1d8 / .38 · 1d10 / .45 · 1d10+2 / .44 매그넘 · 1d8+1d6</div>
+          <div class="r-meta"><span>핸드북 p.96</span><span>·</span><span>표</span></div>
+        </div>
+        <div class="search-result">
+          <div class="r-title">사격 굴림 보정 (penalty)</div>
+          <div class="r-snippet"><mark>권총</mark> + 양손 사격, 빠른 발사 시 보정 적용. 어려운 굴림이 필요할 수 있다.</div>
+          <div class="r-meta"><span>핸드북 p.94</span></div>
+        </div>
+      </div>
+
+      <div class="search-group">
+        <div class="group-head">
+          <span class="label">📚 캠페인 · 글</span>
+          <span class="num">4건</span>
+        </div>
+        <div class="search-result">
+          <div class="r-title">[검은 4월] 박씨의 <mark>권총</mark> · 단서 12</div>
+          <div class="r-snippet">박씨가 가지고 다니는 .32 권총. 탄알 2발 남음. 손잡이에 「ㅎ」 글자가 새겨져 있다.</div>
+          <div class="r-meta"><span>검은 4월</span><span>·</span><span>단서</span><span>·</span><span>3일 전</span></div>
+        </div>
+        <div class="search-result">
+          <div class="r-title">[검은 4월] <mark>권총</mark> 소리 발자국 — 신문 스크랩</div>
+          <div class="r-snippet">1928.11.13 신문에 보도된 사건. 한 발의 권총 소리가 부두 쪽에서 들렸다는 증언이…</div>
+          <div class="r-meta"><span>검은 4월</span><span>·</span><span>NPC 메모</span><span>·</span><span>5일 전</span></div>
+        </div>
+      </div>
+
+      <div class="search-group">
+        <div class="group-head">
+          <span class="label">👤 캐릭터 시트</span>
+          <span class="num">3건</span>
+        </div>
+        <div class="search-result">
+          <div class="r-title">이도윤 · 리볼버 .32 <span class="muted" style="font-weight:500">(소지품)</span></div>
+          <div class="r-snippet">탄 6/6 · 데미지 1d8 · 권총 기능 30%</div>
+          <div class="r-meta"><span>이도윤 시트</span><span>·</span><span>소지품</span></div>
+        </div>
+        <div class="search-result">
+          <div class="r-title">박씨 · <mark>권총</mark> <span class="muted" style="font-weight:500">(기능)</span></div>
+          <div class="r-snippet">권총 30% · .32 리볼버 보유</div>
+          <div class="r-meta"><span>박씨 시트</span><span>·</span><span>기능</span></div>
+        </div>
+      </div>
+
+      <div class="search-group">
+        <div class="group-head">
+          <span class="label">🗒 노트 · 단서</span>
+          <span class="num">4건</span>
+        </div>
+        <div class="search-result">
+          <div class="r-title">「<mark>권총</mark>으로 깊은 자를 쏠 수 있나?」</div>
+          <div class="r-snippet">키퍼 박: 가능. 다만 깊은 자 장갑 1을 차감해야 한다.</div>
+          <div class="r-meta"><span>검은 4월</span><span>·</span><span>키퍼 노트</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-screen" id="screen-dashboard" data-label="07 캠페인 대시보드 · V4 랜딩 + V5 상세">
+  <div class="breadcrumb">
+    <a href="#home">지옥도</a><span class="sep">/</span><span>내 캠페인</span>
+  </div>
+
+  <!-- V4: Single focus -->
+  <div class="dash-hero">
+    <div class="label">다음 세션까지</div>
+    <div class="countdown"><em>3</em> 시간 <em>24</em> 분</div>
+    <div class="campaign">검은 4월 · 세션 #12</div>
+    <div class="sub">키퍼: 박 · 플레이어 4명 · §3 부두</div>
+    <div class="cta-row">
+      <a href="#session" class="btn">세션 입장</a>
+      <a href="#statblock" class="btn ghost">준비 페이지</a>
+    </div>
+    <div class="mini-stats">
+      <div class="ms warn">
+        <b>3</b>
+        <span>미해결 단서</span>
+      </div>
+      <div class="ms">
+        <b>1</b>
+        <span>위험 PC (SAN 30↓)</span>
+      </div>
+      <div class="ms">
+        <b>12</b>
+        <span>지난 세션 수</span>
+      </div>
+      <div class="ms">
+        <b>47h</b>
+        <span>누적 플레이</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- V4 supplement: session history -->
+  <div class="dash-history">
+    <h2>「검은 4월」 지난 세션</h2>
+    <div class="session-log">
+      <div class="row">
+        <span class="num">#11</span>
+        <span class="title">사라진 신부 — 교회 지하의 발자국</span>
+        <span class="when">11/07 (목) 21:00</span>
+        <span class="dur">3h 12m</span>
+      </div>
+      <div class="row">
+        <span class="num">#10</span>
+        <span class="title">남대문 시립도서관 — 라틴어 메모 해석</span>
+        <span class="when">10/31 (목) 21:00</span>
+        <span class="dur">4h 02m</span>
+      </div>
+      <div class="row">
+        <span class="num">#9</span>
+        <span class="title">경찰서장 김의 의뢰</span>
+        <span class="when">10/24 (목) 21:00</span>
+        <span class="dur">2h 48m</span>
+      </div>
+      <div class="row">
+        <span class="num">#8</span>
+        <span class="title">검은 봉투의 첫 등장</span>
+        <span class="when">10/17 (목) 21:00</span>
+        <span class="dur">3h 30m</span>
+      </div>
+      <div class="row">
+        <span class="num">#7</span>
+        <span class="title">아카이브의 비밀</span>
+        <span class="when">10/10 (목) 20:30</span>
+        <span class="dur">3h 55m</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- V5: Linear-style table for all campaigns -->
+  <div class="section-head">
+    <h2>모든 캠페인</h2>
+    <div class="actions">
+      <span class="tag-pill accent">활성 4</span>
+      <span class="tag-pill">휴면 2</span>
+      <span class="tag-pill">종료 7</span>
+      <button class="btn" style="margin-left:0.5rem">+ 새 캠페인</button>
+    </div>
+  </div>
+
+  <div class="dash-table">
+    <div class="thead">
+      <span>캠페인</span>
+      <span>역할</span>
+      <span>다음 세션</span>
+      <span>멤버</span>
+      <span>상태</span>
+    </div>
+    <div class="trow">
+      <span class="c-name">검은 4월</span>
+      <span class="c-role">키퍼 · #12</span>
+      <span class="c-next urgent">오늘 21:00 ●</span>
+      <span class="c-members">●●●●</span>
+      <span class="c-status" style="color: var(--accent)">활성</span>
+    </div>
+    <div class="trow">
+      <span class="c-name">황혼의 도시</span>
+      <span class="c-role">투자자 · #5</span>
+      <span class="c-next">수 20:00</span>
+      <span class="c-members">●●●</span>
+      <span class="c-status">활성</span>
+    </div>
+    <div class="trow">
+      <span class="c-name">안개의 강</span>
+      <span class="c-role">투자자 · #2</span>
+      <span class="c-next">토 19:00</span>
+      <span class="c-members">●●●●●</span>
+      <span class="c-status">활성</span>
+    </div>
+    <div class="trow dormant">
+      <span class="c-name">라이리에로 가는 길</span>
+      <span class="c-role">키퍼 · #8</span>
+      <span class="c-next">—</span>
+      <span class="c-members">●●●●</span>
+      <span class="c-status">휴면</span>
+    </div>
+  </div>
+
+  <!-- V5: activity feed -->
+  <div class="activity-feed">
+    <h2>최근 활동</h2>
+    <div class="item">
+      <span class="when">3분 전</span>
+      <span class="what"><b>박씨</b> · 단서 17 「권총 소리 발자국」에 메모 추가</span>
+      <span class="where">검은 4월</span>
+    </div>
+    <div class="item">
+      <span class="when">1시간 전</span>
+      <span class="what"><b>이도윤</b> · SAN 53 → 48 <span class="muted">(−5)</span></span>
+      <span class="where">검은 4월</span>
+    </div>
+    <div class="item">
+      <span class="when">어제</span>
+      <span class="what"><b>키퍼 박</b> · §3 부두 세션 노트 게시</span>
+      <span class="where">검은 4월</span>
+    </div>
+    <div class="item">
+      <span class="when">어제</span>
+      <span class="what"><b>윤상호</b> · 캐릭터 시트 업데이트 — 매혹 40 → 45</span>
+      <span class="where">황혼의 도시</span>
+    </div>
+    <div class="item">
+      <span class="when">2일 전</span>
+      <span class="what"><b>키퍼 김</b> · 새 NPC 「개기 박씨」 등록</span>
+      <span class="where">황혼의 도시</span>
+    </div>
+  </div>
+</script>
+
+<script>
+(() => {
+  // ──── Routing ─────────────────────────────────────────────────────
+  const screen = document.getElementById("screen");
+  const routes = ["home","rulebook","sheet","statblock","session","search","dashboard"];
+  let peekAbort = null;
+  let tickerInterval = null;
+
+  function getRoute() {
+    const h = location.hash.replace(/^#/, "");
+    return routes.includes(h) ? h : "home";
+  }
+
+  function render() {
+    const r = getRoute();
+    const tpl = document.getElementById("screen-" + r);
+    if (!tpl) return;
+    screen.innerHTML = tpl.textContent;
+    document.title = "지옥도 — " + (tpl.dataset.label || "VTT 프로토타입");
+
+    // update nav active state
+    document.querySelectorAll("[data-route]").forEach(a => {
+      a.classList.toggle("active", a.getAttribute("data-route") === r);
+    });
+
+    window.scrollTo({ top: 0, behavior: "instant" });
+
+    // Mount per-screen behaviors
+    if (r === "home") mountHome();
+  }
+
+  window.addEventListener("hashchange", render);
+
+  // (initial render moved to bottom — needs PEEK_SCRIPT/TICKER declared first)
+
+  // ──── Home: typing demo in the peek window ─────────────────────────
+  const PEEK_SCRIPT = [
+    { type: "narration", who: "키퍼 박", body: "안개가 짙어진다. 부두 끝, 등불 아래 검은 봉투가 떨어져 있다. 어떻게 행동할 텐가?" },
+    { type: "input",     text: "/cc 탐색 50" },
+    { type: "dice",      kind: "cc", name: "탐색", target: 50, roll: 23, level: "hard", who: "이도윤" },
+    { type: "narration", who: "이도윤", body: "봉투를 집어 든다. 라틴어로 적힌 메모가 들어 있다…" },
+    { type: "input",     text: "/cc 라틴어 50" },
+    { type: "dice",      kind: "cc", name: "언어 (라틴)", target: 50, roll: 8,  level: "extreme", who: "이도윤" },
+    { type: "narration", who: "키퍼 박", body: "「열한번째 밤, 항구 끝의 검은 입을 보라」 — 라는 구절이 명확히 읽힌다." },
+    { type: "input",     text: "/cc 청각 35" },
+    { type: "dice",      kind: "cc", name: "청각", target: 35, roll: 1, level: "critical", who: "박씨" },
+  ];
+
+  const LEVEL_LABEL = {
+    critical: "결정적 성공",
+    extreme:  "극단적 성공",
+    hard:     "어려운 성공",
+    regular:  "일반 성공",
+    fail:     "실패",
+    fumble:   "펌블",
+  };
+
+  function diceBlock(d) {
+    return `
+      <div class="dice-block cc">
+        <span class="label">CoC 판정</span>
+        <span class="expr">${d.name}</span>
+        <span class="expr">1d100 ≤ ${d.target}</span>
+        <span class="total">→ ${d.roll}</span>
+        <span class="level ${d.level}">${LEVEL_LABEL[d.level]}</span>
+      </div>
+    `;
+  }
+
+  function turnNarration(t) {
+    return `
+      <div class="narration">
+        <div style="font-size:0.74rem; color:var(--gold); font-weight:700; margin-bottom:0.2rem">${t.who}</div>
+        ${t.body}
+      </div>
+    `;
+  }
+
+  function mountHome() {
+    const feed = document.getElementById("peek-feed");
+    const typingEl = document.getElementById("peek-typing");
+    if (!feed || !typingEl) return;
+
+    if (peekAbort) peekAbort();
+    let stopped = false;
+    peekAbort = () => { stopped = true; };
+
+    feed.innerHTML = "";
+    typingEl.textContent = "";
+    let i = 0;
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    async function run() {
+      while (!stopped) {
+        const step = PEEK_SCRIPT[i % PEEK_SCRIPT.length];
+        if (step.type === "narration") {
+          appendNarration(step);
+        } else if (step.type === "input") {
+          await typeInto(typingEl, step.text);
+          if (stopped) return;
+          await sleep(350);
+          typingEl.textContent = "";
+        } else if (step.type === "dice") {
+          feed.insertAdjacentHTML("beforeend", diceBlock(step));
+          trimFeed();
+        }
+        i++;
+        await sleep(step.type === "narration" ? 1900 : 900);
+        if (stopped) return;
+      }
+    }
+
+    async function typeInto(el, text) {
+      el.textContent = "";
+      for (const ch of text) {
+        if (stopped) return;
+        el.textContent += ch;
+        await sleep(48 + Math.random() * 40);
+      }
+    }
+
+    function appendNarration(t) {
+      feed.insertAdjacentHTML("beforeend", turnNarration(t));
+      trimFeed();
+    }
+
+    function trimFeed() {
+      while (feed.children.length > 4) feed.firstElementChild.remove();
+      feed.scrollTop = feed.scrollHeight;
+    }
+
+    // also start the live ticker
+    mountTicker();
+
+    run();
+  }
+
+  // ──── Live ticker ─────────────────────────────────────────────────
+  const TICKER = [
+    { who: "이도윤",   what: "탐색", code: "/cc 탐색 50",     result: "→ 23 어려운 성공", lvl: "hard"     },
+    { who: "박씨",     what: "청각", code: "/cc 청각 60",     result: "→ 03 결정적!",     lvl: "critical" },
+    { who: "윤상호",   what: "권총", code: "/cc 권총 30",     result: "→ 84 실패",         lvl: "fail"     },
+    { who: "키퍼 김",  what: "굴림", code: "/roll 3d6",      result: "→ [4,5,6] = 15",   lvl: ""         },
+    { who: "지윤",     what: "회피", code: "/cc 회피 32",     result: "→ 12 어려운 성공", lvl: "hard"     },
+    { who: "민혁",     what: "SAN",  code: "/cc SAN 55",     result: "→ 100 펌블…",       lvl: "fumble"   },
+    { who: "수아",     what: "도서관", code: "/cc 도서관 85", result: "→ 17 극단적 성공", lvl: "extreme"  },
+    { who: "키퍼 박",  what: "굴림", code: "/roll 1d6+2",    result: "→ 7 피해",          lvl: ""         },
+    { who: "현우",     what: "응급", code: "/cc 응급처치 40", result: "→ 28 일반 성공",   lvl: "regular"  },
+  ];
+
+  function mountTicker() {
+    const feed = document.getElementById("ticker-feed");
+    const count = document.getElementById("ticker-count");
+    if (!feed) return;
+    feed.innerHTML = "";
+    let n = 847;
+    let idx = 0;
+
+    function tick() {
+      const row = TICKER[idx % TICKER.length];
+      idx++;
+      n++;
+      if (count) count.textContent = `${n.toLocaleString()}개 · 오늘`;
+      const html = `
+        <div class="row">
+          <span class="who">${row.who}</span>
+          <span class="body">${row.what} · <code>${row.code}</code> ${row.result}</span>
+          <span class="when">방금</span>
+        </div>`;
+      feed.insertAdjacentHTML("afterbegin", html);
+      while (feed.children.length > 5) feed.lastElementChild.remove();
+    }
+
+    if (tickerInterval) clearInterval(tickerInterval);
+    tick(); tick(); tick(); tick();
+    tickerInterval = setInterval(tick, 2400);
+  }
+
+  // Kick off initial render now that all module-level const/let are initialised.
+  render();
+})();
+</script>
+
+</body>
+</html>

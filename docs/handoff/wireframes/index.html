@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TRPG UX 와이어프레임 — Call of Cthulhu 가상 테이블</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Special+Elite&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Live tweak vars */
+    --bg: #f5f3ee;
+    --bg-2: #ebe7df;
+    --ink: #1a1714;
+    --ink-2: #4a443c;
+    --ink-3: #7a7268;
+    --paper: #fbf9f4;
+    --rule: #1a1714;
+    --rule-soft: rgba(26,23,20,.18);
+    --accent: #8a1c1c;     /* CoC oxblood */
+    --accent-soft: rgba(138,28,28,.12);
+    --ok: #3b6e3b;
+    --fail: #8a1c1c;
+    --font-h: "Caveat", cursive;
+    --font-anno: "Kalam", cursive;
+    --font-ui: "Inter", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", monospace;
+    --font-theme: "Special Elite", serif;
+    --base: 13px;
+    --pad: 14px;
+    --gap: 12px;
+    --radius: 4px;
+  }
+  html.dark {
+    --bg: #16140f;
+    --bg-2: #1f1c16;
+    --ink: #ece6d8;
+    --ink-2: #b8b0a0;
+    --ink-3: #807868;
+    --paper: #1c1914;
+    --rule: #ece6d8;
+    --rule-soft: rgba(236,230,216,.18);
+    --accent-soft: rgba(220,90,90,.18);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: var(--base);
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* — App shell ————————————————————————————————— */
+  .app-hdr {
+    border-bottom: 1px solid var(--rule);
+    padding: 16px 24px 0;
+    background: var(--bg);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .app-hdr-top {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; padding-bottom: 12px;
+  }
+  .app-title {
+    font-family: var(--font-theme);
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .app-title small {
+    display: block;
+    font-family: var(--font-anno);
+    font-size: 14px;
+    color: var(--ink-3);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .app-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    text-align: right;
+  }
+  .app-meta b { color: var(--ink); font-weight: 600; }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    margin: 0 -24px;
+    padding: 0 24px;
+  }
+  .tab {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    padding: 8px 14px 10px;
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: default;
+    white-space: nowrap;
+    position: relative;
+    top: 1px;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .tab .tab-n {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .tab[aria-selected="true"] {
+    background: var(--bg);
+    color: var(--ink);
+    border-bottom: 1px solid var(--bg);
+    font-weight: 600;
+  }
+  .tab[aria-selected="true"] .tab-n { color: var(--accent); }
+
+  /* Page body */
+  .page {
+    padding: 28px 24px 120px;
+    max-width: 100%;
+  }
+  .intro {
+    max-width: 760px;
+    margin: 0 0 28px;
+  }
+  .intro h2 {
+    font-family: var(--font-theme);
+    font-size: 28px;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .intro p {
+    margin: 6px 0;
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .intro .stamp {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transform: rotate(-1.5deg);
+  }
+
+  /* Variant grid */
+  .variants {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+  .variant {
+    border-top: 2px dashed var(--rule-soft);
+    padding-top: 24px;
+  }
+  .variant:first-child { border-top: none; padding-top: 0; }
+
+  .vhdr {
+    display: flex; align-items: flex-start; gap: 16px;
+    margin-bottom: 18px;
+    max-width: 900px;
+  }
+  .vhdr-num {
+    font-family: var(--font-h);
+    font-size: 38px;
+    line-height: 0.9;
+    color: var(--accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    width: 56px;
+  }
+  .vhdr-text { flex: 1; min-width: 0; }
+  .vhdr-title {
+    font-family: var(--font-theme);
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .vhdr-desc {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .vhdr-tags { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 4px; }
+  .vhdr-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border: 1px solid var(--rule-soft);
+    border-radius: 999px;
+    color: var(--ink-3);
+  }
+
+  /* Frame row */
+  .frames {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  /* — Frame chrome ————————————————————————————————— */
+  .wf-frame {
+    background: var(--paper);
+    border: 1.5px solid var(--rule);
+    border-radius: 6px;
+    box-shadow:
+      2px 2px 0 var(--rule-soft),
+      4px 4px 0 var(--rule-soft);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .wf-frame-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--rule-soft);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .wf-dots { display: inline-flex; gap: 4px; }
+  .wf-dots i {
+    width: 8px; height: 8px; border-radius: 50%;
+    border: 1px solid var(--rule); background: transparent;
+  }
+  .wf-frame-title { margin-left: 4px; }
+  .wf-frame-body {
+    padding: 14px;
+    overflow: hidden;
+    position: relative;
+    background: var(--paper);
+  }
+
+  /* — Primitives ————————————————————————————————— */
+  .wf-box {
+    border: 1.2px dashed var(--rule);
+    border-radius: var(--radius);
+    background: transparent;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-align: center;
+    overflow: hidden;
+    padding: 6px;
+  }
+  .wf-box-img {
+    background-image:
+      repeating-linear-gradient(45deg,
+        transparent 0 6px,
+        var(--rule-soft) 6px 7px);
+    border-style: solid;
+    border-width: 1px;
+  }
+  .wf-box-img::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 49.4%, var(--rule-soft) 49.6%, var(--rule-soft) 50.4%, transparent 50.6%),
+                linear-gradient(45deg, transparent 49.4%, var(--rule-soft) 49.6%, var(--rule-soft) 50.4%, transparent 50.6%);
+  }
+  .wf-box-solid {
+    background: var(--bg-2);
+    border-style: solid;
+  }
+  .wf-box-ink {
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+  }
+  .wf-box-accent {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+  .wf-box-lbl {
+    position: relative; z-index: 1;
+    background: var(--paper);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-family: var(--font-anno);
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .wf-box-ink .wf-box-lbl { background: var(--ink); color: var(--paper); }
+  .wf-box-accent .wf-box-lbl { background: var(--paper); color: var(--accent); }
+  .wf-box-sub {
+    position: relative; z-index: 1;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+
+  .wf-line {
+    background: var(--ink-2);
+    opacity: 0.35;
+    border-radius: 2px;
+  }
+  .wf-para { display: flex; flex-direction: column; gap: 6px; }
+
+  .wf-h {
+    font-family: var(--font-theme);
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.1;
+    letter-spacing: -0.005em;
+  }
+
+  .wf-btn {
+    appearance: none;
+    border: 1.2px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: var(--radius);
+    padding: 6px 12px;
+    font-family: var(--font-anno);
+    font-size: 12px;
+    cursor: default;
+    line-height: 1.2;
+  }
+  .wf-btn.primary {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .wf-btn.ghost { border-style: dashed; color: var(--ink-2); }
+  .wf-btn.small { padding: 3px 8px; font-size: 11px; }
+
+  .wf-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    border: 1px solid var(--rule-soft);
+    border-radius: 999px;
+    padding: 2px 9px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-2);
+    background: transparent;
+  }
+  .wf-chip.on {
+    background: var(--accent);
+    color: var(--paper);
+    border-color: var(--accent);
+  }
+
+  .wf-icon {
+    display: inline-block;
+    border: 1px solid var(--ink-2);
+    border-radius: 3px;
+    background:
+      linear-gradient(45deg, transparent 45%, var(--ink-2) 45% 55%, transparent 55%),
+      linear-gradient(-45deg, transparent 45%, var(--ink-2) 45% 55%, transparent 55%);
+    background-size: 100% 100%;
+    flex-shrink: 0;
+    opacity: 0.5;
+  }
+
+  .wf-dice {
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1.2px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    border-radius: 4px;
+    flex-shrink: 0;
+    transform: rotate(-6deg);
+  }
+
+  .wf-meter { display: flex; flex-direction: column; gap: 3px; }
+  .wf-meter-hd {
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-2);
+  }
+  .wf-meter-num { color: var(--ink); font-weight: 600; }
+  .wf-meter-bar {
+    height: 6px;
+    background: var(--bg-2);
+    border: 1px solid var(--rule-soft);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .wf-meter-fill { height: 100%; background: var(--accent); }
+
+  .wf-tbl {
+    display: grid;
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+  .wf-tbl-h, .wf-tbl-c {
+    padding: 5px 8px;
+    border-right: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+    color: var(--ink-2);
+    background: transparent;
+  }
+  .wf-tbl-h {
+    background: var(--bg-2);
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .wf-hr { height: 1px; background: var(--rule-soft); margin: 6px 0; }
+
+  .wf-roll {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 8px;
+    border-bottom: 1px dashed var(--rule-soft);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-2);
+  }
+  .wf-roll-who { color: var(--ink); font-weight: 600; }
+  .wf-roll-skill { flex: 1; }
+  .wf-roll-num { font-weight: 600; }
+  .wf-roll-r.ok { color: var(--ok); font-weight: 600; }
+  .wf-roll-r.fail { color: var(--fail); font-weight: 600; }
+
+  .wf-card {
+    border: 1.2px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--paper);
+    padding: 10px;
+    position: relative;
+  }
+  .wf-card.accent {
+    border-color: var(--accent);
+    box-shadow: 3px 3px 0 var(--accent-soft);
+  }
+  .wf-card-title {
+    font-family: var(--font-theme);
+    font-size: 13px;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .wf-note {
+    position: absolute;
+    font-family: var(--font-anno);
+    font-size: 12px;
+    color: var(--accent);
+    line-height: 1.25;
+    max-width: 180px;
+    z-index: 2;
+    padding: 2px 6px;
+  }
+  .wf-note::before {
+    content: "↘";
+    position: absolute;
+    left: -14px; top: 0;
+    color: var(--accent);
+    font-size: 14px;
+  }
+
+  /* Helpers used inside variants */
+  .row { display: flex; gap: 10px; align-items: center; }
+  .col { display: flex; flex-direction: column; gap: 8px; }
+  .between { justify-content: space-between; }
+  .grow { flex: 1; min-width: 0; }
+  .center { justify-content: center; align-items: center; }
+  .wrap { flex-wrap: wrap; }
+
+  /* Empty placeholder per tab */
+  .pending {
+    border: 2px dashed var(--rule-soft);
+    border-radius: 8px;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--ink-3);
+    font-family: var(--font-anno);
+    font-size: 16px;
+  }
+
+  /* Density modifiers */
+  html[data-density="compact"] { --pad: 10px; --gap: 8px; }
+  html[data-density="comfy"] { --pad: 18px; --gap: 16px; }
+  html[data-density="compact"] .wf-frame-body { padding: 10px; }
+  html[data-density="comfy"] .wf-frame-body { padding: 18px; }
+
+  /* Width modifiers — affect frames */
+  html[data-wf-width="narrow"] .wf-desktop { transform: scale(0.85); transform-origin: top left; }
+  html[data-wf-width="wide"] .wf-desktop { /* no change baseline */ }
+
+  /* Print-ish surface for paper-feel */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(0,0,0,.025), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(0,0,0,.02), transparent 40%);
+    z-index: 0;
+  }
+  html.dark body::before {
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.02), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,.015), transparent 40%);
+  }
+
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<template id="__bundler_thumbnail" data-bg-color="#f5f3ee">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#f5f3ee"/>
+    <g transform="translate(600 400)">
+      <circle r="180" fill="none" stroke="#1a1714" stroke-width="6"/>
+      <circle r="180" fill="none" stroke="#8a1c1c" stroke-width="3" stroke-dasharray="14 10" transform="rotate(12)"/>
+      <text y="-30" text-anchor="middle" font-family="Special Elite, Courier, monospace" font-size="64" fill="#1a1714">TRPG</text>
+      <text y="40" text-anchor="middle" font-family="Special Elite, Courier, monospace" font-size="40" fill="#8a1c1c">UX</text>
+      <text y="90" text-anchor="middle" font-family="Caveat, cursive" font-size="32" fill="#4a443c">wireframes</text>
+    </g>
+  </svg>
+</template>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="wireframes/components.jsx"></script>
+<script type="text/babel" src="wireframes/home.jsx"></script>
+<script type="text/babel" src="wireframes/rulebook.jsx"></script>
+<script type="text/babel" src="wireframes/character-sheet.jsx"></script>
+<script type="text/babel" src="wireframes/statblock.jsx"></script>
+<script type="text/babel" src="wireframes/session.jsx"></script>
+<script type="text/babel" src="wireframes/search.jsx"></script>
+<script type="text/babel" src="wireframes/dashboard.jsx"></script>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "dark": false,
+  "fontSize": 13,
+  "density": "regular",
+  "accent": "#8a1c1c",
+  "width": "regular",
+  "handwrittenLevel": "balanced"
+}/*EDITMODE-END*/;
+
+const TABS = [
+  { id: "home",      label: "홈 / 랜딩",        n: "01" },
+  { id: "rulebook",  label: "룰북 열람",        n: "02" },
+  { id: "character", label: "캐릭터 시트",      n: "03" },
+  { id: "statblock", label: "스탯블록·몬스터",  n: "04" },
+  { id: "session",   label: "세션 플레이",      n: "05" },
+  { id: "search",    label: "검색 결과",        n: "06" },
+  { id: "dashboard", label: "캠페인 대시보드",  n: "07" },
+];
+
+const INTROS = {
+  home: {
+    h: "01 — 홈 / 랜딩",
+    p: "신규 방문자가 \"이 도구로 뭘 할 수 있는지\" 5초 안에 이해해야 합니다. CoC 특유의 분위기를 살리되 정보는 명확하게."
+  },
+  rulebook: {
+    h: "02 — 룰북 열람 화면",
+    p: "가장 가독성이 절실한 화면. 긴 본문 + 표 + 사이드 노트 + 한·영 용어 토글. 모바일에서도 표가 깨지지 않아야 합니다."
+  },
+  character: {
+    h: "03 — 캐릭터 시트",
+    p: "투자자(Investigator) 시트. 90+ 필드를 어떻게 압축·계층화·접근 가능하게 만들지가 핵심."
+  },
+  statblock: {
+    h: "04 — 스탯블록 · 몬스터 카드",
+    p: "세션 중 GM이 1초 만에 찾아야 함. 모바일에서 한 손으로 스크롤·굴림 가능해야."
+  },
+  session: {
+    h: "05 — 세션 플레이 화면",
+    p: "주사위·채팅·시트가 한 화면에. 데스크탑 GM과 모바일 플레이어가 같은 세션을 본다는 가정."
+  },
+  search: {
+    h: "06 — 검색 결과",
+    p: "한국어로 \"권총\" 검색했을 때 영어 \"handgun\" 항목도 떠야 하고, 어디서 나온 정보인지(룰북/캠페인/시트) 한눈에."
+  },
+  dashboard: {
+    h: "07 — 캠페인 대시보드",
+    p: "내가 GM/PC로 참여 중인 캠페인 목록. 다음 세션 시간, 미해결 단서, 멤버 상태."
+  },
+};
+
+const RENDERERS = {
+  home: window.HomeVariants,
+  rulebook: window.RulebookVariants,
+  character: window.CharacterVariants,
+  statblock: window.StatblockVariants,
+  session: window.SessionVariants,
+  search: window.SearchVariants,
+  dashboard: window.DashboardVariants,
+};
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [tab, setTab] = useState(() => {
+    const fromHash = window.location.hash.replace("#", "");
+    return TABS.find(x => x.id === fromHash) ? fromHash : "home";
+  });
+
+  useEffect(() => { window.location.hash = tab; }, [tab]);
+
+  // Apply tweaks as CSS vars / html attrs
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("dark", !!t.dark);
+    root.dataset.density = t.density;
+    root.dataset.wfWidth = t.width;
+    root.style.setProperty("--base", t.fontSize + "px");
+    root.style.setProperty("--accent", t.accent);
+    // Handwritten level toggle
+    if (t.handwrittenLevel === "low") {
+      root.style.setProperty("--font-h", "var(--font-ui)");
+      root.style.setProperty("--font-anno", "var(--font-ui)");
+      root.style.setProperty("--font-theme", "var(--font-ui)");
+    } else if (t.handwrittenLevel === "high") {
+      root.style.setProperty("--font-h", "Caveat, cursive");
+      root.style.setProperty("--font-anno", "Kalam, cursive");
+      root.style.setProperty("--font-theme", "Caveat, cursive");
+    } else {
+      root.style.setProperty("--font-h", "Caveat, cursive");
+      root.style.setProperty("--font-anno", "Kalam, cursive");
+      root.style.setProperty("--font-theme", "Special Elite, serif");
+    }
+  }, [t]);
+
+  const intro = INTROS[tab];
+  const Render = RENDERERS[tab];
+
+  return (
+    <>
+      <header className="app-hdr">
+        <div className="app-hdr-top">
+          <div className="app-title">
+            TRPG UX 와이어프레임 사파리
+            <small>Call of Cthulhu — 가상 테이블 (web · tablet · mobile)</small>
+          </div>
+          <div className="app-meta">
+            7 화면 × 5 변형 = <b>35 와이어프레임</b><br />
+            R20-style · 가독성 우선 · 한·영 혼용
+          </div>
+        </div>
+        <nav className="tabs" role="tablist">
+          {TABS.map(x => (
+            <button
+              key={x.id}
+              role="tab"
+              aria-selected={tab === x.id}
+              className="tab"
+              onClick={() => setTab(x.id)}
+            >
+              <span className="tab-n">{x.n}</span>
+              <span>{x.label}</span>
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      <main className="page" data-screen-label={tab}>
+        <div className="intro">
+          <h2>{intro.h}</h2>
+          <p>{intro.p}</p>
+          <span className="stamp">Low-fi · 구조와 흐름 위주</span>
+        </div>
+
+        <div className="variants">
+          {Render ? <Render /> : (
+            <div className="pending">아직 작업 중 — 곧 추가됩니다.</div>
+          )}
+        </div>
+      </main>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="테마 · 색상" />
+        <TweakToggle label="다크 모드" value={t.dark}
+          onChange={(v) => setTweak('dark', v)} />
+        <TweakColor label="액센트 (CoC oxblood / 기타)"
+          value={t.accent}
+          options={['#8a1c1c', '#5a1818', '#2d4a3a', '#3b4a6e', '#7a5a2a', '#1a1714']}
+          onChange={(v) => setTweak('accent', v)} />
+
+        <TweakSection label="타이포 · 밀도" />
+        <TweakSlider label="기본 폰트 크기" value={t.fontSize} min={11} max={18} unit="px"
+          onChange={(v) => setTweak('fontSize', v)} />
+        <TweakRadio label="밀도" value={t.density}
+          options={['compact', 'regular', 'comfy']}
+          onChange={(v) => setTweak('density', v)} />
+        <TweakRadio label="손글씨 톤" value={t.handwrittenLevel}
+          options={['low', 'balanced', 'high']}
+          onChange={(v) => setTweak('handwrittenLevel', v)} />
+
+        <TweakSection label="레이아웃" />
+        <TweakRadio label="프레임 폭" value={t.width}
+          options={['narrow', 'regular', 'wide']}
+          onChange={(v) => setTweak('width', v)} />
+      </TweaksPanel>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+</body>
+</html>

@@ -1,9 +1,54 @@
 import "./globals.css";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import {
+  Inter,
+  IBM_Plex_Mono,
+  Special_Elite,
+  Kalam,
+  Caveat,
+  Noto_Serif_KR,
+} from "next/font/google";
 import { getNickname } from "@/lib/auth";
 import { NicknameBadge } from "@/components/NicknameBadge";
-import { SearchBar } from "@/components/SearchBar";
+import { SiteSearchTrigger } from "@/components/vtt/SiteSearchTrigger";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-ui",
+  display: "swap",
+});
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-mono",
+  display: "swap",
+});
+const display = Special_Elite({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-display",
+  display: "swap",
+});
+const anno = Kalam({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-anno",
+  display: "swap",
+});
+const script = Caveat({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-script",
+  display: "swap",
+});
+const kr = Noto_Serif_KR({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-kr",
+  display: "swap",
+});
 
 export const metadata = {
   title: "지옥도 — TRPG VTT",
@@ -12,38 +57,34 @@ export const metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const nickname = await getNickname();
+  const fontVars = [
+    inter.variable, mono.variable, display.variable,
+    anno.variable, script.variable, kr.variable,
+  ].join(" ");
   return (
-    <html lang="ko">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="ko" className={fontVars}>
       <body>
         <header className="site-header">
-          <div className="wrap header-inner">
+          <div className="wrap wrap-wide">
             <Link href="/" className="brand">
               <span className="brand-mark">d100</span>
               <span>지옥도</span>
             </Link>
             <nav className="nav">
+              <Link href="/">홈</Link>
               <Link href="/campaigns">캠페인</Link>
               <Link href="/rules">룰북</Link>
-              <Link href="/bestiary">몬스터</Link>
             </nav>
-            <div className="header-right">
-              <SearchBar />
+            <div style={{ marginLeft: "auto", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <SiteSearchTrigger />
               <NicknameBadge nickname={nickname} />
             </div>
           </div>
         </header>
-        <main className="wrap main">{children}</main>
+        <main className="wrap wrap-wide main">{children}</main>
         <footer className="site-footer">
-          <div className="wrap">
-            지옥도 · Call of Cthulhu 비동기 VTT
+          <div className="wrap wrap-wide">
+            지옥도 · 1928 Call of Cthulhu VTT
           </div>
         </footer>
       </body>
