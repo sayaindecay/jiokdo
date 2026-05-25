@@ -1,25 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { BestiaryEntry } from "@/lib/types";
 import { createBestiaryAction, updateBestiaryAction } from "@/app/actions";
 import { FormError } from "./FormError";
-
-type ActionResult = { ok: boolean; slug?: string; error?: string };
-
-async function wrap(
-  action: (fd: FormData) => Promise<{ slug: string }>,
-  fd: FormData
-): Promise<ActionResult> {
-  try {
-    const res = await action(fd);
-    return { ok: true, slug: res.slug };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "오류" };
-  }
-}
 
 const DEFAULT_CATEGORIES = [
   "신화 생물",
@@ -41,20 +27,9 @@ export function BestiaryForm({
   const router = useRouter();
   const isEdit = !!initial;
   const action = isEdit ? updateBestiaryAction : createBestiaryAction;
-  const [state, formAction, pending] = useActionState<ActionResult | null, FormData>(
-    (_p, fd) => wrap(action, fd),
-    null
-  );
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState(initial?.category ?? "");
-  const err = state?.error ?? null;
-
-  // 저장 성공 시 상세 페이지로 이동 — 서버 액션 안에서 redirect() 하던 것을
-  // 클라이언트에서 router.push 로 대체 (useActionState 환경에서 더 안정적).
-  useEffect(() => {
-    if (state?.ok && state.slug) {
-      router.push(`/bestiary/${encodeURIComponent(state.slug)}`);
-    }
-  }, [state, router]);
 
   // 기본 추천 + DB 의 기존 카테고리 (중복 제거, 등록 순서 유지)
   const seen = new Set<string>();
@@ -66,20 +41,47 @@ export function BestiaryForm({
     chipCategories.push(trimmed);
   }
 
+  const submit = (fd: FormData) => {
+    // 카테고리 chip 으로 선택된 값을 form data 에 반영 (controlled input 도 함께 동기화됨)
+    setError(null);
+    start(async () => {
+      try {
+        const res = await action(fd);
+        if (res?.slug) {
+          router.push(`/bestiary/${encodeURIComponent(res.slug)}`);
+        } else {
+          setError("저장은 되었으나 페이지 이동에 실패했습니다. 목록으로 돌아가서 확인하세요.");
+        }
+      } catch (e) {
+        console.error("[BestiaryForm] save failed", e);
+        setError(e instanceof Error ? e.message : "오류가 발생했습니다. 다시 시도해 주세요.");
+      }
+    });
+  };
+
   return (
-    <form className="form bestiary-form" action={formAction}>
+    <form className="form bestiary-form" action={submit}>
       {isEdit && initial ? (
         <input type="hidden" name="slug" value={initial.slug} />
       ) : null}
 
       <h3 style={{ marginBottom: "0.5rem" }}>기본 정보</h3>
+      <p className="bf-legend">
+        <span className="bf-req">*</span> 표시는 필수 항목입니다.
+      </p>
       <div className="row cols-2">
         <div>
-          <label>이름</label>
-          <input name="name" required maxLength={80} defaultValue={initial?.name ?? ""} placeholder="예) 깊은 자" />
+          <label>이름 <span className="bf-req">*</span></label>
+          <input
+            name="name"
+            required
+            maxLength={80}
+            defaultValue={initial?.name ?? ""}
+            placeholder="예) 깊은 자"
+          />
         </div>
         <div>
-          <label>카테고리</label>
+          <label>카테고리 <span className="bf-req">*</span></label>
           <div className="bf-cat-toggle" role="group" aria-label="카테고리 선택">
             {chipCategories.map((c) => {
               const active = category === c;
@@ -98,6 +100,7 @@ export function BestiaryForm({
           </div>
           <input
             name="category"
+            required
             maxLength={80}
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -116,7 +119,7 @@ export function BestiaryForm({
 
       <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>능력치</h3>
       <div className="attr-grid">
-        {(["str", "con", "siz", "dex", "int", "pow", "app", "edu", "hp"] as const).map((k) => (
+        {(["str", "con", "siz", "dex", "int", "pow", "app", "edu"] as const).map((k) => (
           <label key={k}>
             {k.toUpperCase()}
             <input
@@ -128,6 +131,17 @@ export function BestiaryForm({
             />
           </label>
         ))}
+        <label>
+          HP <span className="bf-req">*</span>
+          <input
+            type="number"
+            min={1}
+            max={500}
+            name="attr_hp"
+            required
+            defaultValue={initial?.attrs.hp != null ? String(initial.attrs.hp) : ""}
+          />
+        </label>
         <label>
           이동
           <input
@@ -158,16 +172,21 @@ export function BestiaryForm({
         </label>
       </div>
 
-      <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>공격 (최대 5)</h3>
+      <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>
+        공격 <span className="bf-req">*</span>
+        <span className="bf-hint"> 최소 1개 (최대 5개)</span>
+      </h3>
       {Array.from({ length: 5 }, (_, i) => {
         const a = initial?.attacks[i];
+        const isFirst = i === 0;
         return (
           <div className="attack-row-input" key={i}>
             <input
               name={`attack_${i}_name`}
               defaultValue={a?.name ?? ""}
               maxLength={60}
-              placeholder={i === 0 ? "공격 이름" : ""}
+              placeholder={isFirst ? "공격 이름 *" : "공격 이름"}
+              required={isFirst && !isEdit}
             />
             <input
               name={`attack_${i}_skill`}
@@ -175,13 +194,15 @@ export function BestiaryForm({
               min={0}
               max={100}
               defaultValue={a?.skill != null ? String(a.skill) : ""}
-              placeholder="%"
+              placeholder={isFirst ? "% *" : "%"}
+              required={isFirst && !isEdit}
             />
             <input
               name={`attack_${i}_damage`}
               defaultValue={a?.damage ?? ""}
               maxLength={80}
-              placeholder="1d6 + DB"
+              placeholder={isFirst ? "1d6 + DB *" : "1d6 + DB"}
+              required={isFirst && !isEdit}
             />
             <input
               name={`attack_${i}_note`}
@@ -215,7 +236,7 @@ export function BestiaryForm({
         </div>
       </div>
 
-      <FormError message={err} />
+      <FormError message={error} />
 
       <div className="bf-actions">
         <button type="submit" className="btn primary" disabled={pending}>

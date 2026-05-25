@@ -3753,6 +3753,26 @@ select:focus-visible {
   flex-wrap: wrap;
 }
 
+/* 필수 입력 표시 */
+.bestiary-form .bf-legend {
+  font-family: var(--font-anno);
+  font-size: 0.8rem;
+  color: var(--ink-3);
+  margin: 0 0 0.6rem;
+}
+.bestiary-form .bf-req {
+  color: var(--accent);
+  font-weight: 700;
+  margin-left: 0.05rem;
+}
+.bestiary-form .bf-hint {
+  font-family: var(--font-anno);
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--ink-3);
+  margin-left: 0.4rem;
+}
+
 /* ════════════════════════════════════════════════
    캐릭터 편집 페이지 (8번 묶음)
    ════════════════════════════════════════════════ */

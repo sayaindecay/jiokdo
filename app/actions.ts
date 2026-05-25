@@ -642,18 +642,27 @@ function parseBestiaryFormData(fd: FormData): {
 }
 
 export async function createBestiaryAction(fd: FormData): Promise<{ slug: string }> {
-  const nick = await requireAuthenticatedNickname();
-  const parsed = parseBestiaryFormData(fd);
-  const base = slugify(parsed.name);
-  let slug = base || `m-${Date.now()}`;
-  for (let i = 2; i < 20; i++) {
-    if (!(await isBestiarySlugTaken(slug))) break;
-    slug = base ? `${base}-${i}` : `m-${Date.now()}-${i}`;
+  try {
+    const nick = await requireAuthenticatedNickname();
+    const parsed = parseBestiaryFormData(fd);
+    if (!parsed.category) throw new Error("카테고리를 선택하거나 입력하세요");
+    if (parsed.attacks.length === 0) {
+      throw new Error("최소 1개 이상의 공격 정보를 입력하세요 (이름·명중%·피해)");
+    }
+    const base = slugify(parsed.name);
+    let slug = base || `m-${Date.now()}`;
+    for (let i = 2; i < 20; i++) {
+      if (!(await isBestiarySlugTaken(slug))) break;
+      slug = base ? `${base}-${i}` : `m-${Date.now()}-${i}`;
+    }
+    await createBestiaryEntry({ ...parsed, slug, created_by: nick });
+    revalidatePath("/bestiary");
+    revalidatePath(`/bestiary/${slug}`);
+    return { slug };
+  } catch (e) {
+    console.error("[createBestiaryAction] failed", e);
+    throw e;
   }
-  await createBestiaryEntry({ ...parsed, slug, created_by: nick });
-  revalidatePath("/bestiary");
-  revalidatePath(`/bestiary/${slug}`);
-  return { slug };
 }
 
 export async function updateBestiaryAction(fd: FormData): Promise<{ slug: string }> {

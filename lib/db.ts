@@ -147,23 +147,30 @@ function ensureReady(): Promise<void> {
       await client.execute("DELETE FROM bestiary WHERE created_by IS NULL");
     } catch { /* 실패해도 무시 */ }
 
-    // 더미 데이터 (김백윤) 일회성 정리 — 마커 row 로 한 번만 실행
+    // 일회성 정리 — _migrations 마커 row 로 한 번만 실행
     try {
       await client.execute(`CREATE TABLE IF NOT EXISTS _migrations (
         key TEXT PRIMARY KEY,
         ran_at INTEGER NOT NULL
       )`);
-      const check = await client.execute({
-        sql: "SELECT 1 FROM _migrations WHERE key = ?",
-        args: ["delete_kim_baekyoon_v1"],
-      });
-      if (check.rows.length === 0) {
-        await client.execute("DELETE FROM bestiary WHERE name = '김백윤'");
-        await client.execute({
-          sql: "INSERT OR IGNORE INTO _migrations (key, ran_at) VALUES (?, ?)",
-          args: ["delete_kim_baekyoon_v1", Date.now()],
+
+      const runOnce = async (key: string, sql: string) => {
+        const check = await client.execute({
+          sql: "SELECT 1 FROM _migrations WHERE key = ?",
+          args: [key],
         });
-      }
+        if (check.rows.length === 0) {
+          await client.execute(sql);
+          await client.execute({
+            sql: "INSERT OR IGNORE INTO _migrations (key, ran_at) VALUES (?, ?)",
+            args: [key, Date.now()],
+          });
+        }
+      };
+
+      await runOnce("delete_kim_baekyoon_v1", "DELETE FROM bestiary WHERE name = '김백윤'");
+      // 업로드 디버깅을 위해 사용자가 명시적으로 요청한 데이터 일괄 삭제
+      await runOnce("nuke_bestiary_2025_05_v1", "DELETE FROM bestiary");
     } catch { /* 실패해도 무시 */ }
 
     for (const s of RULE_SECTIONS) {
