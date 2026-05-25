@@ -122,7 +122,6 @@ export function CharacterSheet({
                       <span className="hc-val">{Math.floor(value / 5)}</span>
                     </span>
                   </span>
-                  <span className="roll-mark" aria-hidden="true">d100</span>
                 </>
               );
               return isOwner ? (
