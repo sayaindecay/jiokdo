@@ -3076,3 +3076,74 @@ select:focus-visible {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ════════════════════════════════════════════════
+   캐릭터 편집 페이지 (8번 묶음)
+   ════════════════════════════════════════════════ */
+.skill-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.skill-edit-row {
+  display: grid;
+  grid-template-columns: 2fr 70px 110px 80px 28px;
+  gap: 0.4rem;
+  align-items: center;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.55rem;
+}
+.skill-edit-row select {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+@media (max-width: 720px) {
+  .skill-edit-row {
+    grid-template-columns: 1fr 70px;
+    gap: 0.35rem;
+  }
+  .skill-edit-row select,
+  .skill-edit-row label,
+  .skill-edit-row > button {
+    grid-column: span 2;
+  }
+}
+
+/* 8.1 Sticky 저장 바 */
+.sticky-save {
+  position: sticky;
+  bottom: 0;
+  margin: 1.5rem -1.3rem -1.1rem; /* form padding 보정 */
+  padding: 0.75rem 1.3rem;
+  background: linear-gradient(180deg, transparent, var(--bg-elev) 30%, var(--bg-elev) 100%);
+  border-top: 1.5px solid var(--line);
+  z-index: 5;
+  backdrop-filter: blur(8px);
+}
+.save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.save-bar .status-pill {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+.save-bar.dirty .status-pill {
+  animation: pulseBadge 2s ease-in-out infinite;
+}
+@keyframes pulseBadge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .save-bar.dirty .status-pill { animation: none; }
+}
+
+.btn.small { padding: 0.3rem 0.7rem; font-size: 0.78rem; }

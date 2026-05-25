@@ -23,7 +23,7 @@ import {
   verifyPassword,
 } from "@/lib/password";
 import { SAMPLE_CHARACTER_TEMPLATE } from "@/lib/seed-data";
-import type { CocAttrs, CocSkill, CocWeapon } from "@/lib/types";
+import type { CocAttrs, CocSkill, CocSkillGroup, CocWeapon } from "@/lib/types";
 
 async function requireAuthenticatedNickname(): Promise<string> {
   const nick = await getAuthenticatedNickname();
@@ -316,6 +316,14 @@ export async function rollCharacterCheckAction(fd: FormData): Promise<void> {
   revalidatePath(`/characters/${ch.id}`);
 }
 
+function clamp(n: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, n));
+}
+
+const ATTR_KEYS: (keyof CocAttrs)[] = [
+  "str", "con", "siz", "dex", "app", "int", "pow", "edu", "luck",
+];
+
 export async function updateCharacterProfileAction(fd: FormData): Promise<void> {
   const nick = await requireAuthenticatedNickname();
   const id = num(fd, "character_id");
@@ -323,37 +331,54 @@ export async function updateCharacterProfileAction(fd: FormData): Promise<void> 
   if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
   if (ch.owner_nick !== nick) throw new Error("자신의 캐릭터만 수정할 수 있습니다");
 
-  const name = text(fd, "name", 40) || ch.name;
+  const name = (text(fd, "name", 40) || ch.name).slice(0, 40);
+  if (!name.trim()) throw new Error("이름을 입력하세요");
   const occupation = text(fd, "occupation", 40);
   const ageRaw = text(fd, "age", 4);
-  const age = ageRaw ? Math.max(1, Math.min(120, Number(ageRaw))) : ch.age;
+  const age = ageRaw ? clamp(Number(ageRaw), 1, 120) : ch.age;
   const backstory = text(fd, "backstory", 2000);
 
-  // 기존 skills 를 기준으로 폼의 값으로 덮어씀
-  const skills: typeof ch.skills = ch.skills.map((s) => {
-    const v = fd.get(`skill_${s.name}`);
-    const parsed = typeof v === "string" ? Number(v) : Number.NaN;
-    return {
-      ...s,
-      value: Number.isFinite(parsed) ? Math.max(0, Math.min(99, parsed)) : s.value,
-    };
-  });
-
-  // 새 기능 추가 (이름 + 값)
-  const newName = text(fd, "new_skill_name", 40);
-  const newValueStr = text(fd, "new_skill_value", 4);
-  if (newName && newValueStr) {
-    const parsed = Number(newValueStr);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      skills.push({
-        name: newName,
-        value: Math.max(0, Math.min(99, parsed)),
-        group: "other",
-      });
+  // 능력치 — 폼에서 attr_<key> 로 받음. 누락 시 기존값 유지.
+  const attrs = { ...ch.attrs };
+  for (const k of ATTR_KEYS) {
+    const raw = text(fd, `attr_${k}`, 4);
+    if (raw) {
+      const n = Number(raw);
+      if (Number.isFinite(n)) attrs[k] = clamp(n, 1, 100);
     }
   }
 
-  await updateCharacterProfile(id, { name, occupation, age, backstory, skills });
+  // 최대치
+  const hp_max = clamp(num(fd, "hp_max") || ch.hp_max, 1, 999);
+  const mp_max = clamp(num(fd, "mp_max") || ch.mp_max, 1, 999);
+  const san_max = clamp(num(fd, "san_max") || ch.san_max, 1, 99);
+
+  // Skills JSON payload (동적 추가/삭제 포함)
+  const skillsJsonRaw = text(fd, "skills_json", 12000);
+  let skills: CocSkill[] = ch.skills;
+  if (skillsJsonRaw) {
+    try {
+      const parsed = JSON.parse(skillsJsonRaw) as Array<{
+        name?: string; value?: number; used?: boolean; group?: string;
+      }>;
+      if (!Array.isArray(parsed)) throw new Error("skills_json 형식 오류");
+      skills = parsed
+        .map((s) => ({
+          name: String(s.name ?? "").trim().slice(0, 40),
+          value: clamp(Number(s.value ?? 0), 0, 99),
+          used: !!s.used,
+          group: (s.group as CocSkillGroup | undefined) ?? "other",
+        }))
+        .filter((s) => s.name.length > 0);
+    } catch {
+      throw new Error("기능치 데이터를 처리할 수 없습니다");
+    }
+  }
+
+  await updateCharacterProfile(id, {
+    name, occupation, age, backstory, skills,
+    attrs, hp_max, mp_max, san_max,
+  });
   revalidatePath(`/characters/${id}`);
   redirect(`/characters/${id}`);
 }

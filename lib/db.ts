@@ -515,8 +515,30 @@ export async function updateCharacterProfile(id: number, profile: {
   age: number | null;
   backstory: string;
   skills: CocSkill[];
+  attrs?: CocAttrs;
+  hp_max?: number;
+  mp_max?: number;
+  san_max?: number;
 }): Promise<void> {
   await ensureReady();
+  if (profile.attrs && profile.hp_max != null && profile.mp_max != null && profile.san_max != null) {
+    await client.execute({
+      sql: `UPDATE characters SET name = ?, occupation = ?, age = ?, backstory = ?,
+              skills_json = ?, attrs_json = ?,
+              hp_max = ?, mp_max = ?, san_max = ?,
+              hp = MIN(hp, ?), mp = MIN(mp, ?), san = MIN(san, ?)
+            WHERE id = ?`,
+      args: [
+        profile.name, profile.occupation, profile.age,
+        profile.backstory, JSON.stringify(profile.skills),
+        JSON.stringify(profile.attrs),
+        profile.hp_max, profile.mp_max, profile.san_max,
+        profile.hp_max, profile.mp_max, profile.san_max,
+        id,
+      ],
+    });
+    return;
+  }
   await client.execute({
     sql: `UPDATE characters SET name = ?, occupation = ?, age = ?, backstory = ?, skills_json = ? WHERE id = ?`,
     args: [
