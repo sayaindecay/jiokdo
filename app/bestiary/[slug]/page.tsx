@@ -4,6 +4,7 @@ import { findRelatedBestiary, getBestiaryEntry } from "@/lib/db";
 import { getAuthenticatedNickname } from "@/lib/auth";
 import { StatBlock } from "@/components/vtt/StatBlock";
 import { ThreatStars } from "@/components/vtt/ThreatStars";
+import { BestiaryDangerZone } from "@/components/vtt/BestiaryDangerZone";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,10 @@ export default async function BestiaryDetail({
             ))}
           </div>
         </>
+      ) : null}
+
+      {isAuthor ? (
+        <BestiaryDangerZone slug={e.slug} name={e.name} />
       ) : null}
     </>
   );

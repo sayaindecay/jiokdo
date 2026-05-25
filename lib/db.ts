@@ -171,6 +171,8 @@ function ensureReady(): Promise<void> {
       await runOnce("delete_kim_baekyoon_v1", "DELETE FROM bestiary WHERE name = '김백윤'");
       // 업로드 디버깅을 위해 사용자가 명시적으로 요청한 데이터 일괄 삭제
       await runOnce("nuke_bestiary_2025_05_v1", "DELETE FROM bestiary");
+      // 슬러그 ASCII 강제 전후로 기존 데이터 한 번 더 정리 (사용자 재요청)
+      await runOnce("nuke_bestiary_2025_05_v2", "DELETE FROM bestiary");
     } catch { /* 실패해도 무시 */ }
 
     for (const s of RULE_SECTIONS) {

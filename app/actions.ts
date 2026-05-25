@@ -586,12 +586,21 @@ export async function updateCharacterVitalsAction(fd: FormData): Promise<void> {
 // ───── 베스티어리 ─────
 
 function slugify(name: string): string {
-  return name
+  // ASCII-only 슬러그 — 동적 라우트가 비-ASCII 문자에서 인코딩 라운드트립 실패하던
+  // 문제 회피. 한글 등은 모두 제거하고, 남는 게 없으면 이름 해시로 폴백.
+  const ascii = name
     .toLowerCase()
-    .replace(/[^a-z0-9가-힣\s-]/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
     .trim()
     .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
     .slice(0, 60);
+  if (ascii) return ascii;
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = ((hash * 31) + name.charCodeAt(i)) | 0;
+  }
+  return `m-${(Math.abs(hash) || 1).toString(36)}`;
 }
 
 function parseBestiaryFormData(fd: FormData): {
