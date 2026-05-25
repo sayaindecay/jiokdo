@@ -22,11 +22,19 @@ export function SceneRoster({
                 {isMe ? " (당신)" : null}
               </div>
               <div className="info">
-                {m.role === "keeper"
-                  ? "GM · 운영 중"
-                  : ownChar
-                    ? `SAN ${ownChar.san}${ownChar.san < 30 ? " ⚠" : ""} · HP ${ownChar.hp}`
-                    : "캐릭터 미생성"}
+                {m.role === "keeper" ? (
+                  "GM · 운영 중"
+                ) : ownChar ? (
+                  <>
+                    SAN {ownChar.san}
+                    {ownChar.san < 30 ? (
+                      <span aria-label="위험" title="SAN 30 미만 — 위험 상태"> ⚠</span>
+                    ) : null}
+                    {" · HP "}{ownChar.hp}
+                  </>
+                ) : (
+                  "캐릭터 미생성"
+                )}
               </div>
             </div>
           </div>

@@ -144,14 +144,19 @@ export default async function SearchPage({
                     <span className="sort">관련도 순</span>
                   </div>
                   {inGroup.map((h, i) => (
-                    <Link href={hrefFor(h)} className="search-result" key={`${g.key}-${i}`}>
+                    <Link
+                      href={hrefFor(h)}
+                      className="search-result"
+                      key={`${g.key}-${i}`}
+                      aria-label={`${g.label}: ${titleFor(h)}${h.snippet ? ` — ${h.snippet}` : ""} (${h.meta.join(", ")})`}
+                    >
                       <div className="r-title">
                         {highlight(titleFor(h), query)}
                       </div>
                       {h.snippet ? (
                         <div className="r-snippet">{highlight(h.snippet, query)}</div>
                       ) : null}
-                      <div className="r-meta">
+                      <div className="r-meta" aria-hidden="true">
                         {h.meta.map((m, j) => (
                           <span key={j}>
                             {j > 0 ? <span>·</span> : null}
