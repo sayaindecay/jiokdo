@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getNickname } from "@/lib/auth";
 import { getCharacter } from "@/lib/db";
 import { updateCharacterProfileAction } from "@/app/actions";
+import { DangerZone } from "@/components/vtt/DangerZone";
 
 export const dynamic = "force-dynamic";
 
@@ -93,6 +94,8 @@ export default async function CharacterEditPage({
           <Link href={`/characters/${id}`} className="btn ghost">취소</Link>
         </div>
       </form>
+
+      <DangerZone characterId={id} characterName={ch.name} />
     </>
   );
 }
