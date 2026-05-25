@@ -23,7 +23,7 @@ export default async function BestiaryEditPage({
   return (
     <>
       <div className="breadcrumb">
-        <Link href="/bestiary">베스티어리</Link>
+        <Link href="/bestiary">에너미</Link>
         <span className="sep">/</span>
         <Link href={`/bestiary/${slug}`}>{entry.name}</Link>
         <span className="sep">/</span>

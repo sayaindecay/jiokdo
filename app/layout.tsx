@@ -96,7 +96,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </div>
             <nav className="footer-nav" aria-label="푸터 메뉴">
               <Link href="/rulebook">룰북</Link>
-              <Link href="/bestiary">베스티어리</Link>
+              <Link href="/bestiary">에너미</Link>
               <Link href="/campaigns">캠페인</Link>
               <Link href="/search">검색</Link>
             </nav>

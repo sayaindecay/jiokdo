@@ -22,7 +22,7 @@ export default async function BestiaryDetail({
       <div className="breadcrumb">
         <Link href="/">지옥도</Link>
         <span className="sep">/</span>
-        <Link href="/bestiary">베스티어리</Link>
+        <Link href="/bestiary">에너미</Link>
         <span className="sep">/</span>
         <span>{e.name}</span>
       </div>

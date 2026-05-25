@@ -53,7 +53,7 @@ function titleFor(h: SearchHit): string {
 function sourceLabel(kind: SearchHit["kind"]): string {
   switch (kind) {
     case "rule": return "룰북";
-    case "monster": return "베스티어리";
+    case "monster": return "에너미";
     case "campaign": return "캠페인";
     case "character": return "캐릭터";
     case "clue": return "단서";
@@ -186,7 +186,7 @@ export default async function SearchPage({
                 </Link>
                 <Link href="/bestiary" className="search-entry-card">
                   <span className="icon" aria-hidden="true">🐙</span>
-                  <h3>베스티어리</h3>
+                  <h3>에너미</h3>
                   <div className="count">{beastCount}개 항목</div>
                   <div className="recent">신화 생물 · NPC 스탯블록</div>
                 </Link>

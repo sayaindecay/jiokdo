@@ -126,7 +126,7 @@ export function SceneClient({
         <div>
           {/* NPC 추가 박스 */}
           <div className="npc-picker">
-            <div className="picker-label">베스티어리에서 추가</div>
+            <div className="picker-label">에너미에서 추가</div>
             <div className="picker-row">
               <select
                 value={pickerSlug}
@@ -134,7 +134,7 @@ export function SceneClient({
                 disabled={bestiary.length === 0}
               >
                 {bestiary.length === 0 ? (
-                  <option value="">베스티어리에 항목 없음</option>
+                  <option value="">에너미에 항목 없음</option>
                 ) : (
                   bestiary.map((b) => (
                     <option key={b.slug} value={b.slug}>
@@ -223,7 +223,7 @@ export function SceneClient({
           </Link>
         ))}
         {otherNpcs.length === 0 ? (
-          <div className="empty">베스티어리에 다른 항목이 없습니다.</div>
+          <div className="empty">에너미에 다른 항목이 없습니다.</div>
         ) : null}
       </div>
     </>

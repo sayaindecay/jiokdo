@@ -87,7 +87,7 @@ export function DashHeroEmpty({
       ) : (
         <div className="cta-row">
           <Link href="/rulebook" className="btn ghost">룰북 보기</Link>
-          <Link href="/bestiary" className="btn ghost">베스티어리</Link>
+          <Link href="/bestiary" className="btn ghost">에너미</Link>
         </div>
       )}
     </div>

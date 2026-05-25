@@ -9,7 +9,7 @@ const ITEMS: Item[] = [
   { href: "/", label: "홈", match: (p) => p === "/" },
   { href: "/campaigns", label: "캠페인", match: (p) => p === "/campaigns" || p.startsWith("/campaigns/") || p.startsWith("/characters/") },
   { href: "/rulebook", label: "룰북", match: (p) => p === "/rulebook" || p.startsWith("/rulebook/") },
-  { href: "/bestiary", label: "몬스터", match: (p) => p === "/bestiary" || p.startsWith("/bestiary/") },
+  { href: "/bestiary", label: "에너미", match: (p) => p === "/bestiary" || p.startsWith("/bestiary/") },
 ];
 
 export function NavLinks() {

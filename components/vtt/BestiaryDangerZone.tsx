@@ -23,7 +23,7 @@ export function BestiaryDangerZone({ slug, name }: { slug: string; name: string 
       {!open ? (
         <>
           <p style={{ color: "var(--ink-2)", fontSize: "0.88rem", margin: 0 }}>
-            이 베스티어리 항목을 삭제합니다. 다른 사용자가 더 이상 이 NPC를 볼 수 없게 됩니다.
+            이 에너미 항목을 삭제합니다. 다른 사용자가 더 이상 이 NPC를 볼 수 없게 됩니다.
           </p>
           <div style={{ marginTop: "0.7rem" }}>
             <button

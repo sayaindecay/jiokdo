@@ -54,7 +54,7 @@ export default async function BestiaryIndex({
         }}
       >
         <div>
-          <h1 className="page-title">베스티어리</h1>
+          <h1 className="page-title">에너미</h1>
           <p className="page-sub">
             코어 룰북의 주요 생물 + 사용자 등록 NPC {total > 0 ? `· ${total}개` : ""}
           </p>
@@ -104,7 +104,7 @@ export default async function BestiaryIndex({
         <EmptyState
           variant="books"
           title="해당하는 항목이 없습니다"
-          hint={q || cat ? "다른 단어/카테고리를 시도하세요" : "베스티어리가 비어 있습니다"}
+          hint={q || cat ? "다른 단어/카테고리를 시도하세요" : "에너미가 비어 있습니다"}
           action={
             nick ? (
               <Link href="/bestiary/new" className="btn primary">
