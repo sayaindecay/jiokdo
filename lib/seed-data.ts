@@ -344,7 +344,9 @@ ${ATTRIBUTION}`,
 ];
 
 
-export const BESTIARY: Omit<BestiaryEntry, "id" | "created_by" | "created_at">[] = [
+// 코어 시드 비움 — 사용자가 직접 등록한 에너미만 표시.
+// (참고: BESTIARY_LEGACY 는 더 이상 시드되지 않으며 타입 정합용으로만 유지)
+const BESTIARY_LEGACY: Omit<BestiaryEntry, "id" | "created_by" | "created_at">[] = [
   {
     slug: "deep-one",
     name: "딥 원 (Deep One)",
@@ -457,3 +459,7 @@ export const SAMPLE_CHARACTER_TEMPLATE = {
   ],
   backstory: "재학 중인 미스캐토닉 대학 의대생. 죽음을 되돌리는 시약을 비밀리에 연구한다. 친구들 사이에서 점점 평판이 나빠지고 있다.",
 };
+
+// 실제로 시드되는 베스티어리(에너미) 항목 — 비어 있음. 사용자가 직접 등록.
+export const BESTIARY: Omit<BestiaryEntry, "id" | "created_by" | "created_at">[] = [];
+void BESTIARY_LEGACY;

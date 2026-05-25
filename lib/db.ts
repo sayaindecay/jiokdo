@@ -138,6 +138,11 @@ function ensureReady(): Promise<void> {
       try { await client.execute(stmt); } catch { /* 이미 존재 */ }
     }
 
+    // 코어 베스티어리 시드 제거 — 사용자 등록 항목만 남김
+    try {
+      await client.execute("DELETE FROM bestiary WHERE created_by IS NULL");
+    } catch { /* 실패해도 무시 */ }
+
     for (const s of RULE_SECTIONS) {
       await client.execute({
         sql: `INSERT INTO rule_sections (slug, parent_slug, title, body, order_index)
