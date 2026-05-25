@@ -392,10 +392,11 @@ export async function createPlayEntry(input: {
 
 // ───── 검색 ─────
 export type SearchHit =
-  | { kind: "rule"; slug: string; title: string; snippet: string }
-  | { kind: "monster"; slug: string; name: string; snippet: string }
-  | { kind: "campaign"; id: number; name: string; snippet: string }
-  | { kind: "character"; id: number; name: string; snippet: string };
+  | { kind: "rule"; slug: string; title: string; snippet: string; meta: string[] }
+  | { kind: "monster"; slug: string; name: string; snippet: string; meta: string[] }
+  | { kind: "campaign"; id: number; name: string; snippet: string; meta: string[] }
+  | { kind: "character"; id: number; name: string; snippet: string; meta: string[] }
+  | { kind: "clue"; id: number; campaign_id: number; title: string; snippet: string; meta: string[] };
 
 export async function searchAll(query: string, nick: string | null): Promise<SearchHit[]> {
   await ensureReady();
@@ -409,17 +410,29 @@ export async function searchAll(query: string, nick: string | null): Promise<Sea
     args: [q, q],
   });
   for (const r of rules.rows) {
-    hits.push({ kind: "rule", slug: String(r.slug), title: String(r.title), snippet: snippet(String(r.body), query) });
+    hits.push({
+      kind: "rule",
+      slug: String(r.slug),
+      title: String(r.title),
+      snippet: snippet(String(r.body), query),
+      meta: ["룰북", "한국어"],
+    });
   }
 
   const monsters = await client.execute({
-    sql: `SELECT slug, name, description FROM bestiary
+    sql: `SELECT slug, name, description, category, source FROM bestiary
           WHERE LOWER(name) LIKE ? OR LOWER(description) LIKE ? OR LOWER(category) LIKE ?
           LIMIT 10`,
     args: [q, q, q],
   });
   for (const r of monsters.rows) {
-    hits.push({ kind: "monster", slug: String(r.slug), name: String(r.name), snippet: snippet(String(r.description), query) });
+    hits.push({
+      kind: "monster",
+      slug: String(r.slug),
+      name: String(r.name),
+      snippet: snippet(String(r.description), query),
+      meta: [String(r.category), String(r.source || "코어")],
+    });
   }
 
   if (nick) {
@@ -431,17 +444,49 @@ export async function searchAll(query: string, nick: string | null): Promise<Sea
       args: [nick, q, q],
     });
     for (const r of camps.rows) {
-      hits.push({ kind: "campaign", id: Number(r.id), name: String(r.name), snippet: snippet(String(r.description), query) });
+      hits.push({
+        kind: "campaign",
+        id: Number(r.id),
+        name: String(r.name),
+        snippet: snippet(String(r.description), query),
+        meta: ["캠페인"],
+      });
     }
 
     const chars = await client.execute({
-      sql: `SELECT id, name, backstory FROM characters
+      sql: `SELECT id, name, occupation, backstory FROM characters
             WHERE owner_nick = ? AND (LOWER(name) LIKE ? OR LOWER(occupation) LIKE ? OR LOWER(backstory) LIKE ?)
             LIMIT 10`,
       args: [nick, q, q, q],
     });
     for (const r of chars.rows) {
-      hits.push({ kind: "character", id: Number(r.id), name: String(r.name), snippet: snippet(String(r.backstory), query) });
+      hits.push({
+        kind: "character",
+        id: Number(r.id),
+        name: String(r.name),
+        snippet: snippet(String(r.backstory || r.occupation || ""), query),
+        meta: [String(r.occupation || "탐사자"), "시트"],
+      });
+    }
+
+    const cluesRes = await client.execute({
+      sql: `SELECT cl.id, cl.campaign_id, cl.title, cl.body, c.name AS cname
+            FROM clues cl
+            JOIN campaign_members m ON m.campaign_id = cl.campaign_id AND m.nickname = ?
+            JOIN campaigns c ON c.id = cl.campaign_id
+            WHERE LOWER(cl.title) LIKE ? OR LOWER(cl.body) LIKE ?
+            LIMIT 10`,
+      args: [nick, q, q],
+    });
+    for (const r of cluesRes.rows) {
+      hits.push({
+        kind: "clue",
+        id: Number(r.id),
+        campaign_id: Number(r.campaign_id),
+        title: String(r.title),
+        snippet: snippet(String(r.body), query),
+        meta: [String(r.cname), "단서"],
+      });
     }
   }
 
