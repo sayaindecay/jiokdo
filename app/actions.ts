@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { contentToSegments } from "@/lib/dice";
 import {
-  createCampaign, createCharacter, createPlayEntry, getCampaign,
-  getCampaignByCode, getCharacter, joinCampaign,
+  createCampaign, createCharacter, createPlayEntry, deleteCharacter,
+  getCampaign, getCampaignByCode, getCharacter, joinCampaign,
   updateCharacterProfile, updateCharacterVitals,
 } from "@/lib/db";
 import { clearNickname, getNickname, setNicknameCookie } from "@/lib/auth";
@@ -236,6 +236,23 @@ export async function updateCharacterProfileAction(fd: FormData): Promise<void> 
   await updateCharacterProfile(id, { name, occupation, age, backstory, skills });
   revalidatePath(`/characters/${id}`);
   redirect(`/characters/${id}`);
+}
+
+export async function deleteCharacterAction(fd: FormData): Promise<void> {
+  const nick = await getNickname();
+  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const id = num(fd, "character_id");
+  const ch = await getCharacter(id);
+  if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
+  if (ch.owner_nick !== nick) throw new Error("자신의 캐릭터만 삭제할 수 있습니다");
+  const confirmName = text(fd, "confirm_name", 40);
+  if (confirmName !== ch.name) {
+    throw new Error("확인을 위해 캐릭터 이름을 정확히 입력하세요");
+  }
+  const ok = await deleteCharacter(id, nick);
+  if (!ok) throw new Error("삭제에 실패했습니다");
+  revalidatePath(`/campaigns/${ch.campaign_id}`);
+  redirect(`/campaigns/${ch.campaign_id}`);
 }
 
 export async function updateCharacterVitalsAction(fd: FormData): Promise<void> {

@@ -350,6 +350,15 @@ export async function updateCharacterVitals(id: number, vitals: { hp: number; mp
   });
 }
 
+export async function deleteCharacter(id: number, ownerNick: string): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "DELETE FROM characters WHERE id = ? AND owner_nick = ?",
+    args: [id, ownerNick],
+  });
+  return Number(res.rowsAffected) > 0;
+}
+
 export async function updateCharacterProfile(id: number, profile: {
   name: string;
   occupation: string;
