@@ -38,21 +38,20 @@ export default async function CampaignsDashboardPage() {
         .filter((s) => s.scheduled_at && s.scheduled_at >= Date.now() && !s.ended_at)
         .sort((a, b) => (a.scheduled_at ?? 0) - (b.scheduled_at ?? 0));
       const role = c.keeper_nick === nick ? "keeper" : "player";
-      const status: "active" | "dormant" =
-        upcoming[0] || sessions.length > 0 ? "active" : "dormant";
       return {
         campaign: c,
         role,
         next_session: upcoming[0] ?? null,
         characters_count: c.character_count ?? 0,
         members_count: members.length,
-        status,
+        status: c.status, // DB 의 명시적 상태 사용 (키퍼 토글)
       };
     })
   );
 
   const activeCount = rows.filter((r) => r.status === "active").length;
   const dormantCount = rows.filter((r) => r.status === "dormant").length;
+  const closedCount = rows.filter((r) => r.status === "closed").length;
   const activity = await listActivityFor(nick, 8);
 
   const keeperCount = campaigns.filter((c) => c.keeper_nick === nick).length;
@@ -109,7 +108,12 @@ export default async function CampaignsDashboardPage() {
               </div>
               <div className="cl-status-pills">
                 <span className="cl-status-pill accent">활성 {activeCount}</span>
-                <span className="cl-status-pill">휴면 {dormantCount}</span>
+                {dormantCount > 0 ? (
+                  <span className="cl-status-pill">휴면 {dormantCount}</span>
+                ) : null}
+                {closedCount > 0 ? (
+                  <span className="cl-status-pill closed">종료 {closedCount}</span>
+                ) : null}
               </div>
             </div>
           </div>

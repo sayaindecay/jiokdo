@@ -6417,3 +6417,166 @@ select:focus-visible {
     grid-row: 2;
   }
 }
+
+/* ════════════════════════════════════════════════
+   캠페인 상태 토글 (.status-toggle / .st-*)
+   ════════════════════════════════════════════════ */
+
+.status-toggle {
+  background: var(--bg-elev-2);
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 0.75rem 0.9rem;
+  margin: 0.85rem 0 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 32rem;
+}
+
+.status-toggle .st-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.status-toggle .st-options {
+  display: inline-flex;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.2rem;
+  gap: 0.2rem;
+  width: fit-content;
+}
+
+.status-toggle .st-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border: none;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all var(--tx-fast);
+  white-space: nowrap;
+}
+.status-toggle .st-option:hover:not(.is-active):not(:disabled) {
+  background: var(--bg-elev-2);
+  color: var(--ink);
+}
+.status-toggle .st-option:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.status-toggle .st-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink-3);
+  background: transparent;
+  transition: all var(--tx-fast);
+}
+
+/* 활성 옵션 — oxblood 채움 */
+.status-toggle .st-option.st-active.is-active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(106, 20, 20, 0.25);
+}
+.status-toggle .st-option.st-active.is-active .st-dot {
+  background: #fff;
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* 휴면 옵션 — 회색 톤 채움 */
+.status-toggle .st-option.st-dormant.is-active {
+  background: var(--ink-2);
+  color: #fff;
+}
+.status-toggle .st-option.st-dormant.is-active .st-dot {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+
+/* 종료 옵션 — 짙은 잉크 채움 */
+.status-toggle .st-option.st-closed.is-active {
+  background: var(--ink);
+  color: #fff;
+}
+.status-toggle .st-option.st-closed.is-active .st-dot {
+  background: var(--ink-3);
+  border-color: var(--ink-3);
+}
+
+.status-toggle .st-hint {
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+  color: var(--ink-2);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* 비키퍼용 읽기 전용 표시 */
+.cd-status-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.75rem;
+  background: var(--bg-elev-2);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  margin: 0.85rem 0;
+}
+.cd-status-readonly .cd-status-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.cd-status-pill {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.55rem;
+  border-radius: 4px;
+  border: 1.5px solid;
+}
+.cd-status-pill.st-active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+}
+.cd-status-pill.st-dormant {
+  background: var(--ink-2); color: #fff; border-color: var(--ink-2);
+}
+.cd-status-pill.st-closed {
+  background: var(--bg-elev); color: var(--ink-3); border-color: var(--ink-3);
+}
+
+/* 테이블 row 상태별 톤 */
+.dash-table .trow.status-dormant { opacity: 0.7; }
+.dash-table .trow.status-closed { opacity: 0.48; }
+.dash-table .trow.status-closed::after { background: var(--ink-3); }
+
+/* 캠페인 목록 — 종료 pill */
+.cl-status-pill.closed {
+  background: var(--bg-elev);
+  color: var(--ink-3);
+  border: 1.5px solid var(--ink-3);
+  opacity: 0.85;
+}
+
+@media (max-width: 720px) {
+  .status-toggle .st-options { width: 100%; }
+  .status-toggle .st-option { flex: 1; justify-content: center; padding: 0.4rem 0.5rem; }
+}

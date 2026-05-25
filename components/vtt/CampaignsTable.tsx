@@ -56,11 +56,14 @@ export function CampaignsTable({ rows, myNick }: { rows: CampaignTableRow[]; myN
           const next = relTime(r.next_session?.scheduled_at ?? null);
           const statusLabel = r.status === "active" ? "활성" : r.status === "dormant" ? "휴면" : "종료";
           const memberDots = "●".repeat(Math.min(6, r.members_count));
+          const statusColor =
+            r.status === "active" ? "var(--accent)" :
+            r.status === "closed" ? "var(--ink-3)" : undefined;
           return (
             <Link
               key={r.campaign.id}
               href={`/campaigns/${r.campaign.id}`}
-              className={`trow${r.status === "dormant" ? " dormant" : ""}`}
+              className={`trow status-${r.status}`}
               aria-label={`${r.campaign.name}, ${sessionLabel}, 다음 세션 ${next.label}, 멤버 ${r.members_count}명, 상태 ${statusLabel}`}
               style={campaignHueStyle(r.campaign.slug)}
             >
@@ -68,10 +71,7 @@ export function CampaignsTable({ rows, myNick }: { rows: CampaignTableRow[]; myN
               <span className="c-role">{sessionLabel}</span>
               <span className={`c-next${next.urgent ? " urgent" : ""}`}>{next.label}</span>
               <span className="c-members" aria-hidden="true">{memberDots}</span>
-              <span
-                className="c-status"
-                style={{ color: r.status === "active" ? "var(--accent)" : undefined }}
-              >
+              <span className="c-status" style={{ color: statusColor }}>
                 {statusLabel}
               </span>
             </Link>

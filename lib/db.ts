@@ -35,6 +35,7 @@ function ensureReady(): Promise<void> {
         invite_code TEXT NOT NULL UNIQUE,
         keeper_nick TEXT NOT NULL,
         system TEXT NOT NULL DEFAULT 'coc',
+        status TEXT NOT NULL DEFAULT 'active',
         created_at INTEGER NOT NULL
       )`,
       `CREATE TABLE IF NOT EXISTS campaign_members (
@@ -134,6 +135,7 @@ function ensureReady(): Promise<void> {
     for (const stmt of [
       "ALTER TABLE bestiary ADD COLUMN created_by TEXT",
       "ALTER TABLE bestiary ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0",
+      "ALTER TABLE campaigns ADD COLUMN status TEXT NOT NULL DEFAULT 'active'",
     ]) {
       try { await client.execute(stmt); } catch { /* 이미 존재 */ }
     }
@@ -342,14 +344,32 @@ export async function isBestiarySlugTaken(slug: string): Promise<boolean> {
 
 // ───── 캠페인 ─────
 function rowToCampaign(r: Record<string, unknown>): Campaign {
+  const rawStatus = r.status == null ? "active" : String(r.status);
+  const status: Campaign["status"] =
+    rawStatus === "dormant" || rawStatus === "closed" ? rawStatus : "active";
   return {
     id: Number(r.id), slug: String(r.slug),
     name: String(r.name), description: String(r.description),
     invite_code: String(r.invite_code), keeper_nick: String(r.keeper_nick),
-    system: String(r.system), created_at: Number(r.created_at),
+    system: String(r.system),
+    status,
+    created_at: Number(r.created_at),
     member_count: r.member_count != null ? Number(r.member_count) : undefined,
     character_count: r.character_count != null ? Number(r.character_count) : undefined,
   };
+}
+
+export async function setCampaignStatus(
+  id: number,
+  keeperNick: string,
+  status: "active" | "dormant" | "closed"
+): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "UPDATE campaigns SET status = ? WHERE id = ? AND keeper_nick = ?",
+    args: [status, id, keeperNick],
+  });
+  return Number(res.rowsAffected) > 0;
 }
 function randomCode(len = 6): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -748,7 +768,7 @@ export async function getNextScheduledSession(nick: string): Promise<{ session: 
   const res = await client.execute({
     sql: `SELECT s.*, c.id AS c_id, c.slug AS c_slug, c.name AS c_name, c.description AS c_description,
                  c.invite_code AS c_invite, c.keeper_nick AS c_keeper, c.system AS c_system,
-                 c.created_at AS c_created
+                 c.status AS c_status, c.created_at AS c_created
           FROM sessions s
           JOIN campaign_members m ON m.campaign_id = s.campaign_id AND m.nickname = ?
           JOIN campaigns c ON c.id = s.campaign_id
@@ -759,10 +779,14 @@ export async function getNextScheduledSession(nick: string): Promise<{ session: 
   const r = res.rows[0];
   if (!r) return null;
   const session = rowToSession(r as unknown as Record<string, unknown>);
+  const rawStatus = r.c_status == null ? "active" : String(r.c_status);
+  const status: Campaign["status"] =
+    rawStatus === "dormant" || rawStatus === "closed" ? rawStatus : "active";
   const campaign: Campaign = {
     id: Number(r.c_id), slug: String(r.c_slug), name: String(r.c_name),
     description: String(r.c_description), invite_code: String(r.c_invite),
     keeper_nick: String(r.c_keeper), system: String(r.c_system),
+    status,
     created_at: Number(r.c_created),
   };
   return { session, campaign };

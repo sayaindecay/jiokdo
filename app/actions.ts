@@ -6,7 +6,7 @@ import { contentToSegments } from "@/lib/dice";
 import { cookies } from "next/headers";
 import {
   createBestiaryEntry, createCampaign, createCharacter, createPlayEntry,
-  createUser, createUserSessionRecord, deleteBestiaryEntry, deleteCampaign,
+  createUser, createUserSessionRecord, deleteBestiaryEntry, deleteCampaign, setCampaignStatus,
   deleteCharacter, deleteOtherUserSessions, deleteUser, deleteUserSession,
   findUser, getBestiaryEntry, getCampaign, getCampaignByCode, getCharacter,
   isBestiarySlugTaken, joinCampaign, listKeperCampaigns, touchUserLogin,
@@ -430,6 +430,24 @@ export async function updateCharacterProfileAction(fd: FormData): Promise<void> 
   });
   revalidatePath(`/characters/${id}`);
   redirect(`/characters/${id}`);
+}
+
+export async function setCampaignStatusAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const id = num(fd, "campaign_id");
+  const camp = await getCampaign(id);
+  if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
+  if (camp.keeper_nick !== nick) {
+    throw new Error("키퍼만 상태를 변경할 수 있습니다");
+  }
+  const statusRaw = text(fd, "status", 16);
+  if (statusRaw !== "active" && statusRaw !== "dormant" && statusRaw !== "closed") {
+    throw new Error("올바르지 않은 상태입니다");
+  }
+  const ok = await setCampaignStatus(id, nick, statusRaw);
+  if (!ok) throw new Error("상태 변경에 실패했습니다");
+  revalidatePath("/campaigns");
+  revalidatePath(`/campaigns/${id}`);
 }
 
 export async function deleteCampaignAction(fd: FormData): Promise<void> {

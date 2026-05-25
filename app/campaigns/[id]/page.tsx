@@ -10,6 +10,7 @@ import { LEVEL_LABEL } from "@/lib/dice";
 import { campaignHueStyle } from "@/lib/hue";
 import { CharacterCreateForm } from "@/components/CharacterCreateForm";
 import { CampaignDangerZone } from "@/components/vtt/CampaignDangerZone";
+import { CampaignStatusToggle } from "@/components/vtt/CampaignStatusToggle";
 import { CopyButton } from "@/components/vtt/CopyButton";
 import { EmptyState } from "@/components/vtt/EmptyState";
 import type { Segment } from "@/lib/types";
@@ -71,6 +72,18 @@ export default async function CampaignDashboard({
               설명이 아직 비어 있습니다.
             </p>
           )}
+
+          {isKeeper ? (
+            <CampaignStatusToggle campaignId={id} current={camp.status} />
+          ) : (
+            <div className="cd-status-readonly">
+              <span className="cd-status-label">상태</span>
+              <span className={`cd-status-pill st-${camp.status}`}>
+                {camp.status === "active" ? "활성" : camp.status === "dormant" ? "휴면" : "종료"}
+              </span>
+            </div>
+          )}
+
           <dl className="cd-meta">
             <div><dt>멤버</dt><dd>{members.length}</dd></div>
             <div><dt>캐릭터</dt><dd>{chars.length}</dd></div>

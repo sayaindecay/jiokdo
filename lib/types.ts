@@ -51,6 +51,8 @@ export type CocWeapon = {
   attacks?: string;
 };
 
+export type CampaignStatus = "active" | "dormant" | "closed";
+
 export type Campaign = {
   id: number;
   slug: string;
@@ -59,6 +61,7 @@ export type Campaign = {
   invite_code: string;
   keeper_nick: string;
   system: string;
+  status: CampaignStatus;
   created_at: number;
   member_count?: number;
   character_count?: number;
