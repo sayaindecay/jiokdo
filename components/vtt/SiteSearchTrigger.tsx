@@ -2,11 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export function SiteSearchTrigger() {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -23,6 +27,39 @@ export function SiteSearchTrigger() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  const modal = open ? (
+    <div className="modal-backdrop search-backdrop" onClick={() => setOpen(false)}>
+      <div
+        className="modal search-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const trimmed = q.trim();
+            if (!trimmed) return;
+            setOpen(false);
+            router.push(`/search?q=${encodeURIComponent(trimmed)}`);
+          }}
+        >
+          <label className="search-modal-label">전체 검색</label>
+          <input
+            type="search"
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="권총, 클루, 도서관 …"
+            className="search-modal-input"
+          />
+          <div className="search-modal-hint">
+            <span>↵ 검색</span>
+            <span>esc 닫기</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  ) : null;
+
   return (
     <>
       <button
@@ -34,41 +71,7 @@ export function SiteSearchTrigger() {
         <span>검색</span>
         <kbd>/</kbd>
       </button>
-      {open ? (
-        <div className="modal-backdrop" onClick={() => setOpen(false)}>
-          <div
-            className="modal"
-            style={{ maxWidth: 520, padding: "1.25rem 1.4rem" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const trimmed = q.trim();
-                if (!trimmed) return;
-                setOpen(false);
-                router.push(`/search?q=${encodeURIComponent(trimmed)}`);
-              }}
-            >
-              <label style={{ fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--ink-3)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                전체 검색
-              </label>
-              <input
-                type="search"
-                autoFocus
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="권총, 클루, 도서관 …"
-                style={{ marginTop: "0.4rem", fontFamily: "var(--font-mono)", fontSize: "1.05rem" }}
-              />
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.75rem", fontFamily: "var(--font-mono)", fontSize: "0.72rem", color: "var(--ink-3)" }}>
-                <span>↵ 검색</span>
-                <span>esc 닫기</span>
-              </div>
-            </form>
-          </div>
-        </div>
-      ) : null}
+      {mounted && modal ? createPortal(modal, document.body) : null}
     </>
   );
 }

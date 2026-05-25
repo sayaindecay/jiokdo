@@ -1557,14 +1557,14 @@ h3 {
 
 .char-row {
   display: grid;
-  grid-template-columns: 3rem 2.4rem 1fr;
+  grid-template-columns: 2.6rem 2.2rem 1fr;
   align-items: center;
-  padding: 0.5rem 0.85rem;
+  padding: 0.5rem 0.75rem;
   border: 1.5px solid transparent;
   border-bottom: 1px dashed var(--line);
   border-radius: 4px;
   font-size: 0.92rem;
-  gap: 0.65rem;
+  gap: 0.4rem;
   width: 100%;
   text-align: left;
   background: transparent;
@@ -1602,14 +1602,14 @@ button.char-row.rollable:disabled { cursor: not-allowed; opacity: 0.6; }
 }
 .char-row .halves {
   display: inline-flex;
-  gap: 0.3rem;
+  gap: 0.25rem;
   justify-self: end;
 }
 .char-row .half-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.18rem 0.45rem;
+  gap: 0.18rem;
+  padding: 0.16rem 0.35rem;
   background: var(--bg-elev-2);
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -2465,6 +2465,31 @@ button.char-row.rollable:disabled { cursor: not-allowed; opacity: 0.6; }
 .modal h2 { font-family: var(--font-display); margin-bottom: 0.3rem; }
 .modal .text-dim { color: var(--ink-2); font-size: 0.88rem; margin-bottom: 0.8rem; }
 .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+
+/* 검색 모달 — body 에 portal 로 렌더 (헤더 backdrop-filter 의 containing block 회피) */
+.search-modal { max-width: 520px; padding: 1.25rem 1.4rem; }
+.search-modal-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: block;
+}
+.search-modal-input {
+  margin-top: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  width: 100%;
+}
+.search-modal-hint {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
 .text-dim { color: var(--ink-2); }
 .text-faint { color: var(--ink-3); }
 
@@ -3345,7 +3370,6 @@ select:focus-visible {
   line-height: 1.6;
   color: var(--ink-2);
   margin: 0;
-  max-width: 60ch;
 }
 .bes-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
 
@@ -5966,7 +5990,6 @@ select:focus-visible {
   line-height: 1.8;
   color: var(--ink-2);
   margin: 0 0 1.1rem;
-  max-width: 60ch;
 }
 .cd-description-empty {
   color: var(--ink-3);
@@ -6606,7 +6629,6 @@ select:focus-visible {
   line-height: 1.75;
   color: var(--ink-2);
   margin: 0 0 1.1rem;
-  max-width: 60ch;
 }
 
 .cl-meta {
@@ -7603,12 +7625,12 @@ select:focus-visible {
   margin-bottom: 0.55rem;
 }
 .acc-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.9rem, 4vw, 2.5rem);
-  font-weight: 400;
-  letter-spacing: -0.01em;
+  font-family: var(--font-script);
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   margin: 0 0 0.5rem;
-  line-height: 1.1;
+  line-height: 1.15;
   color: var(--ink);
 }
 .acc-sub {
@@ -7617,7 +7639,6 @@ select:focus-visible {
   line-height: 1.7;
   color: var(--ink-2);
   margin: 0;
-  max-width: 60ch;
 }
 
 /* 비밀번호 변경 알림 */

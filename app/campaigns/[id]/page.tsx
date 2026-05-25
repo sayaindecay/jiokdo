@@ -25,7 +25,7 @@ function summaryOf(segs: Segment[]): string {
         const prefix = s.result.name ? `${s.result.name} → ` : "";
         return `${prefix}${s.result.roll} ${LEVEL_LABEL[s.result.level]}`;
       }
-      return `${s.result.notation} = ${s.result.total}`;
+      return `굴림 결과 ${s.result.total}`;
     }
   }
   const t = segs.find((s) => s.type === "text") as { type: "text"; value: string } | undefined;
