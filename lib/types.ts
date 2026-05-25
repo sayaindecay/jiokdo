@@ -62,6 +62,7 @@ export type Campaign = {
   keeper_nick: string;
   system: string;
   status: CampaignStatus;
+  illustration_url: string | null;
   created_at: number;
   member_count?: number;
   character_count?: number;

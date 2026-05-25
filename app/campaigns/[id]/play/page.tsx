@@ -99,6 +99,7 @@ export default async function PlayPage({
           narrationHistory={narrationHistory}
           myCharacter={myChar}
           onlineCount={members.length}
+          isKeeper={nick === camp.keeper_nick}
         />
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <SceneRoster members={members} characters={characters} myNick={nick} />

@@ -10,7 +10,8 @@ import {
   deleteCharacter, deleteOtherUserSessions, deleteUser, deleteUserSession,
   findUser, getBestiaryEntry, getCampaign, getCampaignByCode, getCharacter,
   isBestiarySlugTaken, joinCampaign, listKeperCampaigns, touchUserLogin,
-  updateBestiaryEntry, updateCharacterProfile, updateCharacterVitals,
+  setCampaignIllustration,
+  updateBestiaryEntry, updateCampaignProfile, updateCharacterProfile, updateCharacterVitals,
   updateUserPassword,
 } from "@/lib/db";
 import type { BestiaryEntry } from "@/lib/types";
@@ -430,6 +431,59 @@ export async function updateCharacterProfileAction(fd: FormData): Promise<void> 
   });
   revalidatePath(`/characters/${id}`);
   redirect(`/characters/${id}`);
+}
+
+export async function setCampaignIllustrationAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const id = num(fd, "campaign_id");
+  const camp = await getCampaign(id);
+  if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
+  if (camp.keeper_nick !== nick) {
+    throw new Error("키퍼만 장면 일러스트를 변경할 수 있습니다");
+  }
+  const raw = (fd.get("illustration_url") as string | null) ?? "";
+  const trimmed = raw.trim();
+
+  // 빈 값이면 해제
+  if (!trimmed) {
+    await setCampaignIllustration(id, nick, null);
+    revalidatePath(`/campaigns/${id}/play`);
+    revalidatePath(`/campaigns/${id}/scene`);
+    return;
+  }
+
+  // 1MB(약 750KB 원본) 이상의 데이터 URL 거부 — DB 행 크기 보호
+  if (trimmed.length > 1_400_000) {
+    throw new Error("이미지가 너무 큽니다. 1MB 이하로 줄여 주세요.");
+  }
+
+  // 허용 형식: 외부 https URL 또는 data:image/* base64
+  const isHttps = /^https?:\/\//i.test(trimmed);
+  const isDataImage = /^data:image\/(png|jpe?g|webp|gif);base64,/i.test(trimmed);
+  if (!isHttps && !isDataImage) {
+    throw new Error("이미지 URL 또는 업로드한 이미지만 허용됩니다.");
+  }
+
+  await setCampaignIllustration(id, nick, trimmed);
+  revalidatePath(`/campaigns/${id}/play`);
+  revalidatePath(`/campaigns/${id}/scene`);
+}
+
+export async function updateCampaignProfileAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const id = num(fd, "campaign_id");
+  const camp = await getCampaign(id);
+  if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
+  if (camp.keeper_nick !== nick) {
+    throw new Error("키퍼만 캠페인 정보를 수정할 수 있습니다");
+  }
+  const name = text(fd, "name", 80);
+  if (!name) throw new Error("캠페인 이름은 비울 수 없습니다");
+  const description = text(fd, "description", 600);
+  const ok = await updateCampaignProfile(id, nick, { name, description });
+  if (!ok) throw new Error("수정에 실패했습니다");
+  revalidatePath("/campaigns");
+  revalidatePath(`/campaigns/${id}`);
 }
 
 export async function setCampaignStatusAction(fd: FormData): Promise<void> {

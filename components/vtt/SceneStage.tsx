@@ -2,6 +2,7 @@ import type { Campaign, Character, PlayEntry, Session } from "@/lib/types";
 import { SceneSkillBar } from "./SceneSkillBar";
 import { SceneIllustration } from "./Illustrations";
 import { RoundControl } from "./RoundControl";
+import { SceneIllustrationEditor } from "./SceneIllustrationEditor";
 
 function textOf(entry: PlayEntry): string {
   return entry.segments
@@ -12,13 +13,14 @@ function textOf(entry: PlayEntry): string {
 }
 
 export function SceneStage({
-  campaign, session, narrationHistory, myCharacter, onlineCount,
+  campaign, session, narrationHistory, myCharacter, onlineCount, isKeeper = false,
 }: {
   campaign: Campaign;
   session: Session | null;
   narrationHistory: PlayEntry[]; // 최근 → 더 옛 순서. [0]이 가장 최근
   myCharacter: Character | null;
   onlineCount: number;
+  isKeeper?: boolean;
 }) {
   const headerLeft = session
     ? `세션 #${session.number} · ${session.title}`
@@ -51,9 +53,25 @@ export function SceneStage({
       </div>
 
       <div className="scene-center">
-        <div className="scene-illustration">
-          <SceneIllustration />
-          <div className="scene-illustration-tag" aria-hidden="true">장면 일러스트</div>
+        <div className={`scene-illustration${campaign.illustration_url ? " has-image" : ""}`}>
+          {campaign.illustration_url ? (
+            <img
+              src={campaign.illustration_url}
+              alt="장면 일러스트"
+              className="scene-illustration-img"
+            />
+          ) : (
+            <>
+              <SceneIllustration />
+              <div className="scene-illustration-tag" aria-hidden="true">장면 일러스트</div>
+            </>
+          )}
+          {isKeeper ? (
+            <SceneIllustrationEditor
+              campaignId={campaign.id}
+              currentUrl={campaign.illustration_url}
+            />
+          ) : null}
         </div>
       </div>
 

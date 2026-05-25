@@ -82,7 +82,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               </span>
               <span className="brand-text">
                 <span className="brand-ko">지옥도</span>
-                <span className="brand-en">JIOKDO · EST. 2007</span>
+                <span className="brand-kicker" aria-hidden="true">圖</span>
               </span>
             </Link>
             <NavLinks />

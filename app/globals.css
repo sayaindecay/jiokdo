@@ -1396,10 +1396,36 @@ h3 {
   letter-spacing: -0.02em;
 }
 .char-row .halves {
+  display: inline-flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+.char-row .half-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.18rem 0.45rem;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  line-height: 1;
+}
+.char-row .half-chip .hc-label {
+  font-size: 0.78rem;
   color: var(--ink-3);
-  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+.char-row .half-chip .hc-val {
+  font-size: 0.78rem;
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+@media (max-width: 720px) {
+  .char-row .half-chip { padding: 0.15rem 0.35rem; }
+  .char-row .half-chip .hc-label,
+  .char-row .half-chip .hc-val { font-size: 0.72rem; }
 }
 .char-row .roll-btn {
   background: transparent;
@@ -2417,7 +2443,6 @@ body:has(.scene-side) .empty {
 /* ───── 헤더 모바일 (P16) ───── */
 @media (max-width: 720px) {
   .site-header .wrap { gap: 0.5rem; padding-left: 0.75rem; padding-right: 0.75rem; }
-  .site-header .brand span:last-child { display: none; }
   .nav { gap: 0; }
   .nav a {
     padding: 0.3rem 0.5rem;
@@ -3066,6 +3091,168 @@ select:focus-visible {
   color: var(--accent);
 }
 
+/* ════════════════════════════════════════════════
+   에너미 페이지 — 헤더 + 도감 카드 그리드
+   ════════════════════════════════════════════════ */
+.bestiary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 0 1.25rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1.5px solid var(--line);
+}
+.bestiary-header .bh-text { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+.bestiary-header .bh-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.bestiary-header .bh-title {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 400;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.05;
+}
+.bestiary-header .bh-sub {
+  font-family: var(--font-anno);
+  font-size: 0.95rem;
+  color: var(--ink-2);
+  margin: 0;
+}
+.bestiary-header .bh-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+.bestiary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+.bestiary-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.95rem 1rem 0.8rem;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+}
+.bestiary-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(138, 28, 28, 0.06) 0%, transparent 40%);
+  pointer-events: none;
+  opacity: 0.8;
+}
+.bestiary-card > * { position: relative; }
+.bestiary-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+  box-shadow: 0 2px 0 rgba(138, 28, 28, 0.18);
+}
+.bestiary-card .bc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.bestiary-card .bc-cat {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.bestiary-card .bc-name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.15;
+}
+.bestiary-card .bc-desc {
+  font-family: var(--font-anno);
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  margin: 0;
+  line-height: 1.5;
+  min-height: 2.6em;
+}
+.bestiary-card .bc-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin: 0.2rem 0 0;
+  padding: 0.55rem 0;
+  border-top: 1px dashed var(--line);
+  border-bottom: 1px dashed var(--line);
+}
+.bestiary-card .bc-stats > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.bestiary-card .bc-stats dt {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  margin: 0;
+}
+.bestiary-card .bc-stats dd {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.bestiary-card .bc-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.15rem;
+}
+.bestiary-card .bc-arrow {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--ink-3);
+  transition: transform var(--tx-fast), color var(--tx-fast);
+}
+.bestiary-card:hover .bc-arrow {
+  color: var(--accent);
+  transform: translateX(3px);
+}
+
+@media (max-width: 720px) {
+  .bestiary-grid { grid-template-columns: 1fr; gap: 0.7rem; }
+  .bestiary-header .bh-title { font-size: 1.85rem; }
+  .bestiary-card { padding: 0.85rem; }
+}
+
 /* 9.5 관련 항목 그리드 */
 .related-bestiary {
   display: grid;
@@ -3348,53 +3535,165 @@ select:focus-visible {
   color: var(--ink-3);
 }
 
-/* 7.6 무기 굴림 카드 */
+/* 7.6 무기 카드 — 재디자인 */
 .weapon-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.55rem;
 }
-.weapon-row {
+.weapon-card {
   background: var(--bg-elev-2);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--line);
+  border-left: 3px solid var(--ink-3);
   border-radius: var(--radius);
-  padding: 0.5rem 0.6rem;
-  display: grid;
-  grid-template-columns: 1.2fr auto auto auto;
-  gap: 0.4rem;
-  align-items: center;
-  font-size: 0.85rem;
-}
-.weapon-row .w-name { font-weight: 600; color: var(--ink); }
-.weapon-row .w-skill {
-  font-family: var(--font-mono);
-  color: var(--accent);
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-.weapon-row .w-damage {
-  font-family: var(--font-mono);
-  color: var(--ink-2);
-  font-size: 0.78rem;
-}
-.weapon-row .w-rolls {
+  padding: 0.7rem 0.85rem 0.75rem;
   display: flex;
-  gap: 0.25rem;
+  flex-direction: column;
+  gap: 0.45rem;
 }
-.weapon-row .w-rolls .roll-btn {
-  font-size: 0.7rem;
-  padding: 0.2rem 0.5rem;
-  min-height: 28px;
+.weapon-card .wc-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.weapon-card .wc-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  flex: 1;
   min-width: 0;
 }
+.weapon-card .wc-skill {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+.weapon-card .wc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--line);
+}
+.weapon-card .wc-meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.weapon-card .wc-meta-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.weapon-card .wc-meta-val {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+.weapon-card .wc-actions {
+  display: flex;
+  gap: 0.45rem;
+  margin-top: 0.15rem;
+}
+.weapon-card .wc-roll {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tx-fast);
+  border: 1.5px solid;
+  line-height: 1;
+}
+.weapon-card .wc-roll-tag {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  background: rgba(26, 23, 20, 0.08);
+}
+.weapon-card .wc-roll-hit {
+  background: var(--bg-elev);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.weapon-card .wc-roll-hit .wc-roll-tag {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.weapon-card .wc-roll-hit:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+.weapon-card .wc-roll-hit:hover:not(:disabled) .wc-roll-tag {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.weapon-card .wc-roll-dmg {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.weapon-card .wc-roll-dmg .wc-roll-tag {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+.weapon-card .wc-roll-dmg:hover:not(:disabled) {
+  background: var(--accent-deep, #6a1010);
+  border-color: var(--accent-deep, #6a1010);
+}
+.weapon-card .wc-roll:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.weapon-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-elev-2);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius);
+  font-family: var(--font-anno);
+  color: var(--ink-3);
+  font-size: 0.92rem;
+}
+.weapon-empty .we-icon {
+  font-size: 1.2rem;
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+:root[data-theme="dark"] .weapon-card .wc-roll-tag {
+  background: rgba(245, 243, 228, 0.08);
+}
+
 @media (max-width: 720px) {
-  .weapon-row {
-    grid-template-columns: 1fr 1fr;
-  }
-  .weapon-row .w-rolls { grid-column: span 2; justify-content: flex-end; }
+  .weapon-card { padding: 0.6rem 0.7rem; }
+  .weapon-card .wc-name { font-size: 0.98rem; }
+  .weapon-card .wc-roll { padding: 0.45rem 0.5rem; font-size: 0.82rem; }
 }
 
 /* 7.7 note-block 색조 변주 */
@@ -3456,6 +3755,7 @@ select:focus-visible {
   .skill-row.rollable .roll-hint,
   .roll-btn,
   .weapon-row .w-rolls,
+  .weapon-card .wc-actions,
   .empty,
   .empty-state {
     display: none !important;
@@ -3481,7 +3781,7 @@ select:focus-visible {
   }
   .sheet-portrait svg { color: #000 !important; opacity: 1 !important; }
   .sheet-col { border-color: #aaa !important; }
-  .char-row, .skill-row, .meter, .weapon-row, .note-block {
+  .char-row, .skill-row, .meter, .weapon-row, .weapon-card, .note-block {
     background: #fff !important;
     border-color: #999 !important;
     page-break-inside: avoid;
@@ -3749,6 +4049,186 @@ select:focus-visible {
   text-transform: uppercase;
   color: rgba(245, 243, 228, 0.35);
   pointer-events: none;
+}
+.scene-illustration.has-image {
+  background: #0a0908;
+  border-color: rgba(236, 230, 216, 0.28);
+}
+.scene-illustration-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* 키퍼 전용 일러스트 업로드 트리거 (장면 위) */
+.scene-illust-trigger {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(20, 17, 13, 0.7);
+  backdrop-filter: blur(6px);
+  color: rgba(245, 243, 228, 0.85);
+  border: 1px solid rgba(245, 243, 228, 0.25);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem 0.35rem 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  z-index: 4;
+  transition: all var(--tx-fast);
+}
+.scene-illust-trigger:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.scene-illust-trigger .sit-label { font-weight: 600; }
+
+/* 일러스트 업로드 패널 (장면 위 오버레이) */
+.scene-illust-panel {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  width: min(360px, calc(100% - 1.1rem));
+  background: var(--bg-elev);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--ink);
+}
+.sip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.75rem;
+  background: var(--accent);
+  color: #fff;
+}
+.sip-title {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.sip-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.2rem;
+}
+.sip-close:hover { opacity: 0.75; }
+
+.sip-body {
+  padding: 0.85rem 0.85rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.sip-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.sip-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.sip-field input[type="file"] {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  padding: 0;
+}
+.sip-field input[type="url"] {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.4rem 0.55rem;
+}
+.sip-field input[type="url"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.sip-or {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
+}
+.sip-preview {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #0a0908;
+}
+.sip-preview img {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+}
+.sip-preview-tag {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.4rem;
+  background: rgba(20, 17, 13, 0.7);
+  color: rgba(245, 243, 228, 0.85);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+.sip-error {
+  font-family: var(--font-anno);
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+}
+.sip-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem 0.85rem;
+  background: var(--bg-elev);
+  border-top: 1px dashed var(--line);
+}
+.sip-actions .btn { flex: 1; }
+.sip-actions .btn.danger {
+  color: var(--accent);
+  border-color: var(--accent);
+  flex: 0 0 auto;
+}
+
+@media (max-width: 720px) {
+  .scene-illust-trigger .sit-label { display: none; }
+  .scene-illust-panel { width: calc(100% - 1.1rem); }
 }
 
 /* 5.2 직전 묘사 fade out */
@@ -5005,6 +5485,110 @@ select:focus-visible {
   flex-shrink: 0;
 }
 
+.cd-head-block { min-width: 0; display: flex; flex-direction: column; }
+
+/* 캠페인 편집 — 제목 인라인 편집 버튼 */
+.cd-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+.cd-title-row .cd-title { margin: 0; }
+.cd-title-row .cd-edit-btn {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+  flex-shrink: 0;
+}
+
+/* 캠페인 편집 — 편집 폼 */
+.cd-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+.cd-edit-form .cd-eyebrow {
+  margin-bottom: 0.2rem;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.cd-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  position: relative;
+}
+.cd-edit-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.cd-edit-name {
+  font-family: var(--font-script);
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.7rem;
+  letter-spacing: -0.01em;
+}
+.cd-edit-name:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.cd-edit-desc {
+  font-family: var(--font-anno);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.7rem;
+  resize: vertical;
+}
+.cd-edit-desc:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.cd-edit-count {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--ink-3);
+  pointer-events: none;
+}
+.cd-edit-error {
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  padding: 0.45rem 0.7rem;
+  border-radius: 3px;
+}
+.cd-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.2rem;
+}
+
 @media (max-width: 720px) {
   .cd-header {
     grid-template-columns: 1fr;
@@ -5675,27 +6259,27 @@ select:focus-visible {
 
 .brand-text {
   display: inline-flex;
-  flex-direction: column;
+  align-items: baseline;
   line-height: 1;
-  gap: 0.18rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 .brand-ko {
   font-family: var(--font-script);
-  font-size: 1.2rem;
+  font-size: 1.45rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
   color: var(--ink);
 }
-.brand-en {
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+.brand-kicker {
+  font-family: var(--font-script);
+  font-size: 0.9rem;
+  font-weight: 400;
   color: var(--ink-3);
-  text-transform: uppercase;
-  white-space: nowrap;
+  letter-spacing: 0;
+  opacity: 0.55;
 }
+.site-header .brand:hover .brand-kicker { color: var(--accent); opacity: 0.85; }
 
 :root[data-theme="dark"] .brand-stamp {
   background: rgba(245, 243, 228, 0.06);
@@ -5707,8 +6291,8 @@ select:focus-visible {
 }
 
 @media (max-width: 720px) {
-  .brand-en { display: none; }
-  .brand-ko { font-size: 1.1rem; }
+  .brand-kicker { display: none; }
+  .brand-ko { font-size: 1.25rem; }
   .brand-stamp { width: 34px; height: 34px; }
 }
 @media (max-width: 560px) {

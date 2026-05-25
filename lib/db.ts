@@ -136,6 +136,7 @@ function ensureReady(): Promise<void> {
       "ALTER TABLE bestiary ADD COLUMN created_by TEXT",
       "ALTER TABLE bestiary ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0",
       "ALTER TABLE campaigns ADD COLUMN status TEXT NOT NULL DEFAULT 'active'",
+      "ALTER TABLE campaigns ADD COLUMN illustration_url TEXT",
     ]) {
       try { await client.execute(stmt); } catch { /* 이미 존재 */ }
     }
@@ -143,6 +144,11 @@ function ensureReady(): Promise<void> {
     // 코어 베스티어리 시드 제거 — 사용자 등록 항목만 남김
     try {
       await client.execute("DELETE FROM bestiary WHERE created_by IS NULL");
+    } catch { /* 실패해도 무시 */ }
+
+    // 더미 데이터 (김백윤) 제거 — 한 번이면 충분하지만 멱등적이라 매 부팅 시 무해
+    try {
+      await client.execute("DELETE FROM bestiary WHERE name = '김백윤'");
     } catch { /* 실패해도 무시 */ }
 
     for (const s of RULE_SECTIONS) {
@@ -353,6 +359,7 @@ function rowToCampaign(r: Record<string, unknown>): Campaign {
     invite_code: String(r.invite_code), keeper_nick: String(r.keeper_nick),
     system: String(r.system),
     status,
+    illustration_url: r.illustration_url == null ? null : String(r.illustration_url),
     created_at: Number(r.created_at),
     member_count: r.member_count != null ? Number(r.member_count) : undefined,
     character_count: r.character_count != null ? Number(r.character_count) : undefined,
@@ -368,6 +375,32 @@ export async function setCampaignStatus(
   const res = await client.execute({
     sql: "UPDATE campaigns SET status = ? WHERE id = ? AND keeper_nick = ?",
     args: [status, id, keeperNick],
+  });
+  return Number(res.rowsAffected) > 0;
+}
+
+export async function updateCampaignProfile(
+  id: number,
+  keeperNick: string,
+  profile: { name: string; description: string }
+): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "UPDATE campaigns SET name = ?, description = ? WHERE id = ? AND keeper_nick = ?",
+    args: [profile.name, profile.description, id, keeperNick],
+  });
+  return Number(res.rowsAffected) > 0;
+}
+
+export async function setCampaignIllustration(
+  id: number,
+  keeperNick: string,
+  url: string | null
+): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "UPDATE campaigns SET illustration_url = ? WHERE id = ? AND keeper_nick = ?",
+    args: [url, id, keeperNick],
   });
   return Number(res.rowsAffected) > 0;
 }
@@ -787,6 +820,7 @@ export async function getNextScheduledSession(nick: string): Promise<{ session: 
     description: String(r.c_description), invite_code: String(r.c_invite),
     keeper_nick: String(r.c_keeper), system: String(r.c_system),
     status,
+    illustration_url: null,
     created_at: Number(r.c_created),
   };
   return { session, campaign };

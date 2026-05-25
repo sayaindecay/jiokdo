@@ -44,31 +44,26 @@ export default async function BestiaryIndex({
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          gap: "1rem",
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <h1 className="page-title">에너미</h1>
-          <p className="page-sub">
-            코어 룰북의 주요 생물 + 사용자 등록 NPC {total > 0 ? `· ${total}개` : ""}
+      <header className="bestiary-header">
+        <div className="bh-text">
+          <div className="bh-eyebrow">BESTIARY · 위협 도감</div>
+          <h1 className="bh-title">에너미</h1>
+          <p className="bh-sub">
+            사용자가 등록한 NPC·생물·미지의 존재 자료집{total > 0 ? ` · ${total}개` : ""}
           </p>
         </div>
-        {nick ? (
-          <Link href="/bestiary/new" className="btn primary">
-            + 새 항목
-          </Link>
-        ) : (
-          <Link href="/login?redirect=/bestiary/new" className="btn ghost">
-            로그인하고 항목 추가
-          </Link>
-        )}
-      </div>
+        <div className="bh-actions">
+          {nick ? (
+            <Link href="/bestiary/new" className="btn primary">
+              + 새 항목
+            </Link>
+          ) : (
+            <Link href="/login?redirect=/bestiary/new" className="btn ghost">
+              로그인하고 항목 추가
+            </Link>
+          )}
+        </div>
+      </header>
 
       <form className="filter-bar" action="/bestiary" role="search">
         <input
@@ -118,24 +113,26 @@ export default async function BestiaryIndex({
           <div className="bestiary-grid">
             {entries.map((e) => (
               <Link key={e.id} href={`/bestiary/${e.slug}`} className="bestiary-card">
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-                  <div style={{ flex: 1 }}>
-                    <h3>{e.name}</h3>
-                    <div className="card-meta">{e.category || "분류 미지정"}</div>
-                  </div>
+                <div className="bc-head">
+                  <div className="bc-cat">{e.category || "분류 미지정"}</div>
                   <ThreatStars entry={e} />
                 </div>
-                <p>{e.description ? `${e.description.slice(0, 120)}${e.description.length > 120 ? "…" : ""}` : "설명 없음"}</p>
-                <div className="card-foot">
-                  <span>HP {e.attrs.hp ?? "—"}</span>
-                  <span>STR {e.attrs.str ?? "—"}</span>
-                  <span>SAN {e.sanity_loss || "—"}</span>
-                  <span
-                    className={`bestiary-author${e.created_by ? " user" : ""}`}
-                    style={{ marginLeft: "auto" }}
-                  >
+                <h3 className="bc-name">{e.name}</h3>
+                <p className="bc-desc">
+                  {e.description
+                    ? `${e.description.slice(0, 110)}${e.description.length > 110 ? "…" : ""}`
+                    : "설명 없음"}
+                </p>
+                <dl className="bc-stats" aria-hidden="true">
+                  <div><dt>HP</dt><dd>{e.attrs.hp ?? "—"}</dd></div>
+                  <div><dt>STR</dt><dd>{e.attrs.str ?? "—"}</dd></div>
+                  <div><dt>SAN</dt><dd>{e.sanity_loss || "—"}</dd></div>
+                </dl>
+                <div className="bc-foot">
+                  <span className={`bestiary-author${e.created_by ? " user" : ""}`}>
                     {e.created_by ? `@${e.created_by}` : "코어"}
                   </span>
+                  <span className="bc-arrow" aria-hidden="true">→</span>
                 </div>
               </Link>
             ))}

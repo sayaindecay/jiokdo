@@ -39,45 +39,64 @@ export function WeaponList({
 
   if (weapons.length === 0) {
     return (
-      <ul className="weapon-list">
-        <li className="weapon-row" style={{ color: "var(--ink-3)", display: "block" }}>
-          등록된 무기 없음 — 편집 페이지에서 추가하세요.
-        </li>
-      </ul>
+      <div className="weapon-empty">
+        <span className="we-icon" aria-hidden="true">⚔</span>
+        <span>등록된 무기가 없습니다. 편집 페이지에서 추가하세요.</span>
+      </div>
     );
   }
 
   return (
     <ul className="weapon-list">
       {weapons.map((w, i) => (
-        <li className="weapon-row" key={i}>
-          <span className="w-name">{w.name}</span>
-          <span className="w-skill">{w.skill}%</span>
-          <span className="w-damage">{w.damage}</span>
+        <li className="weapon-card" key={i}>
+          <div className="wc-head">
+            <span className="wc-name">{w.name}</span>
+            <span className="wc-skill" title="명중 기능치">{w.skill}%</span>
+          </div>
+          <div className="wc-meta">
+            <span className="wc-damage" title="피해">
+              <span className="wc-meta-label">피해</span>
+              <span className="wc-meta-val">{w.damage || "—"}</span>
+            </span>
+            {w.range ? (
+              <span className="wc-range" title="사거리">
+                <span className="wc-meta-label">사거리</span>
+                <span className="wc-meta-val">{w.range}</span>
+              </span>
+            ) : null}
+            {w.attacks ? (
+              <span className="wc-attacks" title="공격 횟수">
+                <span className="wc-meta-label">공격</span>
+                <span className="wc-meta-val">{w.attacks}</span>
+              </span>
+            ) : null}
+          </div>
           {canRoll ? (
-            <span className="w-rolls">
+            <div className="wc-actions">
               <button
                 type="button"
-                className="roll-btn"
+                className="wc-roll wc-roll-hit"
                 onClick={() => rollSkill(w)}
                 disabled={pending}
                 title={`/cc ${w.name} ${w.skill}`}
               >
-                d100
+                <span className="wc-roll-tag">d100</span>
+                명중 굴림
               </button>
               {w.damage ? (
                 <button
                   type="button"
-                  className="roll-btn"
+                  className="wc-roll wc-roll-dmg"
                   onClick={() => rollDamage(w)}
                   disabled={pending}
                   title={`/roll ${w.damage}`}
-                  style={{ background: "var(--accent)", color: "#fff", borderColor: "var(--accent)" }}
                 >
-                  피해
+                  <span className="wc-roll-tag">{w.damage}</span>
+                  피해 굴림
                 </button>
               ) : null}
-            </span>
+            </div>
           ) : null}
         </li>
       ))}

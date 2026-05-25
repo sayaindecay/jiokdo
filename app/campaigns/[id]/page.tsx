@@ -10,6 +10,7 @@ import { LEVEL_LABEL } from "@/lib/dice";
 import { campaignHueStyle } from "@/lib/hue";
 import { CharacterCreateForm } from "@/components/CharacterCreateForm";
 import { CampaignDangerZone } from "@/components/vtt/CampaignDangerZone";
+import { CampaignProfileEditor } from "@/components/vtt/CampaignProfileEditor";
 import { CampaignStatusToggle } from "@/components/vtt/CampaignStatusToggle";
 import { CopyButton } from "@/components/vtt/CopyButton";
 import { EmptyState } from "@/components/vtt/EmptyState";
@@ -60,17 +61,29 @@ export default async function CampaignDashboard({
 
       {/* ─── 헤더 — 명조 제목 + 산세리프 설명 + mono 메타 + 액션 ─── */}
       <header className="cd-header">
-        <div className="cd-head-text">
-          <div className="cd-eyebrow">
-            캠페인 №{String(id).padStart(2, "0")} · {camp.system.toUpperCase()}
-          </div>
-          <h1 className="cd-title">{camp.name}</h1>
-          {camp.description ? (
-            <p className="cd-description">{camp.description}</p>
+        <div className="cd-head-block">
+          {isKeeper ? (
+            <CampaignProfileEditor
+              campaignId={id}
+              campaignNum={String(id).padStart(2, "0")}
+              system={camp.system}
+              initialName={camp.name}
+              initialDescription={camp.description}
+            />
           ) : (
-            <p className="cd-description cd-description-empty">
-              설명이 아직 비어 있습니다.
-            </p>
+            <div className="cd-head-text">
+              <div className="cd-eyebrow">
+                캠페인 №{String(id).padStart(2, "0")} · {camp.system.toUpperCase()}
+              </div>
+              <h1 className="cd-title">{camp.name}</h1>
+              {camp.description ? (
+                <p className="cd-description">{camp.description}</p>
+              ) : (
+                <p className="cd-description cd-description-empty">
+                  설명이 아직 비어 있습니다.
+                </p>
+              )}
+            </div>
           )}
 
           {isKeeper ? (

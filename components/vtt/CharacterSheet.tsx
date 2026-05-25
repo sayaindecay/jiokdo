@@ -94,8 +94,15 @@ export function CharacterSheet({
                 <div className="char-row" key={key}>
                   <span className="key">{label}</span>
                   <span className="val">{value}</span>
-                  <span className="halves">
-                    ½ {Math.floor(value / 2)} · ⅕ {Math.floor(value / 5)}
+                  <span className="halves" aria-label={`반값 ${Math.floor(value / 2)}, 5분의 1값 ${Math.floor(value / 5)}`}>
+                    <span className="half-chip">
+                      <span className="hc-label">½</span>
+                      <span className="hc-val">{Math.floor(value / 2)}</span>
+                    </span>
+                    <span className="half-chip">
+                      <span className="hc-label">⅕</span>
+                      <span className="hc-val">{Math.floor(value / 5)}</span>
+                    </span>
                   </span>
                   {isOwner ? (
                     <RollButton
