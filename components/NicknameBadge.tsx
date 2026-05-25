@@ -8,9 +8,9 @@ export function NicknameBadge({ nickname }: { nickname: string | null }) {
 
   if (nickname) {
     return (
-      <div className="nick-badge">
+      <div className="nick-badge" aria-label={`현재 닉네임: ${nickname}`}>
         <span className="nick-badge-inner">
-          <span className="dot" />
+          <span className="dot" aria-hidden="true" />
           {nickname}
         </span>
         <form action={clearNicknameAction}>

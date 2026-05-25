@@ -85,19 +85,30 @@ export function PlayComposer({
         name="content"
         required
         maxLength={8000}
+        rows={kind === "narration" ? 5 : 3}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            e.preventDefault();
+            const form = e.currentTarget.form;
+            if (form) form.requestSubmit();
+          }
+        }}
         placeholder={
           kind === "narration"
             ? "장면을 묘사하세요. /cc 명령으로 NPC 굴림도 가능합니다."
             : kind === "system"
               ? "키퍼 공지나 룰 설명."
-              : "발화 / 행동. 한 줄에 /cc 탐색 65 식으로 굴립니다."
+              : "행동 한 줄. 예) /cc 탐색 65 — Enter 로 즉시 제출"
         }
       />
 
-      <div className="actions">
-        <button type="submit" className="btn" disabled={pending}>
+      <div className="actions" style={{ alignItems: "center" }}>
+        <button type="submit" className="btn primary" disabled={pending}>
           {pending ? "올리는 중..." : "올리기"}
         </button>
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.7rem", color: "var(--ink-3)", letterSpacing: "0.02em" }}>
+          ↵ 제출 · ⇧↵ 줄바꿈
+        </span>
       </div>
     </form>
   );

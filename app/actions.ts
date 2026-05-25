@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { contentToSegments } from "@/lib/dice";
 import {
   createCampaign, createCharacter, createPlayEntry, getCampaign,
-  getCampaignByCode, getCharacter, joinCampaign, updateCharacterVitals,
+  getCampaignByCode, getCharacter, joinCampaign,
+  updateCharacterProfile, updateCharacterVitals,
 } from "@/lib/db";
 import { clearNickname, getNickname, setNicknameCookie } from "@/lib/auth";
 import { SAMPLE_CHARACTER_TEMPLATE } from "@/lib/seed-data";
@@ -64,7 +65,57 @@ export async function createCharacterAction(fd: FormData): Promise<void> {
   const camp = await getCampaign(campaign_id);
   if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
 
-  const useTemplate = fd.get("use_template") === "1";
+  const mode = text(fd, "use_template", 12); // "1" sample | "random" | "" empty
+
+  // 능력치 굴림으로 생성 (CoC 7판: STR/CON/DEX/APP/POW = 3d6×5, SIZ/INT/EDU = (2d6+6)×5)
+  if (mode === "random") {
+    const d6 = () => Math.floor(Math.random() * 6) + 1;
+    const r3d6x5 = () => (d6() + d6() + d6()) * 5;
+    const r2d6p6x5 = () => (d6() + d6() + 6) * 5;
+    const attrs: CocAttrs = {
+      str: r3d6x5(), con: r3d6x5(), dex: r3d6x5(), app: r3d6x5(), pow: r3d6x5(),
+      siz: r2d6p6x5(), int: r2d6p6x5(), edu: r2d6p6x5(),
+      luck: r3d6x5(),
+    };
+    const hp = Math.floor((attrs.con + attrs.siz) / 10);
+    const mp = Math.floor(attrs.pow / 5);
+    const eduX2 = Math.floor(attrs.edu / 2);
+    const intX2 = Math.floor(attrs.int / 2);
+    const skills: CocSkill[] = [
+      { name: "탐색", value: 25, group: "investigation" },
+      { name: "회피", value: Math.floor(attrs.dex / 2), group: "combat" },
+      { name: "도서관 이용", value: 20, group: "investigation" },
+      { name: "심리학", value: 10, group: "social" },
+      { name: "청각", value: 20, group: "investigation" },
+      { name: "관찰력", value: 25, group: "investigation" },
+      { name: "은밀행동", value: 20, group: "investigation" },
+      { name: "응급처치", value: 30, group: "academic" },
+      { name: "근접 (격투)", value: 25, group: "combat" },
+      { name: "권총", value: 20, group: "combat" },
+      { name: "설득", value: 10, group: "social" },
+      { name: "매혹", value: 15, group: "social" },
+      { name: "모국어", value: eduX2, group: "academic" },
+      { name: "지식 (개인)", value: intX2, group: "academic" },
+    ];
+    const id = await createCharacter({
+      campaign_id,
+      owner_nick: nick,
+      name: text(fd, "name", 40) || "이름 없는 탐사자",
+      occupation: text(fd, "occupation", 40) || "탐사자",
+      age: 25,
+      attrs,
+      hp, hp_max: hp,
+      mp, mp_max: mp,
+      san: attrs.pow, san_max: 99 - 0,
+      skills,
+      weapons: [{ name: "주먹", skill: 50, damage: "1d3 + DB" }],
+      backstory: "",
+    });
+    revalidatePath(`/campaigns/${campaign_id}`);
+    redirect(`/characters/${id}`);
+  }
+
+  const useTemplate = mode === "1";
   if (useTemplate) {
     const id = await createCharacter({
       campaign_id,
@@ -142,6 +193,49 @@ export async function rollCharacterCheckAction(fd: FormData): Promise<void> {
     segments,
   });
   revalidatePath(`/characters/${ch.id}`);
+}
+
+export async function updateCharacterProfileAction(fd: FormData): Promise<void> {
+  const nick = await getNickname();
+  if (!nick) throw new Error("닉네임을 먼저 설정하세요");
+  const id = num(fd, "character_id");
+  const ch = await getCharacter(id);
+  if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
+  if (ch.owner_nick !== nick) throw new Error("자신의 캐릭터만 수정할 수 있습니다");
+
+  const name = text(fd, "name", 40) || ch.name;
+  const occupation = text(fd, "occupation", 40);
+  const ageRaw = text(fd, "age", 4);
+  const age = ageRaw ? Math.max(1, Math.min(120, Number(ageRaw))) : ch.age;
+  const backstory = text(fd, "backstory", 2000);
+
+  // 기존 skills 를 기준으로 폼의 값으로 덮어씀
+  const skills: typeof ch.skills = ch.skills.map((s) => {
+    const v = fd.get(`skill_${s.name}`);
+    const parsed = typeof v === "string" ? Number(v) : Number.NaN;
+    return {
+      ...s,
+      value: Number.isFinite(parsed) ? Math.max(0, Math.min(99, parsed)) : s.value,
+    };
+  });
+
+  // 새 기능 추가 (이름 + 값)
+  const newName = text(fd, "new_skill_name", 40);
+  const newValueStr = text(fd, "new_skill_value", 4);
+  if (newName && newValueStr) {
+    const parsed = Number(newValueStr);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      skills.push({
+        name: newName,
+        value: Math.max(0, Math.min(99, parsed)),
+        group: "other",
+      });
+    }
+  }
+
+  await updateCharacterProfile(id, { name, occupation, age, backstory, skills });
+  revalidatePath(`/characters/${id}`);
+  redirect(`/characters/${id}`);
 }
 
 export async function updateCharacterVitalsAction(fd: FormData): Promise<void> {

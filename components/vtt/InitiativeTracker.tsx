@@ -32,8 +32,13 @@ export function InitiativeTracker({
   const advance = () => {
     if (live.length === 0) return;
     const currentLive = live.findIndex((x) => x.i === activeIndex);
+    // active 가 dead 상태(currentLive === -1)면 가장 첫 살아 있는 row 로 보냄
+    if (currentLive < 0) {
+      setActiveIndex(live[0].i);
+      return;
+    }
     const next = (currentLive + 1) % live.length;
-    if (next === 0 && currentLive >= 0) setRound((r) => r + 1);
+    if (next === 0) setRound((r) => r + 1);
     setActiveIndex(live[next].i);
   };
 
@@ -44,13 +49,28 @@ export function InitiativeTracker({
   };
 
   const damage = (rowId: string, amount: number) => {
-    setRows((prev) =>
-      prev.map((r) => {
+    setRows((prev) => {
+      const next = prev.map((r) => {
         if (r.id !== rowId) return r;
-        const next = Math.max(0, r.hp - amount);
-        return { ...r, hp: next, dead: next === 0 ? true : r.dead };
-      })
-    );
+        const hp = Math.max(0, r.hp - amount);
+        return { ...r, hp, dead: hp === 0 ? true : r.dead };
+      });
+      // 활성 row가 방금 죽었다면 다음 살아 있는 인덱스로 이동
+      const killedIndex = next.findIndex((r) => r.id === rowId);
+      if (killedIndex === activeIndex && next[killedIndex]?.dead) {
+        const liveAfter = next
+          .map((r, i) => ({ r, i }))
+          .filter((x) => !x.r.dead);
+        const nextLive = liveAfter.find((x) => x.i > killedIndex) ?? liveAfter[0];
+        if (nextLive) {
+          setActiveIndex(nextLive.i);
+          if (nextLive.i <= killedIndex && liveAfter.length > 0) {
+            setRound((r) => r + 1);
+          }
+        }
+      }
+      return next;
+    });
   };
 
   return (

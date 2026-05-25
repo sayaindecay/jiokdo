@@ -34,6 +34,16 @@ export function CharacterSheet({
         <span>{character.name}</span>
       </div>
 
+      {/* 모바일 sticky 요약 (P17) */}
+      <div className="sheet-sticky-summary" aria-hidden="false">
+        <div className="ss-name">{character.name}</div>
+        <div className="ss-vitals">
+          <span>HP <b>{character.hp}/{character.hp_max}</b></span>
+          <span>SAN <b className={character.san < 30 ? "warn" : ""}>{character.san}/{character.san_max}</b></span>
+          <span>MP <b>{character.mp}/{character.mp_max}</b></span>
+        </div>
+      </div>
+
       <div className="sheet-shell">
         <div className="sheet-header">
           <div className="sheet-portrait">📷</div>
@@ -50,6 +60,11 @@ export function CharacterSheet({
             </div>
           </div>
           <div className="sheet-actions">
+            {isOwner ? (
+              <Link href={`/characters/${character.id}/edit`} className="btn ghost">
+                편집
+              </Link>
+            ) : null}
             {campaign ? (
               <Link href={`/campaigns/${campaign.id}/play`} className="btn">
                 세션 입장
@@ -146,7 +161,7 @@ export function CharacterSheet({
               ) : null}
             </ul>
 
-            <h3>최근 굴림</h3>
+            <h3 data-recent-rolls>최근 굴림</h3>
             {recentRolls.length === 0 ? (
               <div className="empty" style={{ padding: "1rem", marginTop: "0.4rem" }}>
                 아직 굴림 기록이 없습니다.

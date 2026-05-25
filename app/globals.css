@@ -2138,3 +2138,238 @@ h3 {
 @media (max-width: 980px) {
   .scene-grid { grid-template-columns: 1fr; }
 }
+
+/* ───── Skill row affordance (P12) ───── */
+.skill-row.rollable {
+  cursor: pointer;
+  position: relative;
+}
+.skill-row.rollable .roll-hint {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  background: var(--bg-elev);
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.skill-row.rollable:hover .roll-hint,
+.skill-row.rollable:focus .roll-hint {
+  opacity: 1;
+}
+.skill-row.rollable:hover {
+  border-color: var(--accent);
+}
+.skill-row.rollable .val {
+  transition: opacity 0.12s;
+}
+.skill-row.rollable:hover .val {
+  opacity: 0.4;
+}
+
+/* ───── Flash strong (P15 — 굴림 결과 강조) ───── */
+@keyframes jiokdo-flash {
+  0%   { background: var(--accent-soft); color: var(--accent); }
+  100% { background: transparent; color: inherit; }
+}
+.flash-strong {
+  animation: jiokdo-flash 1.2s ease-out;
+  border-radius: var(--radius);
+  padding: 0.15rem 0.45rem;
+  margin: -0.15rem -0.45rem;
+}
+
+/* ───── 시네마틱 페이지에서 헤더 다크 변환 (P11) ───── */
+body:has(.scene-side) {
+  background: #14110d;
+  background-image: none;
+}
+body:has(.scene-side) .site-header {
+  background: rgba(20, 17, 13, 0.94);
+  border-bottom-color: rgba(245, 243, 238, 0.18);
+}
+body:has(.scene-side) .site-header .brand,
+body:has(.scene-side) .site-header .nav a,
+body:has(.scene-side) .site-header .nav .active {
+  color: rgba(245, 243, 238, 0.86);
+}
+body:has(.scene-side) .site-header .brand:hover,
+body:has(.scene-side) .site-header .nav a:hover {
+  color: #fff;
+}
+body:has(.scene-side) .site-header .brand-mark {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+body:has(.scene-side) .site-header .nav a:hover {
+  background: rgba(245, 243, 238, 0.10);
+}
+body:has(.scene-side) .search-trigger {
+  background: rgba(245, 243, 238, 0.08);
+  border-color: rgba(245, 243, 238, 0.18);
+  color: rgba(245, 243, 238, 0.7);
+}
+body:has(.scene-side) .search-trigger:hover {
+  color: #fff;
+  border-color: rgba(245, 243, 238, 0.4);
+}
+body:has(.scene-side) .nick-badge {
+  background: rgba(245, 243, 238, 0.08);
+  border-color: rgba(245, 243, 238, 0.18);
+  color: var(--bg-elev);
+}
+body:has(.scene-side) .nick-badge-inner { color: var(--bg-elev); }
+body:has(.scene-side) .link-btn { color: rgba(245, 243, 238, 0.55); }
+body:has(.scene-side) .breadcrumb { color: rgba(245, 243, 238, 0.55); }
+body:has(.scene-side) .breadcrumb a { color: rgba(245, 243, 238, 0.75); }
+body:has(.scene-side) .breadcrumb a:hover { color: var(--accent); }
+body:has(.scene-side) .section-head {
+  border-bottom-color: rgba(245, 243, 238, 0.18);
+}
+body:has(.scene-side) .section-head h2 { color: rgba(245, 243, 238, 0.92); }
+body:has(.scene-side) .section-head .count,
+body:has(.scene-side) .section-head .count a { color: rgba(245, 243, 238, 0.55); }
+body:has(.scene-side) .site-footer {
+  background: #14110d;
+  border-top-color: rgba(245, 243, 238, 0.12);
+  color: rgba(245, 243, 238, 0.45);
+}
+
+/* 시네마틱 페이지의 post-list 도 어둡게 */
+body:has(.scene-side) .post-list {
+  background: rgba(245, 243, 238, 0.04);
+  border-color: rgba(245, 243, 238, 0.18);
+}
+body:has(.scene-side) .post-row {
+  border-bottom-color: rgba(245, 243, 238, 0.10);
+}
+body:has(.scene-side) .post-row:hover { background: rgba(245, 243, 238, 0.06); }
+body:has(.scene-side) .post-row .title { color: rgba(245, 243, 238, 0.92); }
+body:has(.scene-side) .post-row:hover .title { color: var(--accent); }
+body:has(.scene-side) .post-row .meta { color: rgba(245, 243, 238, 0.45); }
+body:has(.scene-side) .empty {
+  background: rgba(245, 243, 238, 0.04);
+  border-color: rgba(245, 243, 238, 0.20);
+  color: rgba(245, 243, 238, 0.55);
+}
+
+/* ───── 시트 모바일 sticky 요약 (P17) ───── */
+.sheet-sticky-summary {
+  display: none;
+}
+@media (max-width: 980px) {
+  .sheet-sticky-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    background: var(--bg-elev);
+    border: 1.5px solid var(--ink);
+    border-radius: var(--radius);
+    padding: 0.5rem 0.85rem;
+    margin-bottom: 0.75rem;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 60px;
+    z-index: 5;
+    backdrop-filter: blur(8px);
+  }
+  .sheet-sticky-summary .ss-name {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sheet-sticky-summary .ss-vitals {
+    display: flex;
+    gap: 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    flex-shrink: 0;
+  }
+  .sheet-sticky-summary .ss-vitals b { color: var(--ink); }
+  .sheet-sticky-summary .ss-vitals b.warn { color: var(--accent); }
+}
+
+/* ───── 헤더 모바일 (P16) ───── */
+@media (max-width: 720px) {
+  .site-header .wrap { gap: 0.5rem; padding-left: 0.75rem; padding-right: 0.75rem; }
+  .site-header .brand span:last-child { display: none; }
+  .nav { gap: 0; }
+  .nav a {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  .search-trigger {
+    min-width: 0;
+    padding: 0.32rem 0.5rem;
+  }
+  .search-trigger span:not(:first-child),
+  .search-trigger kbd { display: none; }
+  .nick-badge .link-btn { display: none; }
+}
+
+/* ───── 시트 3열 단계적 축소 (P10) ───── */
+@media (max-width: 1080px) and (min-width: 721px) {
+  .sheet-body {
+    grid-template-columns: 240px 1fr !important;
+  }
+  .sheet-col:nth-child(3) {
+    grid-column: 1 / -1;
+    border-left: none !important;
+    border-top: 1.5px dashed var(--line);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+  }
+}
+
+/* ───── 검색 facet 모바일 가로 chip (P18) ───── */
+@media (max-width: 720px) {
+  .search-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .facets {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .facets .group {
+    margin-bottom: 0;
+  }
+  .facets .group-title {
+    font-size: 0.66rem;
+  }
+  .facets .group:nth-of-type(1) {
+    /* 출처: 가로 chip 스크롤 */
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .facets .group:nth-of-type(1) .facet {
+    display: inline-flex;
+    margin-right: 0.4rem;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+  }
+  .facets .group:nth-of-type(1) .facet.active {
+    border-left: 1.5px solid var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .facets .group:nth-of-type(2),
+  .facets .group:nth-of-type(3) {
+    display: none;
+  }
+}

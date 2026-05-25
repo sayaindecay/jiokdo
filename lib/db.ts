@@ -350,6 +350,23 @@ export async function updateCharacterVitals(id: number, vitals: { hp: number; mp
   });
 }
 
+export async function updateCharacterProfile(id: number, profile: {
+  name: string;
+  occupation: string;
+  age: number | null;
+  backstory: string;
+  skills: CocSkill[];
+}): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: `UPDATE characters SET name = ?, occupation = ?, age = ?, backstory = ?, skills_json = ? WHERE id = ?`,
+    args: [
+      profile.name, profile.occupation, profile.age,
+      profile.backstory, JSON.stringify(profile.skills), id,
+    ],
+  });
+}
+
 // ───── 플레이 로그 ─────
 function rowToPlayEntry(r: Record<string, unknown>): PlayEntry {
   return {
