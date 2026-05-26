@@ -81,11 +81,13 @@ export function CharacterSheet({
               ) : null}
             </div>
             <div className="meta">
-              <span>POW {character.attrs.pow}</span>
+              <span>HP {character.hp}/{character.hp_max}</span>
               <span className="sep">·</span>
-              <span>EDU {character.attrs.edu}</span>
+              <span>MP {character.mp}/{character.mp_max}</span>
               <span className="sep">·</span>
               <span>SAN {character.san}/{character.san_max}</span>
+              <span className="sep">·</span>
+              <span>LUCK {character.attrs.luck}</span>
             </div>
           </div>
           <div className="sheet-actions">
