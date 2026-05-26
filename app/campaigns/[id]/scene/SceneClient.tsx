@@ -17,6 +17,8 @@ export type KeeperCharLite = {
   occupation: string;
 };
 
+type AddTab = "enemy" | "char";
+
 export function SceneClient({
   initialRows,
   focusedNpc,
@@ -33,10 +35,7 @@ export function SceneClient({
   const [activeIndex, setActiveIndex] = useState(0);
   const [roundFlash, setRoundFlash] = useState(false);
   const [focused, setFocused] = useState<BestiaryEntry | null>(focusedNpc);
-  const [pickerSlug, setPickerSlug] = useState<string>(bestiary[0]?.slug ?? "");
-  const [pickerCharId, setPickerCharId] = useState<string>(
-    keeperChars[0] ? String(keeperChars[0].id) : "",
-  );
+  const [addTab, setAddTab] = useState<AddTab>("enemy");
   const [addedCharIds, setAddedCharIds] = useState<number[]>([]);
 
   const sorted = useMemo(() => [...rows].sort((a, b) => b.dex - a.dex), [rows]);
@@ -148,87 +147,130 @@ export function SceneClient({
   return (
     <>
       <div className="scene-grid cinematic">
-        <InitiativeTracker
-          rows={sorted}
-          round={round}
-          activeIndex={activeIndex}
-          roundFlash={roundFlash}
-          onAdvance={advance}
-          onReset={reset}
-          onDamage={damage}
-          onRemove={remove}
-          onSelect={onSelect}
-          activeStatblockId={
-            focused?.slug ? rows.find((r) => r.source_slug === focused.slug)?.id : undefined
-          }
-        />
+        <div className="stk-panel">
+          <div className="stk-head">
+            <span className="stk-eyebrow">INITIATIVE</span>
+            <span className="stk-title">트래커</span>
+          </div>
+          <div className="stk-body stk-body-flush">
+            <InitiativeTracker
+              rows={sorted}
+              round={round}
+              activeIndex={activeIndex}
+              roundFlash={roundFlash}
+              onAdvance={advance}
+              onReset={reset}
+              onDamage={damage}
+              onRemove={remove}
+              onSelect={onSelect}
+              activeStatblockId={
+                focused?.slug ? rows.find((r) => r.source_slug === focused.slug)?.id : undefined
+              }
+            />
+          </div>
+        </div>
 
-        <div>
-          {/* NPC 추가 박스 */}
-          <div className="npc-picker">
-            <div className="picker-label">에너미에서 추가</div>
-            <div className="picker-row">
-              <select
-                value={pickerSlug}
-                onChange={(e) => setPickerSlug(e.target.value)}
-                disabled={bestiary.length === 0}
-              >
-                {bestiary.length === 0 ? (
-                  <option value="">에너미에 항목 없음</option>
-                ) : (
-                  bestiary.map((b) => (
-                    <option key={b.slug} value={b.slug}>
-                      {b.name} (HP {b.attrs.hp ?? "?"})
-                    </option>
-                  ))
-                )}
-              </select>
+        <div className="stk-col">
+          {/* 장면에 추가 — 탭 + 리스트 */}
+          <div className="stk-panel">
+            <div className="stk-head">
+              <span className="stk-eyebrow">ADD · 장면에 등장</span>
+              <span className="stk-title">추가</span>
+            </div>
+            <div className="stk-tabs" role="tablist">
               <button
                 type="button"
-                className="btn"
-                onClick={() => pickerSlug && addNpcFromSlug(pickerSlug)}
-                disabled={!pickerSlug}
+                role="tab"
+                aria-selected={addTab === "enemy"}
+                className={`stk-tab${addTab === "enemy" ? " active" : ""}`}
+                onClick={() => setAddTab("enemy")}
               >
-                + 추가
+                에너미
+                <span className="stk-tab-count">{bestiary.length}</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={addTab === "char"}
+                className={`stk-tab${addTab === "char" ? " active" : ""}`}
+                onClick={() => setAddTab("char")}
+                disabled={keeperChars.length === 0}
+                title={keeperChars.length === 0 ? "다른 캠페인에 등록된 키퍼 캐릭터가 없습니다" : ""}
+              >
+                내 캐릭터
+                <span className="stk-tab-count">{keeperChars.length}</span>
               </button>
             </div>
-
-            {keeperChars.length > 0 ? (
-              <>
-                <div className="picker-label" style={{ marginTop: "0.85rem" }}>
-                  내 캐릭터 시트에서 추가
+            {addTab === "enemy" ? (
+              bestiary.length === 0 ? (
+                <div className="stk-empty">
+                  에너미에 등록된 항목이 없습니다.{" "}
+                  <Link href="/bestiary" className="stk-link">
+                    에너미 페이지에서 추가 →
+                  </Link>
                 </div>
-                <div className="picker-row">
-                  <select
-                    value={pickerCharId}
-                    onChange={(e) => setPickerCharId(e.target.value)}
-                  >
-                    {keeperChars.map((c) => (
-                      <option key={c.id} value={String(c.id)}>
-                        {c.name} (HP {c.hp_max}, DEX {c.dex})
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => pickerCharId && addNpcFromChar(Number(pickerCharId))}
-                    disabled={!pickerCharId}
-                  >
-                    + 추가
-                  </button>
-                </div>
-              </>
-            ) : null}
+              ) : (
+                <ul className="stk-add-list">
+                  {bestiary.map((b) => (
+                    <li key={b.slug} className="stk-add-row">
+                      <div className="stk-add-main">
+                        <span className="stk-add-name">{b.name}</span>
+                        <span className="stk-add-meta">
+                          HP {b.attrs.hp ?? "?"} · DEX {b.attrs.dex ?? "?"} · {b.category}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className="stk-add-btn"
+                        onClick={() => addNpcFromSlug(b.slug)}
+                        aria-label={`${b.name} 추가`}
+                      >
+                        + 추가
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )
+            ) : keeperChars.length === 0 ? (
+              <div className="stk-empty">
+                다른 캠페인에 등록된 내 캐릭터가 없습니다.
+              </div>
+            ) : (
+              <ul className="stk-add-list">
+                {keeperChars.map((c) => (
+                  <li key={c.id} className="stk-add-row">
+                    <div className="stk-add-main">
+                      <span className="stk-add-name">{c.name}</span>
+                      <span className="stk-add-meta">
+                        HP {c.hp_max} · DEX {c.dex} · {c.occupation || "직업 미기재"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="stk-add-btn"
+                      onClick={() => addNpcFromChar(c.id)}
+                      aria-label={`${c.name} 추가`}
+                    >
+                      + 추가
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
+          {/* 포커스 스탯블록 */}
           {focused ? (
-            <>
-              <StatBlock entry={focused} />
-              <div className="keeper-actions">
-                <span className="ka-label">
-                  {focused.name} 에 액션 →
-                </span>
+            <div className="stk-panel">
+              <div className="stk-head">
+                <span className="stk-eyebrow">FOCUS · 스탯블록</span>
+                <span className="stk-title">{focused.name}</span>
+              </div>
+              <div className="stk-body stk-body-flush">
+                <StatBlock entry={focused} />
+              </div>
+              <div className="stk-foot stk-actions">
+                <span className="stk-foot-label">{focused.name} 에 액션 →</span>
                 <button type="button" className="chip" onClick={() => applyToFocused(rolld(6))}>
                   -1d6 HP
                 </button>
@@ -249,23 +291,16 @@ export function SceneClient({
                   + NPC 복제
                 </button>
               </div>
-            </>
+            </div>
           ) : (
-            <div
-              className="statblock"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: 240,
-              }}
-            >
-              <p
-                className="empty"
-                style={{ background: "none", border: "none", padding: 0, textAlign: "center" }}
-              >
-                트래커에서 NPC를 선택하거나 위 picker로 추가하면 스탯블록이 표시됩니다.
-              </p>
+            <div className="stk-panel">
+              <div className="stk-head">
+                <span className="stk-eyebrow">FOCUS · 스탯블록</span>
+                <span className="stk-title">선택 대기</span>
+              </div>
+              <div className="stk-empty">
+                트래커에서 NPC 이름을 누르거나 위에서 추가하면 스탯블록이 여기에 표시됩니다.
+              </div>
             </div>
           )}
         </div>
@@ -280,19 +315,7 @@ export function SceneClient({
           <Link key={`char-${c.id}`} href={`/characters/${c.id}`} className="board-card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
               <h2 style={{ margin: 0 }}>{c.name}</h2>
-              <span
-                style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "0.65rem",
-                  letterSpacing: "0.08em",
-                  color: "var(--accent)",
-                  border: "1px solid var(--accent)",
-                  padding: "0.05rem 0.4rem",
-                  borderRadius: "999px",
-                }}
-              >
-                내 캐릭터
-              </span>
+              <span className="stk-badge">내 캐릭터</span>
             </div>
             <p className="desc">{c.occupation || "직업 미기재"}</p>
             <div className="stats">
