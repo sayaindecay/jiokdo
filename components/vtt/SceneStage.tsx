@@ -1,7 +1,5 @@
-import type { Campaign, Character, PlayEntry, Session } from "@/lib/types";
-import { SceneSkillBar } from "./SceneSkillBar";
+import type { Campaign, PlayEntry, Session } from "@/lib/types";
 import { SceneIllustration } from "./Illustrations";
-import { RoundControl } from "./RoundControl";
 import { SceneIllustrationEditor } from "./SceneIllustrationEditor";
 import { formatTime } from "@/lib/format";
 
@@ -12,24 +10,17 @@ function kindLabel(kind: PlayEntry["kind"]): string {
 }
 
 export function SceneStage({
-  campaign, session, lastEntry, myCharacter, memberCount, isKeeper = false,
+  campaign, session, lastEntry, memberCount, isKeeper = false,
 }: {
   campaign: Campaign;
   session: Session | null;
   lastEntry: PlayEntry | null;
-  myCharacter: Character | null;
   memberCount: number;
   isKeeper?: boolean;
 }) {
   const headerLeft = session
     ? `세션 #${session.number} · ${session.title}`
     : campaign.name;
-
-  const topSkills = myCharacter
-    ? [...myCharacter.skills]
-        .sort((a, b) => Number(!!b.used) - Number(!!a.used) || b.value - a.value)
-        .slice(0, 4)
-    : [];
 
   const hasImage = !!campaign.illustration_url;
   const compact = !hasImage && !isKeeper;
@@ -40,11 +31,8 @@ export function SceneStage({
 
       <div className="scene-top">
         <span className="scene-top-meta">{headerLeft}</span>
-        <span className="scene-top-right">
-          <span className="scene-members" title="이 캠페인의 멤버 수 (실제 접속 인원 아님)">
-            👥 멤버 {memberCount}명
-          </span>
-          <RoundControl />
+        <span className="scene-members" title="이 캠페인의 멤버 수">
+          👥 멤버 {memberCount}명
         </span>
       </div>
 
@@ -70,12 +58,7 @@ export function SceneStage({
                 className="scene-illustration-img"
               />
             ) : (
-              <>
-                <SceneIllustration />
-                <div className="scene-illustration-tag" aria-hidden="true">
-                  {isKeeper ? "장면 일러스트를 올려 분위기를 만드세요" : "장면 일러스트"}
-                </div>
-              </>
+              <SceneIllustration />
             )}
             {isKeeper ? (
               <SceneIllustrationEditor
@@ -86,8 +69,6 @@ export function SceneStage({
           </div>
         </div>
       ) : null}
-
-      <SceneSkillBar character={myCharacter} skills={topSkills} />
     </div>
   );
 }

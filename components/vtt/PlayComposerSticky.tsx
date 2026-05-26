@@ -58,20 +58,6 @@ export function PlayComposerSticky({
     return () => window.removeEventListener(ACTIVE_CHARACTER_EVENT, handler);
   }, [characters]);
 
-  const insert = (snippet: string) => {
-    const ta = taRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const before = ta.value.slice(0, start);
-    const after = ta.value.slice(end);
-    const prefix = before.length > 0 && !before.endsWith("\n") && !before.endsWith(" ") ? " " : "";
-    ta.value = `${before}${prefix}${snippet}${after}`;
-    const pos = (before + prefix + snippet).length;
-    ta.setSelectionRange(pos, pos);
-    ta.focus();
-  };
-
   return (
     <div className="play-composer-sticky" id="composer">
       <form
@@ -162,13 +148,6 @@ export function PlayComposerSticky({
 
         {!collapsed ? (
           <>
-            <div className="dice-toolbar" aria-label="자주 쓰는 명령">
-              <button type="button" className="chip" onClick={() => insert("/roll 1d100")}>/roll 1d100</button>
-              <button type="button" className="chip" onClick={() => insert("/roll 3d6")}>/roll 3d6</button>
-              <button type="button" className="chip" onClick={() => insert("/cc 50")}>/cc 50</button>
-              <button type="button" className="chip" onClick={() => insert("/cc 탐색 65")}>/cc 탐색 65</button>
-            </div>
-
             <textarea
               ref={taRef}
               name="content"

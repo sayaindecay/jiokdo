@@ -105,7 +105,6 @@ export default async function PlayPage({
           campaign={camp}
           session={currentSession}
           lastEntry={lastEntry}
-          myCharacter={myChar}
           memberCount={members.length}
           isKeeper={isKeeper}
         />
@@ -119,7 +118,7 @@ export default async function PlayPage({
       <div className="section-head">
         <h2>세션 로그</h2>
         <span className="count">
-          최근 {recentEntries.length}개 · <Link href="/search">전체 검색 →</Link>
+          최근 {recentEntries.length}개
         </span>
       </div>
       {recentEntries.length === 0 ? (
