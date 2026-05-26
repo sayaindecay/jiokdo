@@ -2617,6 +2617,27 @@ body:has(.scene-side) .post-row:hover { background: rgba(245, 243, 238, 0.06); }
 body:has(.scene-side) .post-row .title { color: rgba(245, 243, 238, 0.92); }
 body:has(.scene-side) .post-row:hover .title { color: var(--accent); }
 body:has(.scene-side) .post-row .meta { color: rgba(245, 243, 238, 0.45); }
+
+/* 세션 로그 텍스트 — 어두운 배경에서 가독성 확보 */
+body:has(.scene-side) .session-row .session-author { color: rgba(245, 243, 238, 0.92); }
+body:has(.scene-side) .session-row .session-preview { color: rgba(245, 243, 238, 0.72); }
+body:has(.scene-side) .session-row .session-meta { color: rgba(245, 243, 238, 0.48); }
+body:has(.scene-side) .session-row .kind-tag {
+  background: rgba(245, 243, 238, 0.06);
+  border-color: rgba(245, 243, 238, 0.18);
+  color: rgba(245, 243, 238, 0.65);
+}
+body:has(.scene-side) .session-row .kind-tag.kind-narration {
+  background: rgba(193, 78, 78, 0.22);
+  border-color: rgba(193, 78, 78, 0.45);
+  color: #f0a8a8;
+}
+body:has(.scene-side) .session-row .kind-tag.kind-system {
+  background: rgba(160, 126, 196, 0.22);
+  border-color: rgba(160, 126, 196, 0.45);
+  color: #cfb6e8;
+}
+
 body:has(.scene-side) .empty {
   background: rgba(245, 243, 238, 0.04);
   border-color: rgba(245, 243, 238, 0.20);
