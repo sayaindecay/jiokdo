@@ -8003,6 +8003,71 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
 
 .section-head-tracker-log .actions { display: flex; gap: 0.4rem; }
 
+/* 한 줄 묘사 입력창 */
+.tracker-narration {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+.tracker-narration .tn-input {
+  flex: 1;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  font-family: var(--font-anno);
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+.tracker-narration .tn-input::placeholder { color: var(--ink-3); }
+.tracker-narration .tn-input:focus { border-color: var(--accent); outline: none; }
+
+body:has(.scene-side, .cinematic) .tracker-narration .tn-input {
+  background: rgba(245, 243, 238, 0.06);
+  border-color: rgba(245, 243, 238, 0.2);
+  color: rgba(245, 243, 238, 0.92);
+}
+body:has(.scene-side, .cinematic) .tracker-narration .tn-input::placeholder {
+  color: rgba(245, 243, 238, 0.4);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .tracker-narration .tn-input {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .tracker-narration .tn-input::placeholder {
+  color: var(--ink-3);
+}
+
+/* exported 항목 — 흐리게 + 우측 배지 */
+.combat-log-tracker .cl-row.is-exported {
+  opacity: 0.55;
+}
+.combat-log-tracker .cl-exported-tag {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  margin-left: 0.25rem;
+}
+
+/* narration row 톤 */
+.combat-log-tracker .cl-row.is-narration {
+  background: var(--bg-elev-2);
+}
+.combat-log-tracker .cl-row.is-narration .cl-actor { color: var(--gold); font-weight: 500; }
+.combat-log-tracker .cl-row.is-narration .cl-label { color: var(--ink); font-family: var(--font-anno); font-size: 0.9rem; }
+body:has(.scene-side, .cinematic) .combat-log-tracker .cl-row.is-narration {
+  background: rgba(245, 243, 238, 0.06);
+}
+body:has(.scene-side, .cinematic) .combat-log-tracker .cl-row.is-narration .cl-label {
+  color: rgba(245, 243, 238, 0.92);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log-tracker .cl-row.is-narration {
+  background: var(--bg-elev-2);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log-tracker .cl-row.is-narration .cl-label {
+  color: var(--ink);
+}
+
 /* 시네마틱 다크 인버트 */
 body:has(.scene-side, .cinematic) .combat-log-tracker {
   background: rgba(245, 243, 238, 0.04);

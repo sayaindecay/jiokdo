@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getNickname } from "@/lib/auth";
 import {
   getCampaign, listAllCharactersOwnedBy, listBestiary,
-  listCampaignCharacters, listCampaignMembers, listClues,
+  listCampaignCharacters, listCampaignMembers, listClues, listCombatDrafts,
   listPlayEntries, listSessions,
 } from "@/lib/db";
 import { SceneStage } from "@/components/vtt/SceneStage";
@@ -12,7 +12,7 @@ import { CluesPanel, SceneRoster } from "@/components/vtt/SceneRoster";
 import { MySheetPanel } from "@/components/vtt/MySheetPanel";
 import { PlayComposerSticky } from "@/components/vtt/PlayComposerSticky";
 import { PostBoard } from "@/components/vtt/PostBoard";
-import { TrackerPanel, type PcLite } from "@/components/vtt/TrackerPanel";
+import { TrackerPanel, type CombatLogEntry, type PcLite } from "@/components/vtt/TrackerPanel";
 import type { Character, PlayEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -81,21 +81,41 @@ export default async function PlayPage({
 
   // 트래커 모드일 때 필요한 추가 데이터
   const trackerData = mode === "tracker"
-    ? {
-        bestiary: await listBestiary(),
-        keeperChars: isKeeper
-          ? (await listAllCharactersOwnedBy(camp.keeper_nick)).map(toPcLite)
-          : [],
-        pcChars: characters.map(toPcLite),
-        initialRows: characters.map((c) => ({
-          id: `pc-${c.id}`,
-          dex: c.attrs.dex,
-          name: c.name,
-          is_pc: true,
-          hp: c.hp,
-          hp_max: c.hp_max,
-        })),
-      }
+    ? await (async () => {
+        const [bestiary, keeperCharsRaw, drafts] = await Promise.all([
+          listBestiary(),
+          isKeeper ? listAllCharactersOwnedBy(camp.keeper_nick) : Promise.resolve([]),
+          listCombatDrafts(id),
+        ]);
+        const initialDrafts: CombatLogEntry[] = drafts.map((d) => ({
+          id: d.id,
+          ts: d.ts,
+          kind: d.kind,
+          actor: d.actor,
+          character_id: d.character_id,
+          label: d.label,
+          detail: d.detail,
+          skill_name: d.skill_name,
+          skill_val: d.skill_val,
+          roll: d.roll,
+          level: (d.level as CombatLogEntry["level"]) ?? null,
+          exported: d.exported,
+        }));
+        return {
+          bestiary,
+          keeperChars: keeperCharsRaw.map(toPcLite),
+          pcChars: characters.map(toPcLite),
+          initialRows: characters.map((c) => ({
+            id: `pc-${c.id}`,
+            dex: c.attrs.dex,
+            name: c.name,
+            is_pc: true,
+            hp: c.hp,
+            hp_max: c.hp_max,
+          })),
+          initialDrafts,
+        };
+      })()
     : null;
 
   // 세션 + 전투 로그 통합 게시판 — 최신 글이 맨 위 (역순) + 15개씩 페이지네이션
@@ -152,6 +172,8 @@ export default async function PlayPage({
           pcChars={trackerData.pcChars}
           keeperChars={trackerData.keeperChars}
           currentNick={nick}
+          isKeeper={isKeeper}
+          initialDrafts={trackerData.initialDrafts}
         />
       ) : (
         <div className="scene-side">
@@ -226,7 +248,7 @@ export default async function PlayPage({
         </>
       )}
 
-      {isMember ? (
+      {isMember && mode !== "tracker" ? (
         <PlayComposerSticky
           campaignId={id}
           characters={
@@ -241,11 +263,11 @@ export default async function PlayPage({
           hasEntries={entries.length > 0}
           lastEntryId={lastEntry?.id ?? null}
         />
-      ) : (
+      ) : !isMember ? (
         <div className="empty" style={{ marginTop: "1.25rem" }}>
           이 캠페인의 멤버가 아닙니다. <Link href="/campaigns">캠페인 목록</Link>에서 초대 코드로 참여하세요.
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -5,13 +5,16 @@ import { revalidatePath } from "next/cache";
 import { contentToSegments } from "@/lib/dice";
 import { cookies } from "next/headers";
 import {
+  appendCombatDraft, clearCombatDrafts,
   createBestiaryEntry, createCampaign, createCharacter, createPlayEntry,
   createUser, createUserSessionRecord, deleteBestiaryEntry, deleteCampaign, setCampaignStatus,
   deleteCharacter, deleteOtherUserSessions, deleteUser, deleteUserSession,
   findUser, getBestiaryEntry, getCampaign, getCampaignByCode, getCharacter,
-  isBestiarySlugTaken, joinCampaign, listKeperCampaigns, touchUserLogin,
+  isBestiarySlugTaken, joinCampaign, listCampaignMembers, listKeperCampaigns,
+  listUnexportedCombatDrafts, touchUserLogin,
   createClue, deleteClue, setClueResolved,
   deletePlayEntry, getPlayEntry,
+  markCombatDraftsExported,
   setCampaignIllustration, setCampaignScenePin, setCharacterPortrait,
   updateBestiaryEntry, updateCampaignProfile, updateCharacterProfile, updateCharacterVitals,
   updatePlayEntry, updateUserPassword,
@@ -877,5 +880,96 @@ export async function appendTrackerEntryAction(fd: FormData): Promise<void> {
   }
   if (segments.length === 0) throw new Error("기록할 내용이 없습니다");
   await createPlayEntry({ campaign_id, nickname: nick, character_id, kind, title, segments });
+  revalidatePath(`/campaigns/${campaign_id}/play`);
+}
+
+// ───── 전투 트래커 드래프트 ─────
+
+async function assertCampaignMember(nick: string, campaignId: number): Promise<{ isKeeper: boolean }> {
+  const camp = await getCampaign(campaignId);
+  if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
+  if (camp.keeper_nick === nick) return { isKeeper: true };
+  const members = await listCampaignMembers(campaignId);
+  if (!members.some((m) => m.nickname === nick)) {
+    throw new Error("이 캠페인의 멤버만 작성할 수 있습니다");
+  }
+  return { isKeeper: false };
+}
+
+// 전투 로그 한 줄 append — roll / system / narration 공용.
+// 키퍼·플레이어 모두 작성 가능.
+export async function appendCombatDraftAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const campaign_id = num(fd, "campaign_id");
+  await assertCampaignMember(nick, campaign_id);
+  const kindRaw = text(fd, "kind", 12);
+  const kind: "roll" | "system" | "narration" =
+    kindRaw === "roll" ? "roll"
+      : kindRaw === "narration" ? "narration"
+      : "system";
+  const actor = text(fd, "actor", 60) || nick;
+  const character_id_raw = fd.get("character_id");
+  const character_id =
+    character_id_raw && character_id_raw !== "" ? Number(character_id_raw) : null;
+  const label = text(fd, "label", 200);
+  if (!label) throw new Error("내용이 비어 있습니다");
+  const detail = text(fd, "detail", 400) || null;
+  const skill_name = text(fd, "skill_name", 60) || null;
+  const skill_val_raw = text(fd, "skill_val", 4);
+  const skill_val = skill_val_raw ? Number(skill_val_raw) : null;
+  const roll_raw = text(fd, "roll", 4);
+  const roll = roll_raw ? Number(roll_raw) : null;
+  const level = text(fd, "level", 16) || null;
+  await appendCombatDraft({
+    campaign_id, ts: Date.now(), written_by: nick,
+    actor, character_id, kind, label, detail,
+    skill_name, skill_val, roll, level,
+  });
+  revalidatePath(`/campaigns/${campaign_id}/play`);
+}
+
+// 익스포트되지 않은 드래프트를 모두 삭제 (키퍼만)
+export async function clearCombatDraftsAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const campaign_id = num(fd, "campaign_id");
+  const { isKeeper } = await assertCampaignMember(nick, campaign_id);
+  if (!isKeeper) throw new Error("키퍼만 비울 수 있습니다");
+  await clearCombatDrafts(campaign_id);
+  revalidatePath(`/campaigns/${campaign_id}/play`);
+}
+
+// 미익스포트 드래프트를 한 건의 play_entry 로 묶어 익스포트 (키퍼만)
+export async function exportCombatDraftsAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const campaign_id = num(fd, "campaign_id");
+  const { isKeeper } = await assertCampaignMember(nick, campaign_id);
+  if (!isKeeper) throw new Error("키퍼만 익스포트할 수 있습니다");
+  const drafts = await listUnexportedCombatDrafts(campaign_id);
+  if (drafts.length === 0) throw new Error("익스포트할 항목이 없습니다");
+  const segments: Segment[] = drafts.map((d) => {
+    if (d.kind === "roll" && d.skill_name && d.skill_val != null && d.roll != null && d.level) {
+      return {
+        type: "dice",
+        result: {
+          kind: "cc",
+          expression: `/cc ${d.skill_name} ${d.skill_val}`,
+          name: `[${d.actor}] ${d.label}`,
+          skill: d.skill_val,
+          roll: d.roll,
+          level: d.level as "critical" | "extreme" | "hard" | "regular" | "fail" | "fumble",
+        },
+      };
+    }
+    if (d.kind === "narration") {
+      return { type: "text", value: `[${d.actor}] ${d.label}` };
+    }
+    return { type: "text", value: `[${d.actor}] ${d.label}${d.detail ? ` — ${d.detail}` : ""}` };
+  });
+  const entryId = await createPlayEntry({
+    campaign_id, nickname: nick, character_id: null, kind: "system",
+    title: `전투 로그 (${drafts.length}건)`,
+    segments,
+  });
+  await markCombatDraftsExported(campaign_id, entryId);
   revalidatePath(`/campaigns/${campaign_id}/play`);
 }

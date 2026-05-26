@@ -129,6 +129,24 @@ function ensureReady(): Promise<void> {
         expires_at INTEGER NOT NULL
       )`,
       `CREATE INDEX IF NOT EXISTS idx_user_sessions_expires ON user_sessions(expires_at)`,
+      `CREATE TABLE IF NOT EXISTS combat_log_drafts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        campaign_id INTEGER NOT NULL,
+        ts INTEGER NOT NULL,
+        written_by TEXT NOT NULL,
+        actor TEXT NOT NULL,
+        character_id INTEGER,
+        kind TEXT NOT NULL,
+        label TEXT NOT NULL,
+        detail TEXT,
+        skill_name TEXT,
+        skill_val INTEGER,
+        roll INTEGER,
+        level TEXT,
+        exported INTEGER NOT NULL DEFAULT 0,
+        exported_entry_id INTEGER
+      )`,
+      `CREATE INDEX IF NOT EXISTS idx_combat_drafts_camp ON combat_log_drafts(campaign_id, ts ASC)`,
     ], "write");
 
     // 기존 DB 마이그레이션 (컬럼 추가) — 실패 시 무시
@@ -863,6 +881,96 @@ export async function createPlayEntry(input: {
     ],
   });
   return Number(res.lastInsertRowid);
+}
+
+// ───── 전투 트래커 드래프트 (실시간 공유 로그) ─────
+export type CombatLogDraft = {
+  id: number;
+  campaign_id: number;
+  ts: number;
+  written_by: string;
+  actor: string;
+  character_id: number | null;
+  kind: "roll" | "system" | "narration";
+  label: string;
+  detail: string | null;
+  skill_name: string | null;
+  skill_val: number | null;
+  roll: number | null;
+  level: string | null;
+  exported: boolean;
+  exported_entry_id: number | null;
+};
+
+function rowToDraft(r: Record<string, unknown>): CombatLogDraft {
+  return {
+    id: Number(r.id),
+    campaign_id: Number(r.campaign_id),
+    ts: Number(r.ts),
+    written_by: String(r.written_by),
+    actor: String(r.actor),
+    character_id: r.character_id == null ? null : Number(r.character_id),
+    kind: String(r.kind) as CombatLogDraft["kind"],
+    label: String(r.label),
+    detail: r.detail == null ? null : String(r.detail),
+    skill_name: r.skill_name == null ? null : String(r.skill_name),
+    skill_val: r.skill_val == null ? null : Number(r.skill_val),
+    roll: r.roll == null ? null : Number(r.roll),
+    level: r.level == null ? null : String(r.level),
+    exported: Number(r.exported) > 0,
+    exported_entry_id: r.exported_entry_id == null ? null : Number(r.exported_entry_id),
+  };
+}
+
+export async function listCombatDrafts(campaignId: number): Promise<CombatLogDraft[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM combat_log_drafts WHERE campaign_id = ? ORDER BY ts ASC, id ASC",
+    args: [campaignId],
+  });
+  return res.rows.map((r) => rowToDraft(r as unknown as Record<string, unknown>));
+}
+
+export async function appendCombatDraft(input: Omit<CombatLogDraft, "id" | "exported" | "exported_entry_id">): Promise<number> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `INSERT INTO combat_log_drafts (campaign_id, ts, written_by, actor, character_id, kind, label, detail, skill_name, skill_val, roll, level, exported)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+    args: [
+      input.campaign_id, input.ts, input.written_by, input.actor,
+      input.character_id, input.kind, input.label, input.detail,
+      input.skill_name, input.skill_val, input.roll, input.level,
+    ],
+  });
+  return Number(res.lastInsertRowid);
+}
+
+export async function clearCombatDrafts(campaignId: number): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: "DELETE FROM combat_log_drafts WHERE campaign_id = ? AND exported = 0",
+    args: [campaignId],
+  });
+}
+
+export async function listUnexportedCombatDrafts(campaignId: number): Promise<CombatLogDraft[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM combat_log_drafts WHERE campaign_id = ? AND exported = 0 ORDER BY ts ASC, id ASC",
+    args: [campaignId],
+  });
+  return res.rows.map((r) => rowToDraft(r as unknown as Record<string, unknown>));
+}
+
+export async function markCombatDraftsExported(
+  campaignId: number,
+  exportedEntryId: number,
+): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: "UPDATE combat_log_drafts SET exported = 1, exported_entry_id = ? WHERE campaign_id = ? AND exported = 0",
+    args: [exportedEntryId, campaignId],
+  });
 }
 
 // ───── 검색 ─────
