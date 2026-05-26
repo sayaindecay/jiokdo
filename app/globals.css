@@ -5838,6 +5838,176 @@ select:focus-visible {
 .ms-vitals-bar,
 .stk-my-vitals { padding: 0.5rem 0.7rem 0.6rem; }
 
+/* ───── MyVitalsSheet — 플레이 시트 패널 전용 vertical 시트 레이아웃 ───── */
+.mvs-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.mvs-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto auto;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.3rem 0.35rem;
+  border-radius: 5px;
+}
+.mvs-row + .mvs-row { border-top: 1px dashed rgba(245, 243, 238, 0.08); }
+.mvs-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: rgba(245, 243, 238, 0.55);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.mvs-bar {
+  position: relative;
+  display: block;
+  height: 7px;
+  width: 100%;
+  background: rgba(245, 243, 238, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.mvs-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.18s ease-out;
+}
+.mvs-bar-hp i  { background: linear-gradient(90deg, #d97070, #f0a8a8); }
+.mvs-bar-mp i  { background: linear-gradient(90deg, #7a9fce, #a8c6e0); }
+.mvs-bar-san i { background: linear-gradient(90deg, #c89c4a, #e0c685); }
+.mvs-bar-luck i { background: linear-gradient(90deg, #6fa75f, #b0d99a); }
+.mvs-row.warn .mvs-bar-san i { background: linear-gradient(90deg, #8a1c1c, #d97070); }
+
+.mvs-num {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+.mvs-num input {
+  width: 2.4rem;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  border-radius: 3px;
+  padding: 0.05rem 0.2rem !important;
+  margin: 0;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff !important;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.mvs-num input::-webkit-inner-spin-button,
+.mvs-num input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.mvs-num input:hover { border-color: rgba(245, 243, 238, 0.18) !important; }
+.mvs-num input:focus { outline: none; border-color: var(--accent) !important; background: rgba(245, 243, 238, 0.06) !important; }
+.mvs-num-direct input {
+  border-color: rgba(245, 243, 238, 0.16) !important;
+  background: rgba(245, 243, 238, 0.04) !important;
+}
+.mvs-slash { color: rgba(245, 243, 238, 0.35); }
+.mvs-max   { color: rgba(245, 243, 238, 0.55); font-weight: 400; font-size: 0.82rem; }
+
+.mvs-steps {
+  display: inline-flex;
+  gap: 0.2rem;
+  min-width: 3.4rem;
+  justify-content: flex-end;
+}
+.mvs-steps-empty { visibility: hidden; }
+.mvs-step {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  border: 1px solid rgba(245, 243, 238, 0.16);
+  background: rgba(245, 243, 238, 0.04);
+  color: rgba(245, 243, 238, 0.85);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all var(--tx-fast);
+}
+.mvs-step:hover {
+  background: rgba(138, 28, 28, 0.25);
+  border-color: var(--accent);
+  color: #fff;
+}
+.mvs-row.warn .mvs-label,
+.mvs-row.warn .mvs-num input { color: #f0a8a8 !important; }
+
+.mvs-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+}
+.mvs-save {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.95rem;
+}
+.mvs-save:disabled { opacity: 0.3; }
+
+/* MyVitalsSheet — 일반 라이트 화면 (시네마틱 X) 톤 보정 */
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-label { color: var(--ink-3); }
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-bar { background: var(--bg-elev-2); }
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-num input { color: var(--ink) !important; }
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-num input:hover { border-color: var(--line) !important; }
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-num-direct input {
+  background: var(--bg-elev) !important;
+  border-color: var(--line) !important;
+}
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-slash { color: var(--line-strong); }
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-max { color: var(--ink-3); }
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-step {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--ink-2);
+}
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-step:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .mvs-row + .mvs-row {
+  border-top-color: var(--line);
+}
+
+/* 라이트 시네마틱 (다크 모드 + cinematic) — 인버트 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-label { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-bar { background: var(--bg-elev-2); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-num input { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-num input:hover { border-color: var(--line) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-num-direct input {
+  background: var(--bg-elev) !important;
+  border-color: var(--line) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-slash { color: var(--line-strong); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-max { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-step {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--ink-2);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-step:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .mvs-row + .mvs-row {
+  border-top-color: var(--line);
+}
+
 .vital-bar {
   display: flex;
   flex-direction: column;
@@ -5978,24 +6148,24 @@ select:focus-visible {
   opacity: 0.3;
 }
 
-/* 라이트(시네마틱 X) — 일반 화면용 */
-:root:not([data-theme="dark"]) .vital-cell {
+/* 라이트(시네마틱 X) — 일반 화면용. body 가 시네마틱일 땐 dark base 유지 */
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .vital-cell {
   background: var(--bg-elev);
   border-color: var(--line);
 }
-:root:not([data-theme="dark"]) .vital-cell .vital-label { color: var(--ink-3); }
-:root:not([data-theme="dark"]) .vital-cell .vital-val,
-:root:not([data-theme="dark"]) .vital-cell .vital-val input { color: var(--ink) !important; }
-:root:not([data-theme="dark"]) .vital-cell .vital-max { color: var(--ink-3); }
-:root:not([data-theme="dark"]) .vital-cell .vital-step {
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .vital-cell .vital-label { color: var(--ink-3); }
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .vital-cell .vital-val,
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .vital-cell .vital-val input { color: var(--ink) !important; }
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .vital-cell .vital-max { color: var(--ink-3); }
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .vital-cell .vital-step {
   background: var(--bg-elev-2);
   color: var(--ink-2);
   border-right-color: var(--line);
 }
-:root:not([data-theme="dark"]) .vital-cell .vital-step:last-child {
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .vital-cell .vital-step:last-child {
   border-left-color: var(--line);
 }
-:root:not([data-theme="dark"]) .vital-cell .vital-step:hover {
+:root:not([data-theme="dark"]) body:not(:has(.scene-side, .cinematic)) .vital-cell .vital-step:hover {
   background: var(--accent-soft);
   color: var(--accent);
 }

@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import type { Character, CocSkill, CocSkillGroup } from "@/lib/types";
-import { VitalsEditor } from "./VitalsEditor";
+import { MyVitalsSheet } from "./MyVitalsSheet";
 
 const ATTR_KEYS: { key: keyof Character["attrs"]; label: string }[] = [
   { key: "str", label: "STR" }, { key: "con", label: "CON" }, { key: "siz", label: "SIZ" },
@@ -149,7 +149,7 @@ export function MySheetPanel({
       ) : null}
 
       <div className="ms-vitals-bar">
-        <VitalsEditor character={active} luck={active.attrs.luck} />
+        <MyVitalsSheet character={active} luck={active.attrs.luck} />
       </div>
 
       <div className="ms-tabs" role="tablist">
