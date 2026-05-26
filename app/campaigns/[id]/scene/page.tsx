@@ -25,11 +25,9 @@ export default async function ScenePage({
   ]);
 
   const isKeeper = nick != null && nick === camp.keeper_nick;
-  // 키퍼가 소유한 캐릭터 중 이 캠페인에 속하지 않은 시트를 NPC 후보로 노출
+  // 키퍼가 소유한 모든 캐릭터 시트를 NPC 후보로 노출 (다른 캠페인 / 이 캠페인 모두)
   const keeperChars = isKeeper
-    ? (await listAllCharactersOwnedBy(camp.keeper_nick)).filter(
-        (c) => c.campaign_id !== id,
-      )
+    ? await listAllCharactersOwnedBy(camp.keeper_nick)
     : [];
 
   const currentSession = sessions[0];

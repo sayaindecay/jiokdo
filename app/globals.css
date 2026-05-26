@@ -7338,17 +7338,92 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
   border-bottom-color: rgba(245, 243, 238, 0.18);
   color: rgba(245, 243, 238, 0.6);
 }
+.stk-body-flush .initiative .ini-row,
+.stk-body-flush .ini-row {
+  background: transparent;
+  border-bottom-color: rgba(245, 243, 238, 0.08);
+}
 .stk-body-flush .initiative .ini-row .name,
 .stk-body-flush .initiative .ini-row .dex,
-.stk-body-flush .initiative .ini-row .hp {
+.stk-body-flush .initiative .ini-row .hp,
+.stk-body-flush .ini-row .name-btn,
+.stk-body-flush .ini-hp-val {
   color: rgba(245, 243, 238, 0.92);
 }
-.stk-body-flush .initiative .ini-row.active {
+.stk-body-flush .ini-row .role-mark { color: rgba(245, 243, 238, 0.5); }
+.stk-body-flush .initiative .ini-row.active,
+.stk-body-flush .ini-row.active {
   background: rgba(138, 28, 28, 0.18);
   border-color: var(--accent);
 }
-.stk-body-flush .initiative .ini-row.dead {
+.stk-body-flush .initiative .ini-row.dead,
+.stk-body-flush .ini-row.dead {
   color: rgba(245, 243, 238, 0.4);
+}
+.stk-body-flush .ini-damage {
+  background: rgba(245, 243, 238, 0.06);
+  border-color: rgba(245, 243, 238, 0.18);
+  color: rgba(245, 243, 238, 0.85);
+}
+.stk-body-flush .ini-damage:hover:not(:disabled) {
+  background: rgba(138, 28, 28, 0.25);
+  border-color: var(--accent);
+  color: #fff;
+}
+.stk-body-flush .ini-damage.heal:hover:not(:disabled) {
+  border-color: var(--green);
+  color: var(--green);
+}
+.stk-body-flush .ini-remove { color: rgba(245, 243, 238, 0.5); }
+.stk-body-flush .ini-remove:hover { color: var(--accent); }
+
+/* 트래커 풋의 ghost / 일반 버튼 — cinematic 톤 */
+.stk-body-flush .ini-actions .btn.ghost {
+  background: transparent;
+  border-color: rgba(245, 243, 238, 0.2);
+  color: rgba(245, 243, 238, 0.85);
+  box-shadow: none;
+}
+.stk-body-flush .ini-actions .btn.ghost:hover {
+  background: rgba(245, 243, 238, 0.06);
+  border-color: rgba(245, 243, 238, 0.4);
+  color: #fff;
+}
+.stk-body-flush .ini-actions .btn {
+  background: rgba(245, 243, 238, 0.08);
+  border-color: rgba(245, 243, 238, 0.18);
+  color: #fff;
+  box-shadow: none;
+}
+.stk-body-flush .ini-actions .btn:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 시네마틱 톤의 NPC 보드 카드 (.board-card 재칠) */
+body:has(.scene-side, .cinematic) .board-grid .board-card {
+  background: rgba(245, 243, 238, 0.04);
+  border: 1px solid rgba(245, 243, 238, 0.16);
+  color: rgba(245, 243, 238, 0.92);
+  box-shadow: none;
+}
+body:has(.scene-side, .cinematic) .board-grid .board-card:hover {
+  border-color: var(--accent);
+  color: #fff;
+  background: rgba(245, 243, 238, 0.06);
+}
+body:has(.scene-side, .cinematic) .board-grid .board-card h2,
+body:has(.scene-side, .cinematic) .board-grid .board-card .stats b {
+  color: #fff;
+}
+body:has(.scene-side, .cinematic) .board-grid .board-card .desc,
+body:has(.scene-side, .cinematic) .board-grid .board-card .stats {
+  color: rgba(245, 243, 238, 0.6);
+}
+body:has(.scene-side, .cinematic) .board-grid .empty {
+  background: rgba(245, 243, 238, 0.04);
+  border: 1px dashed rgba(245, 243, 238, 0.16);
+  color: rgba(245, 243, 238, 0.55);
 }
 
 /* 라이트 시네마틱(다크 모드 토글) 인버트 */
@@ -7410,15 +7485,63 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
   color: var(--ink-3);
   border-bottom-color: var(--line);
 }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .initiative .ini-row,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-row {
+  background: transparent;
+  border-bottom-color: var(--line);
+}
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .initiative .ini-row .name,
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .initiative .ini-row .dex,
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .initiative .ini-row .hp {
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .initiative .ini-row .hp,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-row .name-btn,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-hp-val {
   color: var(--ink);
 }
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .initiative .ini-row.active {
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-row .role-mark {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .initiative .ini-row.active,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-row.active {
   background: var(--accent-soft);
 }
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .initiative .ini-row.dead {
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .initiative .ini-row.dead,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-row.dead {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-damage {
+  background: var(--bg-elev-2);
+  border-color: var(--line);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-remove {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-actions .btn.ghost {
+  background: transparent;
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-body-flush .ini-actions .btn {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .board-grid .board-card {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .board-grid .board-card h2,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .board-grid .board-card .stats b {
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .board-grid .board-card .desc,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .board-grid .board-card .stats {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .board-grid .empty {
+  background: var(--bg-elev);
+  border-color: var(--line);
   color: var(--ink-3);
 }
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-actions .chip {
