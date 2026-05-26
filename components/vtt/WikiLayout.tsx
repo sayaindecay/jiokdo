@@ -16,6 +16,9 @@ const GROUP_ICONS: Record<string, string> = {
   기타: "✦",
 };
 
+// 사이드바 그룹 노출 순서 — '기타' 가 항상 맨 아래
+const GROUP_ORDER: string[] = ["기본", "판정", "기타"];
+
 export function WikiLayout({
   nav,
   activeSlug,
@@ -35,6 +38,15 @@ export function WikiLayout({
     (acc[item.group] ??= []).push(item);
     return acc;
   }, {});
+  // GROUP_ORDER 우선 → 거기 없는 그룹은 알파벳 순으로 뒤에 (안전망)
+  const sortedGroupEntries = Object.entries(groups).sort(([a], [b]) => {
+    const ai = GROUP_ORDER.indexOf(a);
+    const bi = GROUP_ORDER.indexOf(b);
+    if (ai === -1 && bi === -1) return a.localeCompare(b);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
 
   return (
     <div className="wiki-layout">
@@ -42,7 +54,7 @@ export function WikiLayout({
         <Link href="/search?in=rulebook" className="search-box">
           🔍 룰북에서 찾기 <kbd>/</kbd>
         </Link>
-        {Object.entries(groups).map(([groupTitle, items]) => (
+        {sortedGroupEntries.map(([groupTitle, items]) => (
           <div className="group" key={groupTitle}>
             <div className="group-title">
               <span className="g-icon" aria-hidden="true">

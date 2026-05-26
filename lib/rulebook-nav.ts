@@ -10,11 +10,20 @@ const GROUP_MAP: Record<string, string> = {
 };
 
 const NUMBER_MAP: Record<string, string> = {
+  // 기본
   intro: "1",
   "character-creation": "2",
+  // 판정
   checks: "3",
   combat: "4",
   sanity: "5",
+  // 기타 (사이드바 맨 아래, 이어서 넘버링)
+  "site-guide": "6",
+  "dice-and-rolls": "7",
+  occupations: "8",
+  opposed: "9",
+  pushed: "10",
+  damage: "11",
 };
 
 export function buildRulebookNav(sections: RuleSection[]): WikiNavItem[] {
