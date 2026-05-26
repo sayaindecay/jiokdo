@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getNickname } from "@/lib/auth";
 import {
-  getCampaign, listClues, listCampaignCharacters, listCampaignMembers,
-  listPlayEntries, listSessions,
+  getCampaign, getCampaignDisplayNumber, listClues, listCampaignCharacters,
+  listCampaignMembers, listPlayEntries, listSessions,
 } from "@/lib/db";
 import { formatTime } from "@/lib/format";
 import { LEVEL_LABEL } from "@/lib/dice";
@@ -43,16 +43,18 @@ export default async function CampaignDashboard({
   const camp = await getCampaign(id);
   if (!camp) notFound();
   const nick = await getNickname();
-  const [members, chars, entries, sessions, clues] = await Promise.all([
+  const [members, chars, entries, sessions, clues, displayNum] = await Promise.all([
     listCampaignMembers(id),
     listCampaignCharacters(id),
     listPlayEntries(id),
     listSessions(id),
     listClues(id),
+    getCampaignDisplayNumber(id, camp.keeper_nick),
   ]);
   const isKeeper = nick === camp.keeper_nick;
   const isMember = nick != null && members.some((m) => m.nickname === nick);
   const recent = entries.slice(-5).reverse();
+  const campaignNum = String(displayNum).padStart(2, "0");
 
   return (
     <div className="campaign-dashboard" style={campaignHueStyle(camp.slug)}>
@@ -68,7 +70,7 @@ export default async function CampaignDashboard({
           {isKeeper ? (
             <CampaignProfileEditor
               campaignId={id}
-              campaignNum={String(id).padStart(2, "0")}
+              campaignNum={campaignNum}
               system={camp.system}
               initialName={camp.name}
               initialDescription={camp.description}
@@ -76,7 +78,7 @@ export default async function CampaignDashboard({
           ) : (
             <div className="cd-head-text">
               <div className="cd-eyebrow">
-                캠페인 №{String(id).padStart(2, "0")} · {camp.system.toUpperCase()}
+                캠페인 №{campaignNum} · {camp.system.toUpperCase()}
               </div>
               <h1 className="cd-title">{camp.name}</h1>
               {camp.description ? (

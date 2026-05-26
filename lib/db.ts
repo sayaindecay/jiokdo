@@ -420,6 +420,15 @@ export async function setCampaignStatus(
   return Number(res.rowsAffected) > 0;
 }
 
+export async function getCampaignDisplayNumber(campaignId: number, keeperNick: string): Promise<number> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT COUNT(*) AS n FROM campaigns WHERE keeper_nick = ? AND id <= ?",
+    args: [keeperNick, campaignId],
+  });
+  return Number(res.rows[0]?.n ?? 0);
+}
+
 export async function updateCampaignProfile(
   id: number,
   keeperNick: string,
