@@ -40,8 +40,8 @@ export function KeeperChecklist({
       label: "첫 세션 일정",
       hint: sessionsCount > 0
         ? `세션 ${sessionsCount}개 등록됨`
-        : "장면 트래커에서 첫 세션을 만들 수 있습니다.",
-      href: `/campaigns/${campaignId}/scene`,
+        : "전투 트래커에서 첫 세션을 만들 수 있습니다.",
+      href: `/campaigns/${campaignId}/play?mode=tracker`,
     },
     {
       id: "post",

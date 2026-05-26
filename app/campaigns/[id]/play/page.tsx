@@ -26,9 +26,14 @@ function toPcLite(c: Character): PcLite {
     id: c.id,
     name: c.name,
     occupation: c.occupation,
+    owner_nick: c.owner_nick,
     attrs: c.attrs,
     hp: c.hp,
     hp_max: c.hp_max,
+    mp: c.mp,
+    mp_max: c.mp_max,
+    san: c.san,
+    san_max: c.san_max,
     skills: c.skills.map((s) => ({ name: s.name, value: s.value, group: s.group })),
     weapons: c.weapons.map((w) => ({ name: w.name, skill: w.skill, damage: w.damage })),
   };
@@ -115,7 +120,7 @@ export default async function PlayPage({
               <span className="sep">/</span>
             </>
           ) : null}
-          <span>{mode === "tracker" ? "플레이 · 트래커" : "플레이"}</span>
+          <span>{mode === "tracker" ? "플레이 · 전투 트래커" : "플레이"}</span>
         </div>
         <div className="play-mode-toggle" role="tablist" aria-label="모드 전환">
           <Link
@@ -134,7 +139,7 @@ export default async function PlayPage({
             aria-selected={mode === "tracker"}
             prefetch={false}
           >
-            ⊞ 트래커
+            ⊞ 전투 트래커
           </Link>
         </div>
       </div>
@@ -146,6 +151,7 @@ export default async function PlayPage({
           bestiary={trackerData.bestiary}
           pcChars={trackerData.pcChars}
           keeperChars={trackerData.keeperChars}
+          currentNick={nick}
         />
       ) : (
         <div className="scene-side">

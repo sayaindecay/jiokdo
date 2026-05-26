@@ -5833,6 +5833,51 @@ select:focus-visible {
   line-height: 1.4;
 }
 
+/* HP/MP/SAN 인라인 편집기 — 패널 안 톤 보정 */
+.ms-vitals-editor,
+.stk-vitals-edit {
+  padding: 0 0.7rem 0.5rem;
+}
+.ms-vitals-editor > form,
+.stk-vitals-edit > form {
+  margin-top: 0 !important;
+  border-color: rgba(245, 243, 238, 0.22) !important;
+  color: rgba(245, 243, 238, 0.85);
+}
+.ms-vitals-editor > form input[type="number"],
+.stk-vitals-edit > form input[type="number"] {
+  background: rgba(245, 243, 238, 0.06);
+  border: 1px solid rgba(245, 243, 238, 0.18);
+  color: #fff;
+}
+.ms-vitals-editor > form button[aria-label*="감소"],
+.ms-vitals-editor > form button[aria-label*="증가"],
+.stk-vitals-edit > form button[aria-label*="감소"],
+.stk-vitals-edit > form button[aria-label*="증가"] {
+  background: rgba(245, 243, 238, 0.06) !important;
+  border-color: rgba(245, 243, 238, 0.2) !important;
+  color: #fff !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-vitals-editor > form,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-vitals-edit > form {
+  border-color: var(--line-strong) !important;
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-vitals-editor > form input[type="number"],
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-vitals-edit > form input[type="number"] {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-vitals-editor > form button[aria-label*="감소"],
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-vitals-editor > form button[aria-label*="증가"],
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-vitals-edit > form button[aria-label*="감소"],
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-vitals-edit > form button[aria-label*="증가"] {
+  background: var(--bg-elev) !important;
+  border-color: var(--line) !important;
+  color: var(--ink) !important;
+}
+
 /* 시네마틱 모드 — scene-roster (참여자 / 단서 패널 공용) 다크 톤 통일 */
 body:has(.scene-side, .cinematic) .scene-roster {
   background: rgba(245, 243, 238, 0.04);

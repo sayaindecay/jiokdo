@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import type { Character } from "@/lib/types";
 import { updateCharacterVitalsAction } from "@/app/actions";
 import { SubmitButton } from "./SubmitButton";
 
-export function VitalsEditor({ character }: { character: Character }) {
+export type VitalsRef = {
+  id: number;
+  hp: number; hp_max: number;
+  mp: number; mp_max: number;
+  san: number; san_max: number;
+};
+
+export function VitalsEditor({ character }: { character: VitalsRef }) {
   const [hp, setHp] = useState(character.hp);
   const [mp, setMp] = useState(character.mp);
   const [san, setSan] = useState(character.san);

@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import type { BestiaryEntry, CocAttrs, CocSkillGroup, DiceLevel, Segment } from "@/lib/types";
 import { InitiativeTracker, type InitiativeRow } from "@/components/vtt/InitiativeTracker";
+import { VitalsEditor } from "@/components/vtt/VitalsEditor";
 import { judgeCoc } from "@/lib/dice";
 import { appendTrackerEntryAction } from "@/app/actions";
 
@@ -11,9 +12,14 @@ export type PcLite = {
   id: number;
   name: string;
   occupation: string;
+  owner_nick: string;
   attrs: CocAttrs;
   hp: number;
   hp_max: number;
+  mp: number;
+  mp_max: number;
+  san: number;
+  san_max: number;
   skills: Array<{ name: string; value: number; group?: CocSkillGroup }>;
   weapons: Array<{ name: string; skill: number; damage: string }>;
 };
@@ -52,7 +58,7 @@ function getActionForPc(action: CombatAction, c: PcLite, weaponIdx: number) {
     case "fightback":
       return { label: "반격 (주먹)", skillName: "주먹", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
     case "flee":
-      return { label: "도주 (DEX×5)", skillName: "DEX×5", skillVal: c.attrs.dex * 5 };
+      return { label: "도주 (DEX)", skillName: "DEX", skillVal: c.attrs.dex };
   }
 }
 
@@ -72,7 +78,7 @@ function getActionForNpc(action: CombatAction, e: BestiaryEntry) {
       if (first) return { label: `반격 (${first.name})`, skillName: first.name, skillVal: first.skill };
       return { label: "반격", skillName: "반격", skillVal: dex };
     case "flee":
-      return { label: "도주 (DEX×5)", skillName: "DEX×5", skillVal: dex * 5 };
+      return { label: "도주 (DEX)", skillName: "DEX", skillVal: dex };
   }
 }
 
@@ -92,12 +98,14 @@ export function TrackerPanel({
   bestiary,
   pcChars,
   keeperChars,
+  currentNick,
 }: {
   campaignId: number;
   initialRows: InitiativeRow[];
   bestiary: BestiaryEntry[];
   pcChars: PcLite[];
   keeperChars: PcLite[];
+  currentNick: string | null;
 }) {
   const [rows, setRows] = useState<InitiativeRow[]>(initialRows);
   const [round, setRound] = useState(1);
@@ -484,6 +492,11 @@ export function TrackerPanel({
                   currentHp={focusedRow?.hp ?? focused.char.hp}
                   hpMax={focusedRow?.hp_max ?? focused.char.hp_max}
                   characterId={focused.rowId.startsWith("pc-") ? focused.char.id : null}
+                  canEditVitals={
+                    focused.rowId.startsWith("pc-") &&
+                    currentNick != null &&
+                    focused.char.owner_nick === currentNick
+                  }
                   onRoll={rollAndLog}
                 />
               )}
@@ -532,13 +545,14 @@ export function TrackerPanel({
 }
 
 function PcStatSheet({
-  char, actorName, currentHp, hpMax, characterId, onRoll,
+  char, actorName, currentHp, hpMax, characterId, canEditVitals, onRoll,
 }: {
   char: PcLite;
   actorName: string;
   currentHp: number;
   hpMax: number;
   characterId: number | null;
+  canEditVitals: boolean;
   onRoll: (
     actor: string, label: string, skillName: string, skillVal: number, characterId: number | null,
   ) => void;
@@ -566,8 +580,21 @@ function PcStatSheet({
         </div>
         <div className="sb-meta">
           <div className="mrow"><span className="k">HP</span><span className="v">{currentHp} / {hpMax}</span></div>
-          <div className="mrow"><span className="k">DEX×5 (도주)</span><span className="v">{a.dex * 5}</span></div>
+          <div className="mrow"><span className="k">MP</span><span className="v">{char.mp} / {char.mp_max}</span></div>
+          <div className="mrow"><span className="k">SAN</span><span className="v">{char.san} / {char.san_max}</span></div>
+          <div className="mrow"><span className="k">DEX (도주)</span><span className="v">{a.dex}</span></div>
         </div>
+
+        {canEditVitals ? (
+          <div className="stk-vitals-edit">
+            <VitalsEditor character={{
+              id: char.id,
+              hp: char.hp, hp_max: char.hp_max,
+              mp: char.mp, mp_max: char.mp_max,
+              san: char.san, san_max: char.san_max,
+            }} />
+          </div>
+        ) : null}
 
         {char.weapons.length > 0 ? (
           <>

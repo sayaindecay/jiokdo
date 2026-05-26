@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import type { Character, CocSkill, CocSkillGroup } from "@/lib/types";
+import { VitalsEditor } from "./VitalsEditor";
 
 const ATTR_KEYS: { key: keyof Character["attrs"]; label: string }[] = [
   { key: "str", label: "STR" }, { key: "con", label: "CON" }, { key: "siz", label: "SIZ" },
@@ -154,6 +155,10 @@ export function MySheetPanel({
           SAN <b>{active.san}/{active.san_max}</b>
         </span>
         <span className="ms-vital ms-vital-luck">LUCK <b>{active.attrs.luck}</b></span>
+      </div>
+
+      <div className="ms-vitals-editor">
+        <VitalsEditor character={active} />
       </div>
 
       <div className="ms-tabs" role="tablist">

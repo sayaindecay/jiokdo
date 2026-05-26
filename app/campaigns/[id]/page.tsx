@@ -120,9 +120,6 @@ export default async function CampaignDashboard({
               ↓ 백업
             </a>
           ) : null}
-          <Link href={`/campaigns/${id}/scene`} className="btn ghost">
-            장면 트래커
-          </Link>
           <Link href={`/campaigns/${id}/play`} className="btn primary">
             플레이 페이지 →
           </Link>
