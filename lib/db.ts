@@ -973,6 +973,15 @@ export async function clearCombatDrafts(campaignId: number): Promise<void> {
   });
 }
 
+// 익스포트 여부 무관하게 캠페인의 전투 로그 전체 삭제
+export async function clearAllCombatDrafts(campaignId: number): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: "DELETE FROM combat_log_drafts WHERE campaign_id = ?",
+    args: [campaignId],
+  });
+}
+
 export async function listUnexportedCombatDrafts(campaignId: number): Promise<CombatLogDraft[]> {
   await ensureReady();
   const res = await client.execute({

@@ -8038,6 +8038,18 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
   gap: 0.4rem;
   margin-bottom: 0.6rem;
 }
+.tracker-narration .tn-narrator {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  max-width: 11rem;
+}
+.tracker-narration .tn-narrator:focus { outline: none; border-color: var(--accent); }
 .tracker-narration .tn-input {
   flex: 1;
   padding: 0.45rem 0.7rem;
@@ -8047,11 +8059,13 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
   font-family: var(--font-anno);
   font-size: 0.92rem;
   color: var(--ink);
+  min-width: 12rem;
 }
 .tracker-narration .tn-input::placeholder { color: var(--ink-3); }
 .tracker-narration .tn-input:focus { border-color: var(--accent); outline: none; }
 
-body:has(.scene-side, .cinematic) .tracker-narration .tn-input {
+body:has(.scene-side, .cinematic) .tracker-narration .tn-input,
+body:has(.scene-side, .cinematic) .tracker-narration .tn-narrator {
   background: rgba(245, 243, 238, 0.06);
   border-color: rgba(245, 243, 238, 0.2);
   color: rgba(245, 243, 238, 0.92);
@@ -8059,7 +8073,12 @@ body:has(.scene-side, .cinematic) .tracker-narration .tn-input {
 body:has(.scene-side, .cinematic) .tracker-narration .tn-input::placeholder {
   color: rgba(245, 243, 238, 0.4);
 }
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .tracker-narration .tn-input {
+body:has(.scene-side, .cinematic) .tracker-narration .tn-narrator option {
+  background: var(--bg);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .tracker-narration .tn-input,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .tracker-narration .tn-narrator {
   background: var(--bg-elev);
   border-color: var(--line);
   color: var(--ink);

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { contentToSegments } from "@/lib/dice";
 import { cookies } from "next/headers";
 import {
-  appendCombatDraft, clearCombatDrafts,
+  appendCombatDraft, clearAllCombatDrafts, clearCombatDrafts,
   createBestiaryEntry, createCampaign, createCharacter, createPlayEntry,
   createUser, createUserSessionRecord, deleteBestiaryEntry, deleteCampaign, setCampaignStatus,
   deleteCharacter, deleteOtherUserSessions, deleteUser, deleteUserSession,
@@ -940,6 +940,16 @@ export async function clearCombatDraftsAction(fd: FormData): Promise<void> {
   const { isKeeper } = await assertCampaignMember(nick, campaign_id);
   if (!isKeeper) throw new Error("키퍼만 비울 수 있습니다");
   await clearCombatDrafts(campaign_id);
+  revalidatePath(`/campaigns/${campaign_id}/play`);
+}
+
+// 익스포트 여부 관계없이 캠페인의 전투 로그를 전부 삭제 (키퍼만)
+export async function clearAllCombatDraftsAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const campaign_id = num(fd, "campaign_id");
+  const { isKeeper } = await assertCampaignMember(nick, campaign_id);
+  if (!isKeeper) throw new Error("키퍼만 전체 삭제할 수 있습니다");
+  await clearAllCombatDrafts(campaign_id);
   revalidatePath(`/campaigns/${campaign_id}/play`);
 }
 

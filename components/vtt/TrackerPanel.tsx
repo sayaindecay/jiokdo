@@ -8,7 +8,8 @@ import { VitalsEditor } from "@/components/vtt/VitalsEditor";
 import { judgeCoc, LEVEL_LABEL } from "@/lib/dice";
 import { formatTime } from "@/lib/format";
 import {
-  appendCombatDraftAction, clearCombatDraftsAction, exportCombatDraftsAction,
+  appendCombatDraftAction, clearAllCombatDraftsAction, clearCombatDraftsAction,
+  exportCombatDraftsAction,
 } from "@/app/actions";
 
 export type PcLite = {
@@ -142,6 +143,7 @@ export function TrackerPanel({
   const [exporting, startExport] = useTransition();
   const [exportError, setExportError] = useState<string | null>(null);
   const [narrationText, setNarrationText] = useState("");
+  const [narratorKey, setNarratorKey] = useState<string>("default");
   const [, startWrite] = useTransition();
   // 트래커 상태(이니셔티브 행/라운드/행동 마킹/추가된 키퍼 캐릭터) 는
   // sessionStorage 에 보관해서 새로고침/모드 토글에도 살아남게 한다.
@@ -258,26 +260,64 @@ export function TrackerPanel({
     writeDraft({ kind: "system", actor, character_id: null, label, detail });
   };
 
+  // 묘사 작성 시 선택 가능한 나레이터 옵션
+  const narratorOptions = useMemo(() => {
+    type Opt = { value: string; label: string; group: "self" | "keeper" | "pc" | "npc"; actor: string; character_id: number | null };
+    const opts: Opt[] = [];
+    const myPcLocal = currentNick ? pcChars.find((c) => c.owner_nick === currentNick) ?? null : null;
+    if (myPcLocal) {
+      opts.push({
+        value: `pc-${myPcLocal.id}`, label: `${myPcLocal.name} (내 캐릭터)`,
+        group: "pc", actor: myPcLocal.name, character_id: myPcLocal.id,
+      });
+    }
+    if (currentNick) {
+      opts.push({
+        value: "self", label: `@${currentNick}`,
+        group: "self", actor: currentNick, character_id: null,
+      });
+    }
+    if (isKeeper) {
+      opts.push({
+        value: "keeper", label: "키퍼",
+        group: "keeper", actor: "키퍼", character_id: null,
+      });
+      for (const pc of pcChars) {
+        if (pc.id === myPcLocal?.id) continue;
+        opts.push({
+          value: `pc-${pc.id}`, label: pc.name,
+          group: "pc", actor: pc.name, character_id: pc.id,
+        });
+      }
+      for (const r of rows) {
+        if (r.is_pc) continue;
+        opts.push({
+          value: `row-${r.id}`, label: r.name,
+          group: "npc", actor: r.name, character_id: null,
+        });
+      }
+    }
+    return opts;
+  }, [currentNick, isKeeper, pcChars, rows]);
+
+  const resolvedNarrator = useMemo(() => {
+    const found = narratorOptions.find((o) => o.value === narratorKey);
+    if (found) return found;
+    // 기본값: PC > self > keeper > 첫 옵션
+    return narratorOptions[0] ?? null;
+  }, [narratorKey, narratorOptions]);
+
   const submitNarration = () => {
     const t = narrationText.trim();
-    if (!t) return;
-    const actor = myPcName() ?? currentNick ?? "익명";
-    const character_id = myPcId();
-    writeDraft({ kind: "narration", actor, character_id, label: t });
+    if (!t || !resolvedNarrator) return;
+    writeDraft({
+      kind: "narration",
+      actor: resolvedNarrator.actor,
+      character_id: resolvedNarrator.character_id,
+      label: t,
+    });
     setNarrationText("");
   };
-
-  // myPc helpers — 본인이 이 캠페인에 PC 를 가지고 있으면 그걸로 묘사 작성자 표기
-  function myPcName(): string | null {
-    if (!currentNick) return null;
-    const pc = pcChars.find((c) => c.owner_nick === currentNick);
-    return pc?.name ?? null;
-  }
-  function myPcId(): number | null {
-    if (!currentNick) return null;
-    const pc = pcChars.find((c) => c.owner_nick === currentNick);
-    return pc?.id ?? null;
-  }
 
   const exportToSession = () => {
     setExportError(null);
@@ -309,6 +349,25 @@ export function TrackerPanel({
         setCombatLog((prev) => prev.filter((e) => e.exported));
       } catch (e) {
         setExportError(e instanceof Error ? e.message : "비우기 실패");
+      }
+    });
+  };
+
+  const clearAllDrafts = () => {
+    if (typeof window !== "undefined") {
+      const ok = window.confirm(
+        "전투 트래커 로그를 전부 삭제합니다 (익스포트된 항목 포함). 이미 세션 로그에 저장된 게시물은 영향받지 않습니다. 계속할까요?"
+      );
+      if (!ok) return;
+    }
+    const fd = new FormData();
+    fd.set("campaign_id", String(campaignId));
+    startExport(async () => {
+      try {
+        await clearAllCombatDraftsAction(fd);
+        setCombatLog([]);
+      } catch (e) {
+        setExportError(e instanceof Error ? e.message : "전체 삭제 실패");
       }
     });
   };
@@ -690,9 +749,18 @@ export function TrackerPanel({
             className="btn ghost small"
             onClick={clearDrafts}
             disabled={pendingCount === 0 || exporting}
-            title="미익스포트 항목을 모두 삭제합니다 (세션 로그엔 영향 없음)"
+            title="미익스포트 항목만 삭제합니다 (세션 로그엔 영향 없음)"
           >
             ↺ 비우기
+          </button>
+          <button
+            type="button"
+            className="btn ghost small"
+            onClick={clearAllDrafts}
+            disabled={combatLog.length === 0 || exporting}
+            title="익스포트된 항목까지 포함해 전투 로그를 완전히 비웁니다"
+          >
+            🗑 전체 삭제
           </button>
           <button
             type="button"
@@ -707,12 +775,43 @@ export function TrackerPanel({
       ) : null}
     </div>
 
-    {currentNick ? (
+    {currentNick && narratorOptions.length > 0 ? (
       <div className="tracker-narration">
+        <select
+          className="tn-narrator"
+          value={resolvedNarrator?.value ?? ""}
+          onChange={(e) => setNarratorKey(e.target.value)}
+          aria-label="묘사 작성자 선택"
+          title="누가 묘사하는지 선택"
+        >
+          {narratorOptions.some((o) => o.group === "pc") ? (
+            <optgroup label="PC">
+              {narratorOptions.filter((o) => o.group === "pc").map((o) => (
+                <option key={o.value} value={o.value}>♟ {o.label}</option>
+              ))}
+            </optgroup>
+          ) : null}
+          {narratorOptions.some((o) => o.group === "npc") ? (
+            <optgroup label="NPC (현재 트래커)">
+              {narratorOptions.filter((o) => o.group === "npc").map((o) => (
+                <option key={o.value} value={o.value}>▲ {o.label}</option>
+              ))}
+            </optgroup>
+          ) : null}
+          {narratorOptions.some((o) => o.group === "keeper" || o.group === "self") ? (
+            <optgroup label="메타">
+              {narratorOptions.filter((o) => o.group === "keeper" || o.group === "self").map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.group === "keeper" ? "♛ " : "@ "}{o.label}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+        </select>
         <input
           type="text"
           className="tn-input"
-          placeholder="묘사 / 상황 한 줄 — Enter 로 로그에 추가"
+          placeholder={`묘사 / 상황 한 줄 — Enter 로 로그에 추가 (${resolvedNarrator?.actor ?? "익명"})`}
           value={narrationText}
           onChange={(e) => setNarrationText(e.target.value)}
           onKeyDown={(e) => {
@@ -727,7 +826,7 @@ export function TrackerPanel({
           type="button"
           className="btn small"
           onClick={submitNarration}
-          disabled={!narrationText.trim()}
+          disabled={!narrationText.trim() || !resolvedNarrator}
         >
           + 추가
         </button>
