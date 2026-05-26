@@ -67,7 +67,7 @@ export function LiveTicker({ initial }: { initial: Row[] }) {
             <div className="te-icon" aria-hidden="true">⌬</div>
             <div className="te-title">첫 굴림을 기다리고 있습니다</div>
             <div className="te-hint">
-              캠페인을 만들고 본문에 <code>/cc 도서관 60</code> 한 줄을 적어 보세요.
+              캠페인을 만들고 본문에 <code>/cc 관찰력 60</code> 한 줄을 적어 보세요.
             </div>
           </div>
         ) : (

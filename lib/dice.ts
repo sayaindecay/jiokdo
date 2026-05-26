@@ -5,7 +5,7 @@ const ROLL_FULL_RE = /^\/(?:roll|r)\s+(\d+)d(\d+)(?:\s*([+-])\s*(\d+))?\s*$/i;
 const CC_FULL_RE = /^\/cc\s+(?:(.+?)\s+)?(\d+)\s*$/i;
 
 // 라인의 끝부분에 다이스 명령이 붙은 경우 (앞에 텍스트가 있어도 OK)
-// "도서관에서 책을 찾아본다 /cc 도서관 60" → text + dice
+// "책장을 살핀다 /cc 관찰력 60" → text + dice
 // "/roll 1d6+2"                              → dice only
 const ROLL_TRAIL_RE = /^(.*?)\s*\/(?:roll|r)\s+(\d+)d(\d+)(?:\s*([+-])\s*(\d+))?\s*$/i;
 const CC_TRAIL_RE = /^(.*?)\s*\/cc\s+(?:(.+?)\s+)?(\d+)\s*$/i;

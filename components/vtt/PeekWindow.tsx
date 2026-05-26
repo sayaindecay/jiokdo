@@ -91,7 +91,7 @@ export function PeekWindow({
       <div className="peek-input">
         <span className="caret">›</span>
         <span style={{ opacity: 0.6 }}>
-          {isDemo ? "본문 한 줄로 /cc 도서관 60 같은 굴림을 끼워 넣을 수 있습니다." : "(라이브 피드)"}
+          {isDemo ? "본문 한 줄로 /cc 관찰력 60 같은 굴림을 끼워 넣을 수 있습니다." : "(라이브 피드)"}
         </span>
         <span className="cursor"></span>
       </div>

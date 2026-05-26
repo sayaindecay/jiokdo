@@ -59,7 +59,7 @@ export function CommandHelp() {
               <td className="cmd-help-spacer" colSpan={2}>줄 끝에 붙여도 동작</td>
             </tr>
             <tr>
-              <td><code>책을 살핀다 /cc 도서관 60</code></td>
+              <td><code>책을 살핀다 /cc 관찰력 60</code></td>
               <td>텍스트 + 굴림이 한 글에 같이 기록</td>
             </tr>
             <tr>

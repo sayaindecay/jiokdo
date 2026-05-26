@@ -41,7 +41,7 @@ export function sectionMetaLine(slug: string, body: string): string[] {
 }
 
 export function relatedCommandsFor(slug: string): string[] {
-  if (slug === "checks") return ["/cc 기능명 60", "/cc 도서관 75", "/roll 1d100"];
+  if (slug === "checks") return ["/cc 기능명 60", "/cc 관찰력 75", "/roll 1d100"];
   if (slug === "combat") return ["/cc 회피 50", "/cc 권총 55", "/roll 1d10+1"];
   if (slug === "sanity") return ["/cc 이성 70", "/roll 1d6", "/roll 1d20"];
   if (slug === "character-creation") return ["/roll 3d6", "/roll 2d6+6"];
