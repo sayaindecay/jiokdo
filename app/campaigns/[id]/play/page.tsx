@@ -65,16 +65,25 @@ export default async function PlayPage({
 
   return (
     <div className="play-shell">
-      <div className="breadcrumb">
-        <Link href={`/campaigns/${camp.id}`}>{camp.name}</Link>
-        <span className="sep">/</span>
-        {currentSession ? (
-          <>
-            <Link href={`/campaigns/${camp.id}/scene`}>세션 #{currentSession.number}</Link>
-            <span className="sep">/</span>
-          </>
-        ) : null}
-        <span>플레이</span>
+      <div className="play-topbar">
+        <div className="breadcrumb">
+          <Link href={`/campaigns/${camp.id}`}>{camp.name}</Link>
+          <span className="sep">/</span>
+          {currentSession ? (
+            <>
+              <Link href={`/campaigns/${camp.id}/scene`}>세션 #{currentSession.number}</Link>
+              <span className="sep">/</span>
+            </>
+          ) : null}
+          <span>플레이</span>
+        </div>
+        <Link
+          href={`/campaigns/${camp.id}/scene`}
+          className="play-tracker-link"
+          title="이니셔티브 / NPC HP / 장면 추적"
+        >
+          ⊞ 장면 트래커 →
+        </Link>
       </div>
 
       <div className="scene-side">

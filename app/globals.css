@@ -555,6 +555,55 @@ h3 {
   --btn-fg: var(--ink);
 }
 
+/* ───── Play page topbar (breadcrumb + 장면 트래커 진입) ───── */
+.play-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+.play-topbar .breadcrumb { margin-bottom: 0; }
+.play-tracker-link {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all var(--tx-fast);
+}
+.play-tracker-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+/* 시네마틱 다크 기본 */
+body:has(.scene-side, .cinematic) .play-tracker-link {
+  border-color: rgba(245, 243, 238, 0.2);
+  color: rgba(245, 243, 238, 0.7);
+}
+body:has(.scene-side, .cinematic) .play-tracker-link:hover {
+  border-color: var(--accent);
+  color: #fff;
+  background: rgba(138, 28, 28, 0.2);
+}
+/* 라이트 시네마틱 (다크 모드 토글) 인버트 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-tracker-link {
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+  background: transparent;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-tracker-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
 /* ───── Breadcrumb ───── */
 .breadcrumb {
   font-family: var(--font-mono);
