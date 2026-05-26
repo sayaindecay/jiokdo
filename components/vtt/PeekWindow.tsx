@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export type PeekItem = {
   who: string;
@@ -28,8 +28,21 @@ export function PeekWindow({
 }) {
   const list = items.length > 0 ? items : DEMO_ITEMS;
   const feedRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState<PeekItem[]>([]);
-  const stepRef = useRef(0);
+  const VISIBLE_CAP = 8;
+  // 시작부터 박스가 가득 차 보이도록, list 를 cycling 으로 미리 채워둠
+  const prefill = useMemo<PeekItem[]>(() => {
+    if (list.length === 0) return [];
+    const seed: PeekItem[] = [];
+    for (let i = 0; i < VISIBLE_CAP; i++) seed.push(list[i % list.length]);
+    return seed;
+  }, [list]);
+  const [visible, setVisible] = useState<PeekItem[]>(prefill);
+  const stepRef = useRef(prefill.length);
+
+  useEffect(() => {
+    setVisible(prefill);
+    stepRef.current = prefill.length;
+  }, [prefill]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
@@ -39,12 +52,12 @@ export function PeekWindow({
       if (cancelled) return;
       const step = stepRef.current % list.length;
       const item = list[step];
-      setVisible((prev) => [...prev, item].slice(-5));
+      setVisible((prev) => [...prev, item].slice(-VISIBLE_CAP));
       stepRef.current += 1;
       timer = setTimeout(tick, item.isDice ? 1500 : 2400);
     };
 
-    timer = setTimeout(tick, 500);
+    timer = setTimeout(tick, 1200);
     return () => { cancelled = true; clearTimeout(timer); };
   }, [list]);
 
