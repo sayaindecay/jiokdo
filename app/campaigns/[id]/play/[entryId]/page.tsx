@@ -36,7 +36,7 @@ export default async function PlayEntryDetail({
   const title = entry.title || fallbackTitle;
 
   return (
-    <div className="entry-detail-shell">
+    <div className="entry-detail-shell cinematic">
       <div className="breadcrumb">
         <Link href={`/campaigns/${id}`}>{camp.name}</Link>
         <span className="sep">/</span>
