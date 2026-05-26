@@ -34,13 +34,14 @@ export function PlayComposerSticky({
   const [collapsed, setCollapsed] = useState(false);
   const [pending, setPending] = useState(false);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!collapsed) {
-      // 사용자가 다른 입력에 포커스 중이 아니면 textarea 로
+      // 사용자가 다른 입력에 포커스 중이 아니면 title 인풋으로
       const t = document.activeElement;
       if (!t || (t.tagName !== "INPUT" && t.tagName !== "TEXTAREA")) {
-        setTimeout(() => taRef.current?.focus(), 100);
+        setTimeout(() => titleRef.current?.focus(), 100);
       }
     }
   }, [collapsed]);
@@ -67,6 +68,7 @@ export function PlayComposerSticky({
           try {
             await postPlayEntryAction(fd);
             if (taRef.current) taRef.current.value = "";
+            if (titleRef.current) titleRef.current.value = "";
           } finally {
             setPending(false);
           }
@@ -148,14 +150,29 @@ export function PlayComposerSticky({
 
         {!collapsed ? (
           <>
+            <input
+              ref={titleRef}
+              type="text"
+              name="title"
+              required
+              maxLength={120}
+              placeholder={
+                kind === "narration"
+                  ? "장면 제목 — 예) 부두의 안개"
+                  : kind === "system"
+                    ? "공지 제목"
+                    : "글 제목 — 예) 책장 사이를 살핀다"
+              }
+              className="composer-title"
+            />
             <textarea
               ref={taRef}
               name="content"
               required
               maxLength={8000}
-              rows={kind === "narration" ? 5 : 3}
+              rows={kind === "narration" ? 5 : 4}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   e.preventDefault();
                   const form = e.currentTarget.form;
                   if (form) form.requestSubmit();
@@ -163,10 +180,10 @@ export function PlayComposerSticky({
               }}
               placeholder={
                 kind === "narration"
-                  ? "장면을 묘사하세요. 같은 줄 끝에 /cc 탐색 65 처럼 굴림 명령을 붙일 수 있습니다."
+                  ? "장면을 자유롭게 묘사하세요. 줄바꿈으로 단락을 나눌 수 있고, 줄 끝에 /cc 탐색 65 같은 굴림 명령을 붙일 수 있습니다."
                   : kind === "system"
                     ? "키퍼 공지나 룰 설명."
-                    : "예) 책을 살핀다 /cc 도서관 60 — 텍스트 뒤에 굴림 명령을 붙이세요"
+                    : "행동·대사를 자유롭게 적으세요. 줄 끝에 /cc 도서관 60 처럼 굴림 명령을 붙일 수 있습니다."
               }
             />
 
@@ -175,7 +192,7 @@ export function PlayComposerSticky({
                 {pending ? "올리는 중..." : "올리기"}
               </button>
               <span className="composer-shortcut-hint">
-                ↵ 제출 · ⇧↵ 줄바꿈
+                ⌘↵ 제출 · ↵ 줄바꿈
               </span>
             </div>
           </>

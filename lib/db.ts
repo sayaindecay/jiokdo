@@ -140,6 +140,7 @@ function ensureReady(): Promise<void> {
       "ALTER TABLE characters ADD COLUMN portrait_url TEXT",
       "ALTER TABLE bestiary ADD COLUMN image_url TEXT",
       "ALTER TABLE campaigns ADD COLUMN scene_pin TEXT",
+      "ALTER TABLE play_entries ADD COLUMN title TEXT NOT NULL DEFAULT ''",
     ]) {
       try { await client.execute(stmt); } catch { /* 이미 존재 */ }
     }
@@ -696,9 +697,24 @@ function rowToPlayEntry(r: Record<string, unknown>): PlayEntry {
     character_id: r.character_id == null ? null : Number(r.character_id),
     character_name: r.character_name == null ? undefined : String(r.character_name),
     kind: String(r.kind) as PlayEntry["kind"],
+    title: r.title == null ? "" : String(r.title),
     segments: JSON.parse(String(r.segments_json)) as Segment[],
     created_at: Number(r.created_at),
   };
+}
+
+export async function getPlayEntry(id: number): Promise<PlayEntry | null> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `SELECT p.*, c.name AS character_name
+          FROM play_entries p
+          LEFT JOIN characters c ON c.id = p.character_id
+          WHERE p.id = ?
+          LIMIT 1`,
+    args: [id],
+  });
+  const r = res.rows[0];
+  return r ? rowToPlayEntry(r as unknown as Record<string, unknown>) : null;
 }
 export async function listPlayEntries(campaignId: number): Promise<PlayEntry[]> {
   await ensureReady();
@@ -782,15 +798,15 @@ export async function getTableCounts(): Promise<Record<string, number>> {
 }
 export async function createPlayEntry(input: {
   campaign_id: number; nickname: string; character_id: number | null;
-  kind: PlayEntry["kind"]; segments: Segment[];
+  kind: PlayEntry["kind"]; title: string; segments: Segment[];
 }): Promise<number> {
   await ensureReady();
   const res = await client.execute({
-    sql: `INSERT INTO play_entries (campaign_id, nickname, character_id, kind, segments_json, created_at)
-          VALUES (?, ?, ?, ?, ?, ?)`,
+    sql: `INSERT INTO play_entries (campaign_id, nickname, character_id, kind, title, segments_json, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)`,
     args: [
       input.campaign_id, input.nickname, input.character_id, input.kind,
-      JSON.stringify(input.segments), Date.now(),
+      input.title, JSON.stringify(input.segments), Date.now(),
     ],
   });
   return Number(res.lastInsertRowid);
@@ -1068,16 +1084,7 @@ export async function listRecentCharacterRolls(characterId: number, limit = 5): 
           ORDER BY p.created_at DESC LIMIT ?`,
     args: [characterId, limit],
   });
-  return res.rows.map((r) => ({
-    id: Number(r.id),
-    campaign_id: Number(r.campaign_id),
-    nickname: String(r.nickname),
-    character_id: r.character_id == null ? null : Number(r.character_id),
-    character_name: r.character_name == null ? undefined : String(r.character_name),
-    kind: String(r.kind) as PlayEntry["kind"],
-    segments: JSON.parse(String(r.segments_json)) as Segment[],
-    created_at: Number(r.created_at),
-  }));
+  return res.rows.map((r) => rowToPlayEntry(r as unknown as Record<string, unknown>));
 }
 
 // ───── 글로벌 통계 / 라이브 티커 (Phase 1 실데이터 연동) ─────

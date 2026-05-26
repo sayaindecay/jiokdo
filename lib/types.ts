@@ -125,6 +125,7 @@ export type PlayEntry = {
   character_id: number | null;
   character_name?: string;
   kind: "narration" | "dialogue" | "system";
+  title: string;
   segments: Segment[];
   created_at: number;
 };

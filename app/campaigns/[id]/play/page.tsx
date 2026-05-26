@@ -56,8 +56,8 @@ export default async function PlayPage({
     lastEntryAuthor !== myCharName &&
     lastEntryAuthor !== nick;
 
-  // 게시판 스타일 — 오래된 것 → 최신 (composer 가 화면 하단이라 spatial 흐름이 자연스러움)
-  const recentEntries = entries.slice(-12);
+  // 게시판 스타일 — 최신 글이 맨 위 (역순)
+  const recentEntries = [...entries].slice(-20).reverse();
 
   return (
     <div className="play-shell">
@@ -107,61 +107,40 @@ export default async function PlayPage({
           아직 기록이 없습니다. {isMember ? "아래 composer에서 첫 글을 남겨보세요." : "이 캠페인의 멤버가 아닙니다."}
         </div>
       ) : (
-        <div className="session-log">
+        <ul className="post-board">
           {recentEntries.map((e) => {
             const author = e.character_name || e.nickname;
             const isKeeperEntry = e.nickname === camp.keeper_nick;
+            const firstText = e.segments.find((s) => s.type === "text") as
+              | { type: "text"; value: string } | undefined;
+            const fallbackTitle = firstText
+              ? firstText.value.split(/\n/)[0].slice(0, 60) || "(빈 글)"
+              : "(굴림만 있는 글)";
+            const title = e.title || fallbackTitle;
+            const hasDice = e.segments.some((s) => s.type === "dice");
             return (
-              <article
-                className={`session-post kind-${e.kind}${isKeeperEntry ? " is-keeper" : ""}`}
+              <li
                 key={e.id}
+                className={`post-board-row kind-${e.kind}${isKeeperEntry ? " is-keeper" : ""}`}
                 style={speakerHueStyle(author)}
               >
-                <header className="sp-head">
+                <Link
+                  href={`/campaigns/${id}/play/${e.id}`}
+                  className="pb-link"
+                >
                   <span className={`kind-tag kind-${e.kind}`}>{kindLabel(e.kind)}</span>
-                  <span className="sp-author">
+                  <span className="pb-title">{title}</span>
+                  {hasDice ? <span className="pb-dice-mark" title="다이스 굴림 포함">⌬</span> : null}
+                  <span className="pb-author">
                     {isKeeperEntry ? <span aria-hidden="true" className="ks-crown">♛ </span> : null}
                     {author}
                   </span>
-                  <span className="sp-time">{formatTime(e.created_at)}</span>
-                </header>
-                <div className="sp-body">
-                  {e.segments.map((seg, i) => {
-                    if (seg.type === "text") {
-                      return (
-                        <p key={i} className="sp-text">{seg.value}</p>
-                      );
-                    }
-                    const r = seg.result;
-                    if (r.kind === "cc") {
-                      return (
-                        <div key={i} className={`sp-dice cc level ${r.level}`}>
-                          <span className="sp-dice-icon" aria-hidden="true">⌬</span>
-                          <span className="sp-dice-expr">
-                            {r.name ? `${r.name} (${r.skill})` : `1d100 ≤ ${r.skill}`}
-                          </span>
-                          <span className="sp-dice-arrow" aria-hidden="true">→</span>
-                          <span className="sp-dice-total">{r.roll}</span>
-                          <span className={`sp-dice-level level ${r.level}`}>
-                            {LEVEL_LABEL[r.level]}
-                          </span>
-                        </div>
-                      );
-                    }
-                    return (
-                      <div key={i} className="sp-dice plain">
-                        <span className="sp-dice-icon" aria-hidden="true">⌬</span>
-                        <span className="sp-dice-expr">{r.notation}</span>
-                        <span className="sp-dice-arrow" aria-hidden="true">=</span>
-                        <span className="sp-dice-total">{r.total}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </article>
+                  <span className="pb-time">{formatTime(e.created_at)}</span>
+                </Link>
+              </li>
             );
           })}
-        </div>
+        </ul>
       )}
 
       {isMember ? (

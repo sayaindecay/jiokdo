@@ -306,6 +306,7 @@ export async function rollGenericAction(fd: FormData): Promise<void> {
     nickname: nick,
     character_id: ch.id,
     kind: "dialogue",
+    title: `굴림: ${sanitized}`,
     segments,
   });
   revalidatePath(`/characters/${ch.id}`);
@@ -334,11 +335,13 @@ export async function rollCharacterCheckAction(fd: FormData): Promise<void> {
   }
 
   const segments = contentToSegments(line);
+  const titleParts = skillName ? `${skillName} 굴림` : `굴림 ${skillValue}`;
   await createPlayEntry({
     campaign_id: ch.campaign_id,
     nickname: nick,
     character_id: ch.id,
     kind: "dialogue",
+    title: titleParts,
     segments,
   });
   revalidatePath(`/characters/${ch.id}`);
@@ -782,6 +785,8 @@ export async function postPlayEntryAction(fd: FormData): Promise<void> {
   const campaign_id = num(fd, "campaign_id");
   const character_id_raw = fd.get("character_id");
   const character_id = character_id_raw && character_id_raw !== "" ? Number(character_id_raw) : null;
+  const title = text(fd, "title", 120);
+  if (!title) throw new Error("제목을 입력하세요");
   const content = text(fd, "content", 8000);
   if (!content) throw new Error("내용을 입력하세요");
   const kindRaw = text(fd, "kind", 12);
@@ -789,6 +794,6 @@ export async function postPlayEntryAction(fd: FormData): Promise<void> {
              : kindRaw === "system" ? "system"
              : "dialogue";
   const segments = contentToSegments(content);
-  await createPlayEntry({ campaign_id, nickname: nick, character_id, kind, segments });
+  await createPlayEntry({ campaign_id, nickname: nick, character_id, kind, title, segments });
   revalidatePath(`/campaigns/${campaign_id}/play`);
 }
