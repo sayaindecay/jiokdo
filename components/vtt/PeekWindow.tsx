@@ -78,25 +78,9 @@ export function PeekWindow({
             <div
               key={i}
               className={`dice-block${item.level ? " cc" : ""}`}
-              style={{
-                background: "rgba(245,243,238,0.08)",
-                borderColor: "rgba(245,243,238,0.16)",
-                color: "var(--bg-elev)",
-              }}
             >
-              <span className="label" style={{ color: "rgba(245,243,238,0.55)" }}>
-                {item.who}
-              </span>
-              <span
-                className="expr"
-                style={{
-                  background: "rgba(245,243,238,0.12)",
-                  color: "var(--bg-elev)",
-                  borderColor: "rgba(245,243,238,0.20)",
-                }}
-              >
-                {item.text}
-              </span>
+              <span className="label">{item.who}</span>
+              <span className="expr">{item.text}</span>
               {item.level && item.level_label ? (
                 <span className={`level ${item.level}`}>{item.level_label}</span>
               ) : null}
