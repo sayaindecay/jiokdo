@@ -15,10 +15,18 @@ import type { PlayEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+const PAGE_SIZE = 15;
+
 export default async function PlayPage({
   params,
-}: { params: Promise<{ id: string }> }) {
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { id: idStr } = await params;
+  const sp = await searchParams;
+  const currentPage = Math.max(1, Number(sp.page ?? 1) || 1);
   const id = Number(idStr);
   if (!Number.isFinite(id)) notFound();
   const camp = await getCampaign(id);
@@ -48,8 +56,12 @@ export default async function PlayPage({
     lastEntryAuthor !== myCharName &&
     lastEntryAuthor !== nick;
 
-  // 게시판 스타일 — 최신 글이 맨 위 (역순)
-  const recentEntries = [...entries].slice(-20).reverse();
+  // 게시판 — 최신 글이 맨 위 (역순) + 15개씩 페이지네이션
+  const sortedDesc = [...entries].reverse();
+  const totalPages = Math.max(1, Math.ceil(sortedDesc.length / PAGE_SIZE));
+  const page = Math.min(currentPage, totalPages);
+  const pageStart = (page - 1) * PAGE_SIZE;
+  const pageEntries = sortedDesc.slice(pageStart, pageStart + PAGE_SIZE);
 
   return (
     <div className="play-shell">
@@ -91,20 +103,49 @@ export default async function PlayPage({
       <div className="section-head">
         <h2>세션 로그</h2>
         <span className="count">
-          최근 {recentEntries.length}개
+          총 {sortedDesc.length}개 · {page} / {totalPages} 페이지
         </span>
       </div>
-      {recentEntries.length === 0 ? (
+      {sortedDesc.length === 0 ? (
         <div className="empty">
           아직 기록이 없습니다. {isMember ? "아래 composer에서 첫 글을 남겨보세요." : "이 캠페인의 멤버가 아닙니다."}
         </div>
       ) : (
-        <PostBoard
-          entries={recentEntries}
-          keeperNick={camp.keeper_nick}
-          currentNick={nick}
-          campaignId={id}
-        />
+        <>
+          <PostBoard
+            entries={pageEntries}
+            keeperNick={camp.keeper_nick}
+            currentNick={nick}
+            campaignId={id}
+          />
+          {totalPages > 1 ? (
+            <nav className="pagination" aria-label="세션 로그 페이지">
+              {page > 1 ? (
+                <Link
+                  href={`/campaigns/${id}/play?page=${page - 1}`}
+                  scroll={false}
+                >
+                  ← 이전
+                </Link>
+              ) : (
+                <span className="disabled">← 이전</span>
+              )}
+              <span className="info">
+                {page} / {totalPages} 페이지
+              </span>
+              {page < totalPages ? (
+                <Link
+                  href={`/campaigns/${id}/play?page=${page + 1}`}
+                  scroll={false}
+                >
+                  다음 →
+                </Link>
+              ) : (
+                <span className="disabled">다음 →</span>
+              )}
+            </nav>
+          ) : null}
+        </>
       )}
 
       {isMember ? (
@@ -120,6 +161,7 @@ export default async function PlayPage({
           isKeeper={isKeeper}
           isMyTurn={isMyTurn}
           hasEntries={entries.length > 0}
+          lastEntryId={lastEntry?.id ?? null}
         />
       ) : (
         <div className="empty" style={{ marginTop: "1.25rem" }}>

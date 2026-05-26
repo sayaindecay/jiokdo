@@ -52,8 +52,8 @@ export function CampaignsTable({ rows, myNick }: { rows: CampaignTableRow[]; myN
         rows.map((r) => {
           const isKeeper = r.role === "keeper" || r.campaign.keeper_nick === myNick;
           const sessionLabel = r.next_session
-            ? `${isKeeper ? "키퍼" : "투자자"} · #${r.next_session.number}`
-            : isKeeper ? "키퍼" : "투자자";
+            ? `${isKeeper ? "키퍼" : "탐사자"} · #${r.next_session.number}`
+            : isKeeper ? "키퍼" : "탐사자";
           const next = relTime(r.next_session?.scheduled_at ?? null);
           const statusLabel = r.status === "active" ? "활성" : r.status === "dormant" ? "휴면" : "종료";
           const statusColor =

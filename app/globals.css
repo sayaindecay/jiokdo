@@ -4396,7 +4396,7 @@ select:focus-visible {
   align-items: center;
   gap: 0.55rem;
   align-self: flex-start;
-  margin: 0 1rem 0.5rem;
+  margin: 1rem 1rem 0.5rem;
   padding: 0.32rem 0.7rem 0.32rem 0.55rem;
   background: rgba(245, 243, 238, 0.08);
   border: 1px solid rgba(245, 243, 238, 0.18);
@@ -4513,6 +4513,34 @@ select:focus-visible {
   background: rgba(214, 184, 122, 0.12);
   border-left-color: var(--gold);
   color: rgba(245, 243, 238, 0.92);
+}
+.composer-nudge-close {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: rgba(245, 243, 238, 0.6);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--tx-fast);
+}
+.composer-nudge-close:hover {
+  background: rgba(245, 243, 238, 0.16);
+  color: #fff;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-nudge-close {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-nudge-close:hover {
+  background: var(--bg-elev-2);
+  color: var(--ink);
 }
 .composer-shortcut-hint {
   font-family: var(--font-mono);

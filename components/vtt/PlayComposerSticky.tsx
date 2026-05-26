@@ -11,13 +11,34 @@ export function PlayComposerSticky({
   isKeeper,
   isMyTurn = false,
   hasEntries = false,
+  lastEntryId = null,
 }: {
   campaignId: number;
   characters: { id: number; name: string }[];
   isKeeper: boolean;
   isMyTurn?: boolean;
   hasEntries?: boolean;
+  lastEntryId?: number | null;
 }) {
+  const nudgeKey = `jiokdo:nudge-dismissed:${campaignId}`;
+  const [dismissedFor, setDismissedFor] = useState<number | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(nudgeKey);
+    if (stored) {
+      const n = Number(stored);
+      if (Number.isFinite(n)) setDismissedFor(n);
+    }
+  }, [nudgeKey]);
+  const showTurnNudge =
+    isMyTurn && hasEntries && lastEntryId != null && dismissedFor !== lastEntryId;
+  const dismissNudge = () => {
+    if (lastEntryId == null) return;
+    setDismissedFor(lastEntryId);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(nudgeKey, String(lastEntryId));
+    }
+  };
   const [kind, setKind] = useState<"dialogue" | "narration" | "system">(
     isKeeper && !hasEntries ? "narration" : "dialogue"
   );
@@ -80,10 +101,19 @@ export function PlayComposerSticky({
           <input type="hidden" name="character_id" value="" />
         ) : null}
 
-        {isMyTurn && !hasEntries === false ? (
+        {showTurnNudge ? (
           <div className="composer-nudge" aria-live="polite">
             <span aria-hidden="true">↘</span>
             <span>방금 다른 사람이 글을 올렸습니다. 응답하시겠습니까?</span>
+            <button
+              type="button"
+              className="composer-nudge-close"
+              onClick={dismissNudge}
+              aria-label="알림 닫기"
+              title="닫기"
+            >
+              ×
+            </button>
           </div>
         ) : null}
         {!hasEntries ? (

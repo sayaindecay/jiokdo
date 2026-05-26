@@ -38,7 +38,7 @@ export function ContinueCard({ target }: { target: ContinueTarget }) {
     >
       <div className="cc-text">
         <div className="cc-eyebrow">
-          CONTINUE · {role === "keeper" ? "키퍼" : "투자자"}
+          CONTINUE · {role === "keeper" ? "키퍼" : "탐사자"}
         </div>
         <h2 className="cc-title">
           <Link href={`/campaigns/${campaign.id}`}>{campaign.name}</Link>
