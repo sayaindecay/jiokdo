@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { logoutAction, setNicknameAction } from "@/app/actions";
+import { SubmitButton } from "@/components/vtt/SubmitButton";
 
 export function NicknameBadge({
   nickname,
@@ -36,7 +37,7 @@ export function NicknameBadge({
           {nickname}
         </Link>
         <form action={logoutAction}>
-          <button type="submit" className="link-btn" title="로그아웃">로그아웃</button>
+          <SubmitButton className="link-btn" title="로그아웃" pendingLabel="로그아웃…">로그아웃</SubmitButton>
         </form>
       </div>
     );
@@ -84,7 +85,7 @@ export function NicknameBadge({
               <input type="hidden" name="redirect" value={typeof window !== "undefined" ? window.location.pathname : "/"} />
               <div className="modal-actions">
                 <button type="button" className="btn ghost" onClick={() => setOpen(false)}>취소</button>
-                <button type="submit" className="btn">설정</button>
+                <SubmitButton className="btn" pendingLabel="설정 중…">설정</SubmitButton>
               </div>
             </form>
           </div>

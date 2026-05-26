@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { loginAction, signupAction } from "@/app/actions";
 import { FormError } from "./FormError";
+import { PasswordInput } from "./PasswordInput";
 
 async function wrapAction(
   action: (fd: FormData) => Promise<void>,
@@ -72,9 +73,8 @@ export function AuthTabs({
             2–24자, 한글·영문·숫자·_·- 가능
           </p>
           <label>비밀번호</label>
-          <input
+          <PasswordInput
             name="password"
-            type="password"
             required
             minLength={6}
             maxLength={200}
@@ -107,9 +107,8 @@ export function AuthTabs({
             style={{ fontFamily: "var(--font-mono)" }}
           />
           <label style={{ marginTop: "0.6rem" }}>비밀번호</label>
-          <input
+          <PasswordInput
             name="password"
-            type="password"
             required
             maxLength={200}
           />

@@ -3899,6 +3899,46 @@ select:focus-visible {
   color: var(--ink-3);
   margin: 0 0 0.6rem;
 }
+
+/* 비밀번호 입력 (눈 토글) — 어느 폼에서나 동작 */
+.password-input {
+  position: relative;
+  display: block;
+}
+.password-input input {
+  width: 100%;
+  padding-right: 2.4rem;
+}
+.password-input .password-toggle {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--ink-3);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity var(--tx-fast), background var(--tx-fast);
+}
+.password-input .password-toggle:hover {
+  opacity: 1;
+  background: var(--bg-elev-2);
+}
+.password-input .password-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  opacity: 1;
+}
 .bestiary-form .bf-req {
   color: var(--accent);
   font-weight: 700;

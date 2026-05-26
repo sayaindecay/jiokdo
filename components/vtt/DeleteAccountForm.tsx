@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { deleteAccountAction } from "@/app/actions";
+import { PasswordInput } from "./PasswordInput";
+import { SubmitButton } from "./SubmitButton";
 
 export function DeleteAccountForm({
   nickname,
@@ -63,7 +65,7 @@ export function DeleteAccountForm({
 
       <label className="acc-form-field">
         <span className="acc-form-label">비밀번호</span>
-        <input name="password" type="password" required maxLength={200} autoFocus />
+        <PasswordInput name="password" required maxLength={200} autoFocus />
       </label>
 
       <label className="acc-form-field">
@@ -81,13 +83,13 @@ export function DeleteAccountForm({
       </label>
 
       <div className="acc-form-actions">
-        <button
-          type="submit"
+        <SubmitButton
           className="btn danger"
           disabled={!matches}
+          pendingLabel="삭제 중…"
         >
           영구 삭제
-        </button>
+        </SubmitButton>
         <button
           type="button"
           className="btn ghost"

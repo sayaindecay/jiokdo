@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { deleteCampaignAction } from "@/app/actions";
+import { SubmitButton } from "./SubmitButton";
 
 export function CampaignDangerZone({
   campaignId,
@@ -92,10 +93,10 @@ export function CampaignDangerZone({
           />
 
           <div className="actions" style={{ marginTop: "0.7rem", gap: "0.5rem" }}>
-            <button
-              type="submit"
+            <SubmitButton
               className="btn"
               disabled={!matches}
+              pendingLabel="삭제 중…"
               style={{
                 background: matches ? "var(--accent)" : undefined,
                 borderColor: matches ? "var(--accent)" : undefined,
@@ -104,7 +105,7 @@ export function CampaignDangerZone({
               }}
             >
               영구 삭제
-            </button>
+            </SubmitButton>
             <button
               type="button"
               className="btn ghost"

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Character } from "@/lib/types";
 import { updateCharacterVitalsAction } from "@/app/actions";
+import { SubmitButton } from "./SubmitButton";
 
 export function VitalsEditor({ character }: { character: Character }) {
   const [hp, setHp] = useState(character.hp);
@@ -34,9 +35,9 @@ export function VitalsEditor({ character }: { character: Character }) {
       <NumField label="HP" name="hp" value={hp} max={character.hp_max} onChange={setHp} />
       <NumField label="MP" name="mp" value={mp} max={character.mp_max} onChange={setMp} />
       <NumField label="SAN" name="san" value={san} max={character.san_max} onChange={setSan} />
-      <button type="submit" className="btn small" disabled={!dirty} style={{ marginLeft: "auto" }}>
+      <SubmitButton className="btn small" disabled={!dirty} pendingLabel="저장 중…" style={{ marginLeft: "auto" }}>
         저장
-      </button>
+      </SubmitButton>
     </form>
   );
 }

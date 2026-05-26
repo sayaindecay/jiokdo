@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createCharacterAction } from "@/app/actions";
+import { SubmitButton } from "@/components/vtt/SubmitButton";
 
 export function CharacterCreateForm({ campaignId }: { campaignId: number }) {
   const [open, setOpen] = useState(false);
@@ -32,15 +33,15 @@ export function CharacterCreateForm({ campaignId }: { campaignId: number }) {
         능력치를 어떻게 정할까요?
       </p>
       <div className="actions" style={{ gap: "0.4rem", flexWrap: "wrap" }}>
-        <button type="submit" className="btn primary" name="use_template" value="random">
+        <SubmitButton className="btn primary" name="use_template" value="random" pendingLabel="생성 중…">
           🎲 굴려서 생성
-        </button>
-        <button type="submit" className="btn ghost" name="use_template" value="">
+        </SubmitButton>
+        <SubmitButton className="btn ghost" name="use_template" value="" pendingLabel="생성 중…">
           빈 캐릭터 (50 균등)
-        </button>
-        <button type="submit" className="btn ghost" name="use_template" value="1">
+        </SubmitButton>
+        <SubmitButton className="btn ghost" name="use_template" value="1" pendingLabel="생성 중…">
           샘플 시트 (허버트 웨스트)
-        </button>
+        </SubmitButton>
         <button
           type="button"
           className="btn ghost"

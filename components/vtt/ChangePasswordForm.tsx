@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { changePasswordAction } from "@/app/actions";
+import { PasswordInput } from "./PasswordInput";
+import { SubmitButton } from "./SubmitButton";
 
 export function ChangePasswordForm() {
   const [next, setNext] = useState("");
@@ -13,14 +15,13 @@ export function ChangePasswordForm() {
     <form action={changePasswordAction} className="acc-form">
       <label className="acc-form-field">
         <span className="acc-form-label">현재 비밀번호</span>
-        <input name="current_password" type="password" required maxLength={200} />
+        <PasswordInput name="current_password" required maxLength={200} />
       </label>
 
       <label className="acc-form-field">
         <span className="acc-form-label">새 비밀번호 <span className="acc-form-hint">최소 6자</span></span>
-        <input
+        <PasswordInput
           name="new_password"
-          type="password"
           required
           minLength={6}
           maxLength={200}
@@ -34,8 +35,7 @@ export function ChangePasswordForm() {
 
       <label className="acc-form-field">
         <span className="acc-form-label">새 비밀번호 확인</span>
-        <input
-          type="password"
+        <PasswordInput
           required
           maxLength={200}
           value={confirm}
@@ -52,13 +52,13 @@ export function ChangePasswordForm() {
       </p>
 
       <div className="acc-form-actions">
-        <button
-          type="submit"
+        <SubmitButton
           className="btn primary"
           disabled={!matches || tooShort}
+          pendingLabel="변경 중…"
         >
           비밀번호 변경
-        </button>
+        </SubmitButton>
       </div>
     </form>
   );
