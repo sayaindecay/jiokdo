@@ -5,23 +5,15 @@ import {
   getCampaign, listCampaignCharacters, listCampaignMembers, listClues,
   listPlayEntries, listSessions,
 } from "@/lib/db";
-import { formatTime } from "@/lib/format";
-import { LEVEL_LABEL } from "@/lib/dice";
 import { SceneStage } from "@/components/vtt/SceneStage";
 import { SceneSpotlight } from "@/components/vtt/SceneSpotlight";
 import { CluesPanel, SceneRoster } from "@/components/vtt/SceneRoster";
 import { MySheetPanel } from "@/components/vtt/MySheetPanel";
 import { PlayComposerSticky } from "@/components/vtt/PlayComposerSticky";
-import { speakerHueStyle } from "@/lib/hue";
+import { PostBoard } from "@/components/vtt/PostBoard";
 import type { PlayEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-function kindLabel(k: string): string {
-  if (k === "narration") return "내레이션";
-  if (k === "system") return "시스템";
-  return "발화";
-}
 
 export default async function PlayPage({
   params,
@@ -107,40 +99,12 @@ export default async function PlayPage({
           아직 기록이 없습니다. {isMember ? "아래 composer에서 첫 글을 남겨보세요." : "이 캠페인의 멤버가 아닙니다."}
         </div>
       ) : (
-        <ul className="post-board">
-          {recentEntries.map((e) => {
-            const author = e.character_name || e.nickname;
-            const isKeeperEntry = e.nickname === camp.keeper_nick;
-            const firstText = e.segments.find((s) => s.type === "text") as
-              | { type: "text"; value: string } | undefined;
-            const fallbackTitle = firstText
-              ? firstText.value.split(/\n/)[0].slice(0, 60) || "(빈 글)"
-              : "(굴림만 있는 글)";
-            const title = e.title || fallbackTitle;
-            const hasDice = e.segments.some((s) => s.type === "dice");
-            return (
-              <li
-                key={e.id}
-                className={`post-board-row kind-${e.kind}${isKeeperEntry ? " is-keeper" : ""}`}
-                style={speakerHueStyle(author)}
-              >
-                <Link
-                  href={`/campaigns/${id}/play/${e.id}`}
-                  className="pb-link"
-                >
-                  <span className={`kind-tag kind-${e.kind}`}>{kindLabel(e.kind)}</span>
-                  <span className="pb-title">{title}</span>
-                  {hasDice ? <span className="pb-dice-mark" title="다이스 굴림 포함">⌬</span> : null}
-                  <span className="pb-author">
-                    {isKeeperEntry ? <span aria-hidden="true" className="ks-crown">♛ </span> : null}
-                    {author}
-                  </span>
-                  <span className="pb-time">{formatTime(e.created_at)}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <PostBoard
+          entries={recentEntries}
+          keeperNick={camp.keeper_nick}
+          currentNick={nick}
+          campaignId={id}
+        />
       )}
 
       {isMember ? (
