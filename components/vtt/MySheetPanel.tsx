@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import type { Character, CocSkill, CocSkillGroup } from "@/lib/types";
 
 const ATTR_KEYS: { key: keyof Character["attrs"]; label: string }[] = [
@@ -29,6 +29,9 @@ const GROUP_ORDER: CocSkillGroup[] = [
   "combat", "investigation", "social", "academic", "other",
 ];
 
+// 다른 컴포넌트(예: PlayComposerSticky)와 활성 캐릭터를 동기화하기 위한 custom event 이름
+export const ACTIVE_CHARACTER_EVENT = "jiokdo:active-character-change";
+
 function insertIntoComposer(cmd: string) {
   if (typeof document === "undefined") return;
   const ta = document.querySelector<HTMLTextAreaElement>('#composer textarea[name="content"]');
@@ -50,11 +53,39 @@ function insertIntoComposer(cmd: string) {
   }, 60);
 }
 
-export function MySheetPanel({ character }: { character: Character | null }) {
+export function MySheetPanel({
+  characters, campaignId,
+}: {
+  characters: Character[];
+  campaignId: number;
+}) {
+  const storageKey = `jiokdo:active-char:${campaignId}`;
+  const [activeId, setActiveId] = useState<number | null>(characters[0]?.id ?? null);
   const [tab, setTab] = useState<"attrs" | "skills">("attrs");
   const [group, setGroup] = useState<"all" | CocSkillGroup>("all");
 
-  if (!character) {
+  // localStorage 에서 활성 캐릭터 복구 (캠페인별)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(storageKey);
+    if (stored) {
+      const n = Number(stored);
+      if (characters.some((c) => c.id === n)) {
+        setActiveId(n);
+        return;
+      }
+    }
+    if (characters[0]) setActiveId(characters[0].id);
+  }, [storageKey, characters]);
+
+  // 활성 캐릭터 변경 시 저장 + composer 에 알림
+  useEffect(() => {
+    if (typeof window === "undefined" || activeId == null) return;
+    window.localStorage.setItem(storageKey, String(activeId));
+    window.dispatchEvent(new CustomEvent(ACTIVE_CHARACTER_EVENT, { detail: { id: activeId } }));
+  }, [activeId, storageKey]);
+
+  if (characters.length === 0) {
     return (
       <div className="ms-panel ms-empty">
         <div className="ms-head">
@@ -67,7 +98,9 @@ export function MySheetPanel({ character }: { character: Character | null }) {
     );
   }
 
-  const filtered = group === "all" ? character.skills : character.skills.filter((s) => s.group === group);
+  const active = characters.find((c) => c.id === activeId) ?? characters[0];
+
+  const filtered = group === "all" ? active.skills : active.skills.filter((s) => s.group === group);
   const grouped: Record<CocSkillGroup, CocSkill[]> = {
     combat: [], investigation: [], social: [], academic: [], other: [],
   };
@@ -79,17 +112,48 @@ export function MySheetPanel({ character }: { character: Character | null }) {
   return (
     <div className="ms-panel">
       <div className="ms-head">
-        <span className="ms-title">{character.name}</span>
-        <span className="ms-occu">{character.occupation || "직업 미기재"}</span>
+        {characters.length > 1 ? (
+          <select
+            className="ms-char-picker"
+            value={active.id}
+            onChange={(e) => setActiveId(Number(e.target.value))}
+            aria-label="활성 캐릭터 선택"
+          >
+            {characters.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span className="ms-title">{active.name}</span>
+        )}
+        <span className="ms-occu">{active.occupation || "직업 미기재"}</span>
       </div>
 
+      {characters.length > 1 ? (
+        <div className="ms-char-strip" role="tablist" aria-label="내 캐릭터">
+          {characters.map((c) => (
+            <button
+              type="button"
+              key={c.id}
+              className={`ms-char-chip${c.id === active.id ? " active" : ""}`}
+              onClick={() => setActiveId(c.id)}
+              title={`${c.name} 시트 보기`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       <div className="ms-vitals" aria-hidden="true">
-        <span className="ms-vital ms-vital-hp">HP <b>{character.hp}/{character.hp_max}</b></span>
-        <span className="ms-vital ms-vital-mp">MP <b>{character.mp}/{character.mp_max}</b></span>
-        <span className={`ms-vital ms-vital-san${character.san < 30 ? " warn" : ""}`}>
-          SAN <b>{character.san}/{character.san_max}</b>
+        <span className="ms-vital ms-vital-hp">HP <b>{active.hp}/{active.hp_max}</b></span>
+        <span className="ms-vital ms-vital-mp">MP <b>{active.mp}/{active.mp_max}</b></span>
+        <span className={`ms-vital ms-vital-san${active.san < 30 ? " warn" : ""}`}>
+          SAN <b>{active.san}/{active.san_max}</b>
         </span>
-        <span className="ms-vital ms-vital-luck">LUCK <b>{character.attrs.luck}</b></span>
+        <span className="ms-vital ms-vital-luck">LUCK <b>{active.attrs.luck}</b></span>
       </div>
 
       <div className="ms-tabs" role="tablist">
@@ -109,14 +173,14 @@ export function MySheetPanel({ character }: { character: Character | null }) {
           role="tab"
           aria-selected={tab === "skills"}
         >
-          기능 <span className="ms-tab-count">{character.skills.length}</span>
+          기능 <span className="ms-tab-count">{active.skills.length}</span>
         </button>
       </div>
 
       {tab === "attrs" ? (
         <ul className="ms-list">
           {ATTR_KEYS.map(({ key, label }) => {
-            const value = character.attrs[key];
+            const value = active.attrs[key];
             return (
               <li key={key}>
                 <button

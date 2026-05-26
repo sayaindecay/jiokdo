@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { postPlayEntryAction } from "@/app/actions";
 import { CommandHelp } from "./CommandHelp";
+import { ACTIVE_CHARACTER_EVENT } from "./MySheetPanel";
 
 export function PlayComposerSticky({
   campaignId,
@@ -20,9 +21,15 @@ export function PlayComposerSticky({
   const [kind, setKind] = useState<"dialogue" | "narration" | "system">(
     isKeeper && !hasEntries ? "narration" : "dialogue"
   );
-  const [characterId, setCharacterId] = useState<string>(
-    characters[0] ? String(characters[0].id) : ""
-  );
+  const [characterId, setCharacterId] = useState<string>(() => {
+    if (typeof window !== "undefined" && characters.length > 0) {
+      const stored = window.localStorage.getItem(`jiokdo:active-char:${campaignId}`);
+      if (stored && characters.some((c) => c.id === Number(stored))) {
+        return stored;
+      }
+    }
+    return characters[0] ? String(characters[0].id) : "";
+  });
   // 기본 펼침 — 첫 사용자 발견성 우선
   const [collapsed, setCollapsed] = useState(false);
   const [pending, setPending] = useState(false);
@@ -37,6 +44,19 @@ export function PlayComposerSticky({
       }
     }
   }, [collapsed]);
+
+  // MySheetPanel 에서 활성 캐릭터가 바뀌면 composer 발화 캐릭터도 동기화
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent<{ id: number }>).detail?.id;
+      if (id == null) return;
+      if (characters.some((c) => c.id === id)) {
+        setCharacterId(String(id));
+      }
+    };
+    window.addEventListener(ACTIVE_CHARACTER_EVENT, handler);
+    return () => window.removeEventListener(ACTIVE_CHARACTER_EVENT, handler);
+  }, [characters]);
 
   const insert = (snippet: string) => {
     const ta = taRef.current;

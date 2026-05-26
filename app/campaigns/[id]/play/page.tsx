@@ -69,7 +69,8 @@ export default async function PlayPage({
   ]);
 
   const isMember = nick != null && members.some((m) => m.nickname === nick);
-  const myChar = nick ? characters.find((c) => c.owner_nick === nick) ?? null : null;
+  const myChars = nick ? characters.filter((c) => c.owner_nick === nick) : [];
+  const myChar = myChars[0] ?? null;
   const currentSession = sessions[0] ?? null;
   const isKeeper = nick != null && nick === camp.keeper_nick;
   const lastEntry: PlayEntry | null = entries.length > 0 ? entries[entries.length - 1] : null;
@@ -109,7 +110,7 @@ export default async function PlayPage({
           isKeeper={isKeeper}
         />
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {isMember ? <MySheetPanel character={myChar} /> : null}
+          {isMember ? <MySheetPanel characters={myChars} campaignId={id} /> : null}
           <SceneRoster members={members} characters={characters} myNick={nick} />
           <CluesPanel clues={clues} campaignId={id} isKeeper={isKeeper} />
         </div>

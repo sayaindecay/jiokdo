@@ -4141,6 +4141,61 @@ body:has(.scene-side) .session-row .ks-crown {
   text-align: center;
 }
 
+/* 다중 캐릭터 picker — select (head) + chip strip */
+.ms-panel .ms-char-picker {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(245, 243, 238, 0.06);
+  border: 1px solid rgba(245, 243, 238, 0.18);
+  border-radius: 4px;
+  padding: 0.2rem 0.45rem;
+  letter-spacing: -0.005em;
+  max-width: 60%;
+  cursor: pointer;
+}
+.ms-panel .ms-char-picker:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.ms-panel .ms-char-picker option {
+  background: var(--bg);
+  color: var(--ink);
+}
+.ms-panel .ms-char-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.4rem 0.6rem 0.5rem;
+  border-bottom: 1px dashed rgba(245, 243, 238, 0.12);
+}
+.ms-panel .ms-char-chip {
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  padding: 0.2rem 0.55rem;
+  background: rgba(245, 243, 238, 0.06);
+  border: 1px solid rgba(245, 243, 238, 0.16);
+  color: rgba(245, 243, 238, 0.7);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--tx-fast);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ms-panel .ms-char-chip:hover {
+  color: #fff;
+  border-color: var(--accent);
+}
+.ms-panel .ms-char-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
 .ms-panel .ms-vitals {
   display: grid;
   grid-template-columns: 1fr 1fr;
