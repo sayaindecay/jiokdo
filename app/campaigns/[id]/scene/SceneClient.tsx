@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { BestiaryEntry, CocAttrs, CocSkillGroup, DiceLevel } from "@/lib/types";
 import { InitiativeTracker, type InitiativeRow } from "@/components/vtt/InitiativeTracker";
-import { StatBlock } from "@/components/vtt/StatBlock";
-import { ThreatStars } from "@/components/vtt/ThreatStars";
 import { judgeCoc, LEVEL_LABEL } from "@/lib/dice";
+import { formatTime } from "@/lib/format";
+import { speakerHueStyle } from "@/lib/hue";
 
 export type PcLite = {
   id: number;
@@ -22,17 +22,21 @@ export type PcLite = {
 type AddTab = "enemy" | "char";
 
 type FocusedEntity =
-  | { kind: "npc"; entry: BestiaryEntry }
+  | { kind: "npc"; entry: BestiaryEntry; rowId: string }
   | { kind: "pc"; char: PcLite; rowId: string };
 
 type CombatAction = "attack" | "brawl" | "dodge" | "fightback" | "flee";
 
-type LastRoll = {
+type CombatLogEntry = {
+  id: number;
+  ts: number;
   actor: string;
+  kind: "roll" | "system";
   label: string;
-  skillVal: number;
-  roll: number;
-  level: DiceLevel;
+  detail?: string;
+  skill_val?: number;
+  roll?: number;
+  level?: DiceLevel;
 };
 
 function rolld(sides: number): number {
@@ -85,6 +89,16 @@ function getActionForNpc(action: CombatAction, e: BestiaryEntry) {
   }
 }
 
+const ATTR_LABELS: { key: keyof CocAttrs; label: string }[] = [
+  { key: "str", label: "STR" }, { key: "con", label: "CON" }, { key: "siz", label: "SIZ" },
+  { key: "dex", label: "DEX" }, { key: "int", label: "INT" }, { key: "pow", label: "POW" },
+];
+
+const NPC_ATTR_LABELS: { key: keyof BestiaryEntry["attrs"]; label: string }[] = [
+  { key: "str", label: "STR" }, { key: "con", label: "CON" }, { key: "siz", label: "SIZ" },
+  { key: "dex", label: "DEX" }, { key: "int", label: "INT" }, { key: "pow", label: "POW" },
+];
+
 export function SceneClient({
   initialRows,
   bestiary,
@@ -101,13 +115,12 @@ export function SceneClient({
   const [activeIndex, setActiveIndex] = useState(0);
   const [roundFlash, setRoundFlash] = useState(false);
   const [actedIds, setActedIds] = useState<Set<string>>(new Set());
-  const [focused, setFocused] = useState<FocusedEntity | null>(
-    bestiary[0] ? { kind: "npc", entry: bestiary[0] } : null,
-  );
+  const [focused, setFocused] = useState<FocusedEntity | null>(null);
   const [addTab, setAddTab] = useState<AddTab>("enemy");
   const [addedCharIds, setAddedCharIds] = useState<number[]>([]);
-  const [lastRoll, setLastRoll] = useState<LastRoll | null>(null);
   const [weaponIdx, setWeaponIdx] = useState(0);
+  const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
+  const [logSeq, setLogSeq] = useState(1);
 
   const sorted = useMemo(() => [...rows].sort((a, b) => b.dex - a.dex), [rows]);
   const sortedWithActed = useMemo(
@@ -117,21 +130,33 @@ export function SceneClient({
   const liveRows = sortedWithActed.filter((r) => !r.dead);
   const allActed = liveRows.length > 0 && liveRows.every((r) => r.acted);
 
+  const focusedRow = focused
+    ? rows.find((r) => r.id === focused.rowId) ?? null
+    : null;
+
   const flash = () => {
     setRoundFlash(true);
     setTimeout(() => setRoundFlash(false), 700);
   };
 
-  // 모두 행동했으면 라운드 종료 + 다음 라운드 시작.
-  // 그렇지 않으면 현재 활성 row 를 acted 로 마킹하고 다음 미행동 live 로 이동.
+  const pushLog = (e: Omit<CombatLogEntry, "id" | "ts">) => {
+    setCombatLog((prev) => [
+      ...prev,
+      { ...e, id: logSeq, ts: Date.now() },
+    ]);
+    setLogSeq((s) => s + 1);
+  };
+
   const advance = () => {
     if (liveRows.length === 0) return;
     if (allActed) {
       setActedIds(new Set());
-      setRound((r) => r + 1);
+      const nextRound = round + 1;
+      setRound(nextRound);
       flash();
       const firstLiveIdx = sorted.findIndex((r) => r.id === liveRows[0].id);
       setActiveIndex(firstLiveIdx >= 0 ? firstLiveIdx : 0);
+      pushLog({ kind: "system", actor: "시스템", label: `라운드 ${nextRound} 시작` });
       return;
     }
     const cur = sorted[activeIndex];
@@ -143,7 +168,6 @@ export function SceneClient({
       const nextIdx = sorted.findIndex((r) => r.id === next.id);
       if (nextIdx >= 0) setActiveIndex(nextIdx);
     }
-    // 모두 acted 가 되면 다음 클릭에서 라운드 ++ 분기로 진입
   };
 
   const reset = () => {
@@ -152,6 +176,7 @@ export function SceneClient({
     flash();
     setActiveIndex(0);
     setRows((prev) => prev.map((r) => ({ ...r, dead: false, hp: r.hp_max })));
+    pushLog({ kind: "system", actor: "시스템", label: "라운드 초기화 — 전원 부활 / HP 복구" });
   };
 
   const damage = (rowId: string, amount: number) => {
@@ -159,6 +184,10 @@ export function SceneClient({
       prev.map((r) => {
         if (r.id !== rowId) return r;
         const hp = Math.max(0, Math.min(r.hp_max, r.hp - amount));
+        const died = hp === 0 && !r.dead;
+        if (died) {
+          pushLog({ kind: "system", actor: r.name, label: "사망", detail: `HP 0/${r.hp_max}` });
+        }
         return { ...r, hp, dead: hp === 0 };
       })
     );
@@ -176,9 +205,7 @@ export function SceneClient({
       const cid = Number(m[1]);
       setAddedCharIds((prev) => prev.filter((id) => id !== cid));
     }
-    if (focused) {
-      if (focused.kind === "pc" && focused.rowId === rowId) setFocused(null);
-    }
+    if (focused && focused.rowId === rowId) setFocused(null);
   };
 
   const addNpcFromSlug = (slug: string) => {
@@ -188,8 +215,9 @@ export function SceneClient({
     const num = existing.length + 1;
     const hp = Number(entry.attrs.hp ?? 5);
     const dex = Number(entry.attrs.dex ?? 50);
+    const rowId = `npc-${entry.slug}-${Date.now()}-${num}`;
     const newRow: InitiativeRow = {
-      id: `npc-${entry.slug}-${Date.now()}-${num}`,
+      id: rowId,
       dex,
       name: existing.length > 0 ? `${entry.name} #${num}` : entry.name,
       is_pc: false,
@@ -198,7 +226,7 @@ export function SceneClient({
       source_slug: entry.slug,
     };
     setRows((prev) => [...prev, newRow]);
-    setFocused({ kind: "npc", entry });
+    setFocused({ kind: "npc", entry, rowId });
   };
 
   const addNpcFromChar = (charId: number) => {
@@ -222,7 +250,6 @@ export function SceneClient({
   };
 
   const onSelect = (row: InitiativeRow) => {
-    // PC row (현재 캠페인 소속): pc-{id}
     const pcMatch = row.id.match(/^pc-(\d+)$/);
     if (pcMatch) {
       const c = pcChars.find((x) => x.id === Number(pcMatch[1]));
@@ -232,7 +259,6 @@ export function SceneClient({
         return;
       }
     }
-    // 키퍼 캐릭터 NPC: char-{id}-...
     const charMatch = row.id.match(/^char-(\d+)-/);
     if (charMatch) {
       const c = keeperChars.find((x) => x.id === Number(charMatch[1]));
@@ -242,25 +268,19 @@ export function SceneClient({
         return;
       }
     }
-    // 베스티어리 NPC
     if (row.source_slug) {
       const entry = bestiary.find((b) => b.slug === row.source_slug);
       if (entry) {
-        setFocused({ kind: "npc", entry });
+        setFocused({ kind: "npc", entry, rowId: row.id });
         return;
       }
     }
   };
 
-  const applyToFocused = (amount: number) => {
-    if (focused?.kind === "npc") {
-      const target = rows.find((r) => r.source_slug === focused.entry.slug && !r.dead);
-      if (target) damage(target.id, amount);
-    } else if (focused?.kind === "pc") {
-      damage(focused.rowId, amount);
-    } else if (sorted[activeIndex] && !sorted[activeIndex].dead) {
-      damage(sorted[activeIndex].id, amount);
-    }
+  const rollAndLog = (actor: string, label: string, skillVal: number) => {
+    const roll = rolld(100);
+    const level = judgeCoc(roll, skillVal);
+    pushLog({ kind: "roll", actor, label, skill_val: skillVal, roll, level });
   };
 
   const fireAction = (action: CombatAction) => {
@@ -269,28 +289,11 @@ export function SceneClient({
       focused.kind === "pc"
         ? getActionForPc(action, focused.char, weaponIdx)
         : getActionForNpc(action, focused.entry);
-    const roll = rolld(100);
-    const level = judgeCoc(roll, setup.skillVal);
-    setLastRoll({
-      actor: focused.kind === "pc" ? focused.char.name : focused.entry.name,
-      label: setup.label,
-      skillVal: setup.skillVal,
-      roll,
-      level,
-    });
+    const actor = focused.kind === "pc" ? focused.char.name : (focusedRow?.name ?? focused.entry.name);
+    rollAndLog(actor, setup.label, setup.skillVal);
   };
 
-  const otherNpcs = bestiary
-    .filter((b) => focused?.kind === "npc" ? b.slug !== focused.entry.slug : true)
-    .slice(0, 4);
-  const addedChars = keeperChars.filter((c) => addedCharIds.includes(c.id));
-
-  const focusedActiveStatblockId =
-    focused?.kind === "npc"
-      ? rows.find((r) => r.source_slug === focused.entry.slug)?.id
-      : focused?.kind === "pc"
-        ? focused.rowId
-        : undefined;
+  const focusedActiveStatblockId = focused?.rowId;
 
   return (
     <>
@@ -404,7 +407,7 @@ export function SceneClient({
             )}
           </div>
 
-          {/* 포커스 스탯블록 */}
+          {/* 포커스 시트 */}
           {focused ? (
             <div className="stk-panel">
               <div className="stk-head">
@@ -412,18 +415,29 @@ export function SceneClient({
                   FOCUS · {focused.kind === "pc" ? "캐릭터 시트" : "스탯블록"}
                 </span>
                 <span className="stk-title">
-                  {focused.kind === "pc" ? focused.char.name : focused.entry.name}
+                  {focusedRow?.name ?? (focused.kind === "pc" ? focused.char.name : focused.entry.name)}
                 </span>
               </div>
               <div className="stk-body stk-body-flush">
                 {focused.kind === "npc" ? (
-                  <StatBlock entry={focused.entry} />
+                  <NpcStatSheet
+                    entry={focused.entry}
+                    rowName={focusedRow?.name ?? focused.entry.name}
+                    currentHp={focusedRow?.hp ?? Number(focused.entry.attrs.hp ?? 0)}
+                    hpMax={focusedRow?.hp_max ?? Number(focused.entry.attrs.hp ?? 0)}
+                    onRoll={rollAndLog}
+                  />
                 ) : (
-                  <PcStatBlock char={focused.char} />
+                  <PcStatSheet
+                    char={focused.char}
+                    actorName={focusedRow?.name ?? focused.char.name}
+                    currentHp={focusedRow?.hp ?? focused.char.hp}
+                    hpMax={focusedRow?.hp_max ?? focused.char.hp_max}
+                    onRoll={rollAndLog}
+                  />
                 )}
               </div>
 
-              {/* 전투 액션 */}
               <div className="stk-foot stk-actions stk-combat-actions">
                 <span className="stk-foot-label">전투 액션</span>
                 <button type="button" className="chip" onClick={() => fireAction("attack")}>공격</button>
@@ -433,7 +447,6 @@ export function SceneClient({
                 <button type="button" className="chip" onClick={() => fireAction("flee")}>도주</button>
               </div>
 
-              {/* PC 무기 선택 */}
               {focused.kind === "pc" && focused.char.weapons.length > 1 ? (
                 <div className="stk-weapon-row">
                   <span className="stk-foot-label">무기 선택</span>
@@ -450,38 +463,6 @@ export function SceneClient({
                   ))}
                 </div>
               ) : null}
-
-              {/* 라스트 굴림 결과 */}
-              {lastRoll ? (
-                <div className="stk-last-roll">
-                  <span className="lr-actor">{lastRoll.actor}</span>
-                  <span className="lr-label">{lastRoll.label}</span>
-                  <span className="lr-skill">{lastRoll.skillVal}%</span>
-                  <span className="lr-arrow">→</span>
-                  <span className="lr-roll">{lastRoll.roll}</span>
-                  <span className={`lr-level level ${lastRoll.level}`}>
-                    {LEVEL_LABEL[lastRoll.level]}
-                  </span>
-                </div>
-              ) : null}
-
-              {/* HP 조절 */}
-              <div className="stk-foot stk-actions">
-                <span className="stk-foot-label">HP 조절</span>
-                <button type="button" className="chip" onClick={() => applyToFocused(rolld(6))}>-1d6</button>
-                <button type="button" className="chip" onClick={() => applyToFocused(rolld(4))}>-1d4</button>
-                <button type="button" className="chip" onClick={() => applyToFocused(2)}>-2</button>
-                <button type="button" className="chip" onClick={() => applyToFocused(-5)}>+5</button>
-                {focused.kind === "npc" ? (
-                  <button
-                    type="button"
-                    className="chip accent"
-                    onClick={() => addNpcFromSlug(focused.entry.slug)}
-                  >
-                    + NPC 복제
-                  </button>
-                ) : null}
-              </div>
             </div>
           ) : (
             <div className="stk-panel">
@@ -498,93 +479,213 @@ export function SceneClient({
       </div>
 
       <div className="section-head">
-        <h2>오늘 세션의 다른 NPC</h2>
-        <span className="count">{otherNpcs.length + addedChars.length}개</span>
+        <h2>전투 로그</h2>
+        <span className="count">{combatLog.length}개</span>
       </div>
-      <div className="board-grid">
-        {addedChars.map((c) => (
-          <Link key={`char-${c.id}`} href={`/characters/${c.id}`} className="board-card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
-              <h2 style={{ margin: 0 }}>{c.name}</h2>
-              <span className="stk-badge">내 캐릭터</span>
-            </div>
-            <p className="desc">{c.occupation || "직업 미기재"}</p>
-            <div className="stats">
-              <span>HP <b>{c.hp_max}</b></span>
-              <span>DEX <b>{c.attrs.dex}</b></span>
-            </div>
-          </Link>
-        ))}
-        {otherNpcs.map((n) => (
-          <Link key={n.slug} href={`/bestiary/${n.slug}`} className="board-card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
-              <h2 style={{ margin: 0 }}>{n.name}</h2>
-              <ThreatStars entry={n} />
-            </div>
-            <p className="desc">{n.category}</p>
-            <div className="stats">
-              {n.attrs.hp != null ? <span>HP <b>{n.attrs.hp}</b></span> : null}
-              {n.attrs.pow != null ? <span>POW <b>{n.attrs.pow}</b></span> : null}
-              {n.sanity_loss ? <span>SAN <b>{n.sanity_loss}</b></span> : null}
-            </div>
-          </Link>
-        ))}
-        {otherNpcs.length === 0 && addedChars.length === 0 ? (
-          <div className="empty">에너미에 다른 항목이 없습니다.</div>
-        ) : null}
-      </div>
+      {combatLog.length === 0 ? (
+        <div className="empty">전투 액션 · 굴림 · 사망 / 라운드 변동이 여기에 누적됩니다.</div>
+      ) : (
+        <ul className="post-board combat-log">
+          {[...combatLog].reverse().map((e) => {
+            const isSystem = e.kind === "system";
+            const tagClass = isSystem ? "system" : "narration";
+            return (
+              <li
+                key={e.id}
+                className={`post-board-row kind-${tagClass}`}
+                style={speakerHueStyle(e.actor)}
+              >
+                <div className="pb-link pb-static">
+                  <span className={`kind-tag kind-${tagClass}`}>
+                    {isSystem ? "시스템" : "굴림"}
+                  </span>
+                  <span className="pb-title">
+                    {e.label}
+                    {e.kind === "roll" && e.skill_val != null ? (
+                      <>
+                        {" "}
+                        <span className="cl-skill">{e.skill_val}%</span>
+                        {" → "}
+                        <span className="cl-roll">{e.roll}</span>{" "}
+                        <span className={`cl-level level ${e.level ?? "fail"}`}>
+                          {e.level ? LEVEL_LABEL[e.level] : ""}
+                        </span>
+                      </>
+                    ) : e.detail ? (
+                      <span className="cl-detail">{" · " + e.detail}</span>
+                    ) : null}
+                  </span>
+                  {e.kind === "roll" ? <span className="pb-dice-mark">⌬</span> : null}
+                  <span className="pb-author">{e.actor}</span>
+                  <span className="pb-time">{formatTime(e.ts)}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }
 
-function PcStatBlock({ char }: { char: PcLite }) {
+function PcStatSheet({
+  char, actorName, currentHp, hpMax, onRoll,
+}: {
+  char: PcLite;
+  actorName: string;
+  currentHp: number;
+  hpMax: number;
+  onRoll: (actor: string, label: string, skillVal: number) => void;
+}) {
   const a = char.attrs;
-  const combatSkills = char.skills.filter((s) => s.group === "combat");
   return (
     <div className="statblock pc-statblock">
       <div className="sb-body">
-        <div className="stat-grid">
-          {[
-            ["STR", a.str], ["CON", a.con], ["SIZ", a.siz],
-            ["DEX", a.dex], ["INT", a.int], ["POW", a.pow],
-          ].map(([k, v]) => (
-            <div key={k as string}>
-              <div className="k">{k}</div>
-              <div className="v">{v}</div>
-            </div>
-          ))}
+        <div className="stat-grid stat-grid-rollable">
+          {ATTR_LABELS.map(({ key, label }) => {
+            const v = a[key];
+            const skillVal = v * 5;
+            return (
+              <button
+                key={key}
+                type="button"
+                className="stat-cell-btn"
+                onClick={() => onRoll(actorName, `${label}×5`, skillVal)}
+                title={`${label}×5 = ${skillVal}% 굴림`}
+              >
+                <div className="k">{label}</div>
+                <div className="v">{v}</div>
+                <div className="kx5">×5 = {skillVal}</div>
+              </button>
+            );
+          })}
         </div>
         <div className="sb-meta">
-          <div className="mrow"><span className="k">HP</span><span className="v">{char.hp} / {char.hp_max}</span></div>
-          <div className="mrow"><span className="k">DEX×5</span><span className="v">{char.attrs.dex * 5}</span></div>
+          <div className="mrow"><span className="k">HP</span><span className="v">{currentHp} / {hpMax}</span></div>
+          <div className="mrow"><span className="k">DEX×5 (도주)</span><span className="v">{a.dex * 5}</span></div>
         </div>
 
         {char.weapons.length > 0 ? (
           <>
-            <h3 className="pc-sb-heading">무기</h3>
+            <h3 className="pc-sb-heading">무기 (클릭 → 굴림)</h3>
             <div className="attacks">
               {char.weapons.map((w, i) => (
-                <div className="attack-row" key={i}>
+                <button
+                  type="button"
+                  className="attack-row attack-row-btn"
+                  key={i}
+                  onClick={() => onRoll(actorName, `공격 (${w.name})`, w.skill)}
+                  title={`${w.name} ${w.skill}% 굴림`}
+                >
                   <span className="name">{w.name}</span>
                   <span className="formula">{w.skill}% · {w.damage}</span>
-                </div>
+                  <span className="roll-mark" aria-hidden="true">⌬</span>
+                </button>
               ))}
             </div>
           </>
         ) : null}
 
-        {combatSkills.length > 0 ? (
+        {char.skills.length > 0 ? (
           <>
-            <h3 className="pc-sb-heading">전투 기능</h3>
+            <h3 className="pc-sb-heading">기능 (클릭 → 굴림)</h3>
             <ul className="pc-skill-list">
-              {combatSkills.map((s) => (
+              {char.skills.map((s) => (
                 <li key={s.name}>
-                  <span className="pc-skill-name">{s.name}</span>
-                  <span className="pc-skill-val">{s.value}%</span>
+                  <button
+                    type="button"
+                    className="pc-skill-btn"
+                    onClick={() => onRoll(actorName, s.name, s.value)}
+                    title={`${s.name} ${s.value}% 굴림`}
+                  >
+                    <span className="pc-skill-name">{s.name}</span>
+                    <span className="pc-skill-val">{s.value}%</span>
+                  </button>
                 </li>
               ))}
             </ul>
           </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function NpcStatSheet({
+  entry, rowName, currentHp, hpMax, onRoll,
+}: {
+  entry: BestiaryEntry;
+  rowName: string;
+  currentHp: number;
+  hpMax: number;
+  onRoll: (actor: string, label: string, skillVal: number) => void;
+}) {
+  const a = entry.attrs;
+  return (
+    <div className="statblock npc-statsheet">
+      <div className="sb-body">
+        <div className="stat-grid stat-grid-rollable">
+          {NPC_ATTR_LABELS.map(({ key, label }) => {
+            const v = a[key];
+            if (v == null) return null;
+            const skillVal = Number(v) * 5;
+            return (
+              <button
+                key={key}
+                type="button"
+                className="stat-cell-btn"
+                onClick={() => onRoll(rowName, `${label}×5`, skillVal)}
+                title={`${label}×5 = ${skillVal}% 굴림`}
+              >
+                <div className="k">{label}</div>
+                <div className="v">{v}</div>
+                <div className="kx5">×5 = {skillVal}</div>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="sb-meta">
+          <div className="mrow"><span className="k">HP</span><span className="v">{currentHp} / {hpMax}</span></div>
+          {a.move != null ? (
+            <div className="mrow"><span className="k">이동</span><span className="v">{a.move}</span></div>
+          ) : null}
+          {a.build != null ? (
+            <div className="mrow"><span className="k">체격</span><span className="v">{a.build}</span></div>
+          ) : null}
+          {entry.sanity_loss ? (
+            <div className="mrow"><span className="k">SAN 손실</span><span className="v">{entry.sanity_loss}</span></div>
+          ) : null}
+          {a.damage_bonus ? (
+            <div className="mrow"><span className="k">DB</span><span className="v">{a.damage_bonus}</span></div>
+          ) : null}
+        </div>
+
+        {entry.attacks.length > 0 ? (
+          <>
+            <h3 className="pc-sb-heading">공격 (클릭 → 굴림)</h3>
+            <div className="attacks">
+              {entry.attacks.map((atk, i) => (
+                <button
+                  type="button"
+                  className="attack-row attack-row-btn"
+                  key={i}
+                  onClick={() => onRoll(rowName, `공격 (${atk.name})`, atk.skill)}
+                  title={`${atk.name} ${atk.skill}% 굴림`}
+                >
+                  <span className="name">{atk.name}</span>
+                  <span className="formula">{atk.skill}% · {atk.damage}</span>
+                  <span className="roll-mark" aria-hidden="true">⌬</span>
+                </button>
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {entry.description ? (
+          <div className="wiki-callout statblock-memo" style={{ marginTop: "0.85rem" }}>
+            <b>키퍼 메모 ─</b> {entry.description}
+          </div>
         ) : null}
       </div>
     </div>

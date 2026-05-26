@@ -7469,7 +7469,89 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
 }
 
 /* PC 시트 — Focus 패널 내 */
-.pc-statblock { background: transparent; border: none; box-shadow: none; border-radius: 0; }
+.pc-statblock,
+.npc-statsheet { background: transparent; border: none; box-shadow: none; border-radius: 0; }
+
+/* Sheet-style attribute grid (클릭 → 굴림) */
+.stat-grid-rollable {
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 0.4rem !important;
+}
+.stat-cell-btn {
+  background: rgba(245, 243, 238, 0.04);
+  border: 1px solid rgba(245, 243, 238, 0.16);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.5rem 0.45rem;
+  text-align: center;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--tx-fast);
+  color: inherit;
+}
+.stat-cell-btn:hover {
+  border-color: var(--accent);
+  background: rgba(138, 28, 28, 0.18);
+}
+.stat-cell-btn .k {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(245, 243, 238, 0.55);
+}
+.stat-cell-btn .v {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.stat-cell-btn .kx5 {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+.stat-cell-btn:hover .kx5 { color: #fff; }
+
+/* sb-meta — 어두운 배경 보정 */
+.stk-body-flush .statblock .sb-meta .mrow .k { color: rgba(245, 243, 238, 0.55); }
+.stk-body-flush .statblock .sb-meta .mrow .v { color: #fff; }
+
+/* 클릭 가능한 attack-row (PC 무기 / NPC 공격) */
+.attack-row-btn {
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.5rem 0.7rem;
+  border: 1px dashed rgba(245, 243, 238, 0.18);
+  border-radius: var(--radius);
+  background: rgba(245, 243, 238, 0.04);
+  color: rgba(245, 243, 238, 0.92);
+  font-family: inherit;
+  font-size: 0.88rem;
+  transition: all var(--tx-fast);
+}
+.attack-row-btn:hover {
+  border-color: var(--accent);
+  background: rgba(138, 28, 28, 0.18);
+  color: #fff;
+}
+.attack-row-btn .name { flex: 1; font-weight: 600; font-family: var(--font-ui); }
+.attack-row-btn .formula {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: rgba(245, 243, 238, 0.65);
+}
+.attack-row-btn .roll-mark {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+/* 기능 리스트 — 클릭 시 굴림 */
 .pc-sb-heading {
   font-size: 0.74rem;
   text-transform: uppercase;
@@ -7488,16 +7570,82 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
   gap: 0.25rem 0.6rem;
 }
 .pc-skill-list li {
+  padding: 0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pc-skill-btn {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
   font-size: 0.84rem;
-  padding: 0.2rem 0.45rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
   background: rgba(245, 243, 238, 0.04);
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  transition: all var(--tx-fast);
 }
+.pc-skill-btn:hover {
+  background: rgba(138, 28, 28, 0.18);
+}
+.pc-skill-btn:hover .pc-skill-name,
+.pc-skill-btn:hover .pc-skill-val { color: #fff; }
 .pc-skill-name { color: rgba(245, 243, 238, 0.85); }
 .pc-skill-val { font-weight: 700; color: #fff; }
+
+/* 전투 로그 — PostBoard 패턴 재사용 + 정적 (펼침 없음) */
+.combat-log .pb-static {
+  cursor: default;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: inherit;
+}
+.combat-log .cl-skill {
+  font-family: var(--font-mono);
+  color: var(--ink-3);
+  font-size: 0.82rem;
+}
+.combat-log .cl-roll {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+.combat-log .cl-level {
+  font-size: 0.7rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  margin-left: 0.3rem;
+}
+.combat-log .cl-detail {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+
+/* 시네마틱 다크에서 로그 내부 텍스트 */
+body:has(.scene-side, .cinematic) .combat-log .cl-skill,
+body:has(.scene-side, .cinematic) .combat-log .cl-detail {
+  color: rgba(245, 243, 238, 0.55);
+}
+body:has(.scene-side, .cinematic) .combat-log .cl-roll {
+  color: #fff;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log .cl-skill,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log .cl-detail {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log .cl-roll {
+  color: var(--ink);
+}
 
 /* 전투 액션 chip bar + 무기 선택 */
 .stk-combat-actions {
@@ -7559,11 +7707,37 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
 }
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .ini-check { color: var(--green); }
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-sb-heading { color: var(--ink-3); }
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-list li {
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-btn {
   background: var(--bg-elev-2);
 }
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-name { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-btn:hover {
+  background: var(--accent-soft);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-btn:hover .pc-skill-name,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-btn:hover .pc-skill-val { color: var(--accent); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-name,
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-val { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stat-cell-btn {
+  background: var(--bg-elev-2);
+  border-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stat-cell-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stat-cell-btn .k { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stat-cell-btn .v { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .attack-row-btn {
+  background: var(--bg-elev-2);
+  border-color: var(--line);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .attack-row-btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .attack-row-btn .formula { color: var(--ink-2); }
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-combat-actions {
   background: var(--bg-elev-2);
   border-top-color: var(--line);
