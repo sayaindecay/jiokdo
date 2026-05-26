@@ -703,6 +703,40 @@ function rowToPlayEntry(r: Record<string, unknown>): PlayEntry {
   };
 }
 
+export async function updatePlayEntry(
+  id: number,
+  authorNick: string,
+  patch: { title?: string; kind?: PlayEntry["kind"] }
+): Promise<boolean> {
+  await ensureReady();
+  const sets: string[] = [];
+  const args: (string | number)[] = [];
+  if (patch.title !== undefined) {
+    sets.push("title = ?");
+    args.push(patch.title);
+  }
+  if (patch.kind !== undefined) {
+    sets.push("kind = ?");
+    args.push(patch.kind);
+  }
+  if (sets.length === 0) return false;
+  args.push(id, authorNick);
+  const res = await client.execute({
+    sql: `UPDATE play_entries SET ${sets.join(", ")} WHERE id = ? AND nickname = ?`,
+    args,
+  });
+  return Number(res.rowsAffected) > 0;
+}
+
+export async function deletePlayEntry(id: number, authorNick: string): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "DELETE FROM play_entries WHERE id = ? AND nickname = ?",
+    args: [id, authorNick],
+  });
+  return Number(res.rowsAffected) > 0;
+}
+
 export async function getPlayEntry(id: number): Promise<PlayEntry | null> {
   await ensureReady();
   const res = await client.execute({

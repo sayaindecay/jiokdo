@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getAuthenticatedNickname } from "@/lib/auth";
 import { getCampaign, getPlayEntry } from "@/lib/db";
 import { formatTime } from "@/lib/format";
 import { LEVEL_LABEL } from "@/lib/dice";
 import { speakerHueStyle } from "@/lib/hue";
+import { EntryEditActions } from "@/components/vtt/EntryEditActions";
 
 export const dynamic = "force-dynamic";
 
@@ -20,14 +22,17 @@ export default async function PlayEntryDetail({
   const id = Number(idStr);
   const entryId = Number(entryStr);
   if (!Number.isFinite(id) || !Number.isFinite(entryId)) notFound();
-  const [camp, entry] = await Promise.all([
+  const [camp, entry, nick] = await Promise.all([
     getCampaign(id),
     getPlayEntry(entryId),
+    getAuthenticatedNickname(),
   ]);
   if (!camp || !entry || entry.campaign_id !== id) notFound();
 
   const author = entry.character_name || entry.nickname;
   const isKeeperEntry = entry.nickname === camp.keeper_nick;
+  const isAuthor = nick != null && nick === entry.nickname;
+  const isKeeper = nick != null && nick === camp.keeper_nick;
   const firstText = entry.segments.find((s) => s.type === "text") as
     | { type: "text"; value: string } | undefined;
   const fallbackTitle = firstText
@@ -93,6 +98,15 @@ export default async function PlayEntryDetail({
             );
           })}
         </div>
+
+        {isAuthor ? (
+          <EntryEditActions
+            entryId={entry.id}
+            initialTitle={entry.title || fallbackTitle}
+            initialKind={entry.kind}
+            isKeeper={isKeeper}
+          />
+        ) : null}
 
         <footer className="ed-foot">
           <Link href={`/campaigns/${id}/play`} className="btn ghost">

@@ -4620,7 +4620,12 @@ select:focus-visible {
   padding: 0.5rem 0.7rem;
   margin-bottom: 0.45rem;
 }
-.composer-title::placeholder { color: rgba(245, 243, 238, 0.4); }
+.composer-title::placeholder {
+  color: rgba(245, 243, 238, 0.4);
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: 400;
+}
 .composer-title:focus {
   outline: none;
   border-color: var(--accent);
@@ -4857,6 +4862,91 @@ select:focus-visible {
   display: flex;
   justify-content: flex-start;
 }
+
+/* 글 수정·삭제 (작성자 한정) */
+.entry-detail .ed-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+  padding-top: 0.85rem;
+  border-top: 1px dashed rgba(245, 243, 238, 0.16);
+  align-items: center;
+}
+.entry-detail .ed-edit-actions .btn.ghost {
+  background: rgba(245, 243, 238, 0.08);
+  border-color: rgba(245, 243, 238, 0.25);
+  color: rgba(245, 243, 238, 0.85);
+}
+.entry-detail .ed-edit-actions .btn.ghost:hover {
+  background: rgba(245, 243, 238, 0.16);
+  color: #fff;
+  border-color: rgba(245, 243, 238, 0.45);
+}
+.entry-detail .ed-edit-actions .btn.ghost.danger {
+  color: #f0a8a8;
+  border-color: rgba(193, 78, 78, 0.45);
+}
+.entry-detail .ed-edit-actions .btn.ghost.danger:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.entry-detail .ed-edit-form {
+  margin-top: 1.1rem;
+  padding: 0.9rem 1rem 1rem;
+  background: rgba(245, 243, 238, 0.05);
+  border: 1px solid rgba(245, 243, 238, 0.18);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.entry-detail .ed-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.entry-detail .ed-edit-label {
+  flex-shrink: 0;
+  width: 3.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245, 243, 238, 0.55);
+  font-weight: 700;
+}
+.entry-detail .ed-edit-title,
+.entry-detail .ed-edit-kind {
+  flex: 1;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  background: rgba(245, 243, 238, 0.06);
+  border: 1px solid rgba(245, 243, 238, 0.2);
+  color: rgba(245, 243, 238, 0.95);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+}
+.entry-detail .ed-edit-title:focus,
+.entry-detail .ed-edit-kind:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(193, 78, 78, 0.25);
+}
+.entry-detail .ed-edit-note {
+  font-family: var(--font-anno);
+  font-size: 0.82rem;
+  color: rgba(245, 243, 238, 0.55);
+  margin: 0;
+  line-height: 1.5;
+}
+.entry-detail .ed-edit-error {
+  font-family: var(--font-anno);
+  font-size: 0.85rem;
+  color: #f0a8a8;
+}
 .entry-detail .ed-foot .btn.ghost {
   background: rgba(245, 243, 238, 0.06);
   border-color: rgba(245, 243, 238, 0.22);
@@ -5046,15 +5136,15 @@ select:focus-visible {
 
 /* 다중 캐릭터 picker — select (head) + chip strip */
 .ms-panel .ms-char-picker {
-  font-family: var(--font-display);
-  font-size: 0.92rem;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
   font-weight: 600;
   color: #fff;
   background: rgba(245, 243, 238, 0.06);
   border: 1px solid rgba(245, 243, 238, 0.18);
   border-radius: 4px;
   padding: 0.2rem 0.45rem;
-  letter-spacing: -0.005em;
+  letter-spacing: 0;
   max-width: 60%;
   cursor: pointer;
 }
@@ -5358,6 +5448,13 @@ body:has(.scene-side, .cinematic) .scene-roster .info {
   font-size: 0.95rem;
   font-weight: 600;
 }
+.clue-form .cf-title::placeholder,
+.clue-form .cf-body::placeholder {
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: rgba(245, 243, 238, 0.4);
+}
 .clue-form .cf-body {
   font-family: var(--font-anno);
   font-size: 0.92rem;
@@ -5423,6 +5520,23 @@ body:has(.scene-side, .cinematic) .scene-roster .info {
   gap: 0.4rem;
 }
 .clue-form-actions .btn { padding: 0.25rem 0.7rem; font-size: 0.78rem; }
+/* 시네마틱 다크 모드 — 취소 버튼이 투명해서 안 보이던 문제. 명시적 배경 */
+body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost {
+  background: rgba(245, 243, 238, 0.12);
+  border-color: rgba(245, 243, 238, 0.3);
+  color: rgba(245, 243, 238, 0.85);
+}
+body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
+  background: rgba(245, 243, 238, 0.2);
+  color: #fff;
+  border-color: rgba(245, 243, 238, 0.5);
+}
+/* 라이트 시네마틱 인버트 시 — 흰 톤 버튼 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost {
+  background: var(--bg-elev);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
 .clue-row {
   display: grid !important;
   grid-template-columns: 24px 1fr auto;

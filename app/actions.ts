@@ -11,9 +11,10 @@ import {
   findUser, getBestiaryEntry, getCampaign, getCampaignByCode, getCharacter,
   isBestiarySlugTaken, joinCampaign, listKeperCampaigns, touchUserLogin,
   createClue, deleteClue, setClueResolved,
+  deletePlayEntry, getPlayEntry,
   setCampaignIllustration, setCampaignScenePin, setCharacterPortrait,
   updateBestiaryEntry, updateCampaignProfile, updateCharacterProfile, updateCharacterVitals,
-  updateUserPassword,
+  updatePlayEntry, updateUserPassword,
 } from "@/lib/db";
 import type { BestiaryEntry } from "@/lib/types";
 import {
@@ -778,6 +779,39 @@ export async function deleteBestiaryAction(fd: FormData): Promise<void> {
   await deleteBestiaryEntry(slug);
   revalidatePath("/bestiary");
   redirect("/bestiary");
+}
+
+export async function updatePlayEntryAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const id = num(fd, "entry_id");
+  const entry = await getPlayEntry(id);
+  if (!entry) throw new Error("글을 찾을 수 없습니다");
+  if (entry.nickname !== nick) {
+    throw new Error("본인이 작성한 글만 수정할 수 있습니다");
+  }
+  const title = text(fd, "title", 120);
+  if (!title) throw new Error("제목을 입력하세요");
+  const kindRaw = text(fd, "kind", 12);
+  const kind = kindRaw === "narration" ? "narration"
+             : kindRaw === "system" ? "system"
+             : "dialogue";
+  await updatePlayEntry(id, nick, { title, kind });
+  revalidatePath(`/campaigns/${entry.campaign_id}/play`);
+  revalidatePath(`/campaigns/${entry.campaign_id}/play/${id}`);
+}
+
+export async function deletePlayEntryAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const id = num(fd, "entry_id");
+  const entry = await getPlayEntry(id);
+  if (!entry) throw new Error("글을 찾을 수 없습니다");
+  if (entry.nickname !== nick) {
+    throw new Error("본인이 작성한 글만 삭제할 수 있습니다");
+  }
+  const campaignId = entry.campaign_id;
+  await deletePlayEntry(id, nick);
+  revalidatePath(`/campaigns/${campaignId}/play`);
+  redirect(`/campaigns/${campaignId}/play`);
 }
 
 export async function postPlayEntryAction(fd: FormData): Promise<void> {
