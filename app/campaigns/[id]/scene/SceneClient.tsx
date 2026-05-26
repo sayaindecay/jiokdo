@@ -7,14 +7,26 @@ import { InitiativeTracker, type InitiativeRow } from "@/components/vtt/Initiati
 import { StatBlock } from "@/components/vtt/StatBlock";
 import { ThreatStars } from "@/components/vtt/ThreatStars";
 
+export type KeeperCharLite = {
+  id: number;
+  name: string;
+  campaign_id: number;
+  dex: number;
+  hp: number;
+  hp_max: number;
+  occupation: string;
+};
+
 export function SceneClient({
   initialRows,
   focusedNpc,
   bestiary,
+  keeperChars,
 }: {
   initialRows: InitiativeRow[];
   focusedNpc: BestiaryEntry | null;
   bestiary: BestiaryEntry[];
+  keeperChars: KeeperCharLite[];
 }) {
   const [rows, setRows] = useState<InitiativeRow[]>(initialRows);
   const [round, setRound] = useState(1);
@@ -22,6 +34,10 @@ export function SceneClient({
   const [roundFlash, setRoundFlash] = useState(false);
   const [focused, setFocused] = useState<BestiaryEntry | null>(focusedNpc);
   const [pickerSlug, setPickerSlug] = useState<string>(bestiary[0]?.slug ?? "");
+  const [pickerCharId, setPickerCharId] = useState<string>(
+    keeperChars[0] ? String(keeperChars[0].id) : "",
+  );
+  const [addedCharIds, setAddedCharIds] = useState<number[]>([]);
 
   const sorted = useMemo(() => [...rows].sort((a, b) => b.dex - a.dex), [rows]);
 
@@ -65,6 +81,11 @@ export function SceneClient({
 
   const remove = (rowId: string) => {
     setRows((prev) => prev.filter((r) => r.id !== rowId));
+    const m = rowId.match(/^char-(\d+)-/);
+    if (m) {
+      const cid = Number(m[1]);
+      setAddedCharIds((prev) => prev.filter((id) => id !== cid));
+    }
   };
 
   const addNpcFromSlug = (slug: string) => {
@@ -87,6 +108,24 @@ export function SceneClient({
     setFocused(entry);
   };
 
+  const addNpcFromChar = (charId: number) => {
+    const ch = keeperChars.find((c) => c.id === charId);
+    if (!ch) return;
+    const existing = rows.filter((r) => r.id.startsWith(`char-${ch.id}-`));
+    const num = existing.length + 1;
+    const newRow: InitiativeRow = {
+      id: `char-${ch.id}-${Date.now()}-${num}`,
+      dex: ch.dex,
+      name: existing.length > 0 ? `${ch.name} #${num}` : ch.name,
+      is_pc: false,
+      hp: ch.hp,
+      hp_max: ch.hp_max,
+    };
+    setRows((prev) => [...prev, newRow]);
+    setAddedCharIds((prev) => (prev.includes(ch.id) ? prev : [...prev, ch.id]));
+    setFocused(null);
+  };
+
   const onSelect = (row: InitiativeRow) => {
     if (row.is_pc || !row.source_slug) return;
     const entry = bestiary.find((b) => b.slug === row.source_slug);
@@ -104,10 +143,11 @@ export function SceneClient({
   };
 
   const otherNpcs = bestiary.filter((b) => b.slug !== focused?.slug).slice(0, 4);
+  const addedChars = keeperChars.filter((c) => addedCharIds.includes(c.id));
 
   return (
     <>
-      <div className="scene-grid">
+      <div className="scene-grid cinematic">
         <InitiativeTracker
           rows={sorted}
           round={round}
@@ -152,6 +192,34 @@ export function SceneClient({
                 + 추가
               </button>
             </div>
+
+            {keeperChars.length > 0 ? (
+              <>
+                <div className="picker-label" style={{ marginTop: "0.85rem" }}>
+                  내 캐릭터 시트에서 추가
+                </div>
+                <div className="picker-row">
+                  <select
+                    value={pickerCharId}
+                    onChange={(e) => setPickerCharId(e.target.value)}
+                  >
+                    {keeperChars.map((c) => (
+                      <option key={c.id} value={String(c.id)}>
+                        {c.name} (HP {c.hp_max}, DEX {c.dex})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => pickerCharId && addNpcFromChar(Number(pickerCharId))}
+                    disabled={!pickerCharId}
+                  >
+                    + 추가
+                  </button>
+                </div>
+              </>
+            ) : null}
           </div>
 
           {focused ? (
@@ -205,9 +273,34 @@ export function SceneClient({
 
       <div className="section-head">
         <h2>오늘 세션의 다른 NPC</h2>
-        <span className="count">{otherNpcs.length}개</span>
+        <span className="count">{otherNpcs.length + addedChars.length}개</span>
       </div>
       <div className="board-grid">
+        {addedChars.map((c) => (
+          <Link key={`char-${c.id}`} href={`/characters/${c.id}`} className="board-card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+              <h2 style={{ margin: 0 }}>{c.name}</h2>
+              <span
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.65rem",
+                  letterSpacing: "0.08em",
+                  color: "var(--accent)",
+                  border: "1px solid var(--accent)",
+                  padding: "0.05rem 0.4rem",
+                  borderRadius: "999px",
+                }}
+              >
+                내 캐릭터
+              </span>
+            </div>
+            <p className="desc">{c.occupation || "직업 미기재"}</p>
+            <div className="stats">
+              <span>HP <b>{c.hp_max}</b></span>
+              <span>DEX <b>{c.dex}</b></span>
+            </div>
+          </Link>
+        ))}
         {otherNpcs.map((n) => (
           <Link key={n.slug} href={`/bestiary/${n.slug}`} className="board-card">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
@@ -222,7 +315,7 @@ export function SceneClient({
             </div>
           </Link>
         ))}
-        {otherNpcs.length === 0 ? (
+        {otherNpcs.length === 0 && addedChars.length === 0 ? (
           <div className="empty">에너미에 다른 항목이 없습니다.</div>
         ) : null}
       </div>
