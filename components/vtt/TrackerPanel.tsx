@@ -5,7 +5,8 @@ import Link from "next/link";
 import type { BestiaryEntry, CocAttrs, CocSkillGroup, DiceLevel, Segment } from "@/lib/types";
 import { InitiativeTracker, type InitiativeRow } from "@/components/vtt/InitiativeTracker";
 import { VitalsEditor } from "@/components/vtt/VitalsEditor";
-import { judgeCoc } from "@/lib/dice";
+import { judgeCoc, LEVEL_LABEL } from "@/lib/dice";
+import { formatTime } from "@/lib/format";
 import { appendTrackerEntryAction } from "@/app/actions";
 
 export type PcLite = {
@@ -31,6 +32,20 @@ type FocusedEntity =
   | { kind: "pc"; char: PcLite; rowId: string };
 
 type CombatAction = "attack" | "brawl" | "dodge" | "fightback" | "flee";
+
+type CombatLogEntry = {
+  id: number;
+  ts: number;
+  kind: "roll" | "system";
+  actor: string;
+  character_id: number | null;
+  label: string;
+  detail?: string;
+  skill_name?: string;
+  skill_val?: number;
+  roll?: number;
+  level?: DiceLevel;
+};
 
 function rolld(sides: number): number {
   return Math.floor(Math.random() * sides) + 1;
@@ -116,7 +131,11 @@ export function TrackerPanel({
   const [addTab, setAddTab] = useState<AddTab>("enemy");
   const [addedCharIds, setAddedCharIds] = useState<number[]>([]);
   const [weaponIdx, setWeaponIdx] = useState(0);
-  const [, startLog] = useTransition();
+  const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
+  const [logSeq, setLogSeq] = useState(1);
+  const [exporting, startExport] = useTransition();
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportedAt, setExportedAt] = useState<number | null>(null);
 
   const sorted = useMemo(() => [...rows].sort((a, b) => b.dex - a.dex), [rows]);
   const sortedWithActed = useMemo(
@@ -135,26 +154,10 @@ export function TrackerPanel({
     setTimeout(() => setRoundFlash(false), 700);
   };
 
-  // 서버에 로그 기록 (세션 로그에 합쳐서 표시됨)
-  const submitLog = (params: {
-    title: string;
-    kind: "system" | "dialogue" | "narration";
-    segments: Segment[];
-    characterId?: number | null;
-  }) => {
-    const fd = new FormData();
-    fd.set("campaign_id", String(campaignId));
-    if (params.characterId != null) fd.set("character_id", String(params.characterId));
-    fd.set("title", params.title);
-    fd.set("kind", params.kind);
-    fd.set("segments_json", JSON.stringify(params.segments));
-    startLog(async () => {
-      try {
-        await appendTrackerEntryAction(fd);
-      } catch (e) {
-        console.error("[tracker] log append failed", e);
-      }
-    });
+  // 메모리에만 적재되는 전투 로그 — 익스포트 전까지는 세션 로그에 합쳐지지 않음.
+  const pushLog = (e: Omit<CombatLogEntry, "id" | "ts">) => {
+    setCombatLog((prev) => [...prev, { ...e, id: logSeq, ts: Date.now() }]);
+    setLogSeq((s) => s + 1);
   };
 
   const logRoll = (
@@ -166,24 +169,57 @@ export function TrackerPanel({
     level: DiceLevel,
     characterId: number | null,
   ) => {
-    const expression = `/cc ${skillName} ${skillVal}`;
-    submitLog({
-      title: characterId != null ? label : `[${actor}] ${label}`,
-      kind: "system",
-      characterId,
-      segments: [
-        {
+    pushLog({
+      kind: "roll",
+      actor,
+      character_id: characterId,
+      label,
+      skill_name: skillName,
+      skill_val: skillVal,
+      roll,
+      level,
+    });
+  };
+
+  const logSystem = (actor: string, label: string, detail?: string) => {
+    pushLog({ kind: "system", actor, character_id: null, label, detail });
+  };
+
+  const exportToSession = () => {
+    if (combatLog.length === 0) return;
+    const segments: Segment[] = combatLog.map((e) => {
+      if (e.kind === "roll" && e.skill_name && e.skill_val != null && e.roll != null && e.level) {
+        return {
           type: "dice",
           result: {
             kind: "cc",
-            expression,
-            name: skillName,
-            skill: skillVal,
-            roll,
-            level,
+            expression: `/cc ${e.skill_name} ${e.skill_val}`,
+            name: `[${e.actor}] ${e.label}`,
+            skill: e.skill_val,
+            roll: e.roll,
+            level: e.level,
           },
-        },
-      ],
+        };
+      }
+      return {
+        type: "text",
+        value: `[${e.actor}] ${e.label}${e.detail ? ` — ${e.detail}` : ""}`,
+      };
+    });
+    const fd = new FormData();
+    fd.set("campaign_id", String(campaignId));
+    fd.set("title", `전투 로그 (${combatLog.length}건 · 라운드 ${round}까지)`);
+    fd.set("kind", "system");
+    fd.set("segments_json", JSON.stringify(segments));
+    setExportError(null);
+    startExport(async () => {
+      try {
+        await appendTrackerEntryAction(fd);
+        setExportedAt(Date.now());
+        setCombatLog([]);
+      } catch (e) {
+        setExportError(e instanceof Error ? e.message : "익스포트 실패");
+      }
     });
   };
 
@@ -196,11 +232,7 @@ export function TrackerPanel({
       flash();
       const firstLiveIdx = sorted.findIndex((r) => r.id === liveRows[0].id);
       setActiveIndex(firstLiveIdx >= 0 ? firstLiveIdx : 0);
-      submitLog({
-        title: `라운드 ${nextRound} 시작`,
-        kind: "system",
-        segments: [{ type: "text", value: `전원 행동 완료 — 다음 라운드로 진행합니다.` }],
-      });
+      logSystem("시스템", `라운드 ${nextRound} 시작`, "전원 행동 완료 — 다음 라운드");
       return;
     }
     const cur = sorted[activeIndex];
@@ -220,11 +252,7 @@ export function TrackerPanel({
     flash();
     setActiveIndex(0);
     setRows((prev) => prev.map((r) => ({ ...r, dead: false, hp: r.hp_max })));
-    submitLog({
-      title: "라운드 초기화",
-      kind: "system",
-      segments: [{ type: "text", value: "전원 부활 / HP 복구 / 라운드 1." }],
-    });
+    logSystem("시스템", "라운드 초기화", "전원 부활 / HP 복구");
   };
 
   const damage = (rowId: string, amount: number) => {
@@ -234,11 +262,7 @@ export function TrackerPanel({
         const hp = Math.max(0, Math.min(r.hp_max, r.hp - amount));
         const died = hp === 0 && !r.dead;
         if (died) {
-          submitLog({
-            title: `${r.name} 사망`,
-            kind: "system",
-            segments: [{ type: "text", value: `HP 0/${r.hp_max} — 전투에서 이탈.` }],
-          });
+          logSystem(r.name, "사망", `HP 0/${r.hp_max} — 전투에서 이탈`);
         }
         return { ...r, hp, dead: hp === 0 };
       })
@@ -357,6 +381,7 @@ export function TrackerPanel({
   const focusedActiveStatblockId = focused?.rowId;
 
   return (
+    <>
     <div className="scene-grid cinematic tracker-embed">
       <div className="stk-panel">
         <div className="stk-head">
@@ -541,6 +566,75 @@ export function TrackerPanel({
         )}
       </div>
     </div>
+
+    <div className="section-head section-head-tracker-log">
+      <h2>전투 트래커 로그</h2>
+      <span className="count">
+        {combatLog.length}건
+        {exportedAt ? ` · 마지막 익스포트 ${formatTime(exportedAt)}` : " · 익스포트 전"}
+      </span>
+      <div className="actions">
+        <button
+          type="button"
+          className="btn ghost small"
+          onClick={() => { setCombatLog([]); setExportedAt(null); }}
+          disabled={combatLog.length === 0 || exporting}
+          title="현재까지의 전투 로그를 비웁니다 (세션 로그엔 영향 없음)"
+        >
+          ↺ 비우기
+        </button>
+        <button
+          type="button"
+          className="btn primary small"
+          onClick={exportToSession}
+          disabled={combatLog.length === 0 || exporting}
+          title="전투 로그를 세션 플레이 로그에 단일 게시물로 저장"
+        >
+          {exporting ? "익스포트 중…" : "세션 로그로 익스포트 →"}
+        </button>
+      </div>
+    </div>
+    {exportError ? (
+      <div className="empty" style={{ borderColor: "var(--accent)", color: "var(--accent)" }}>
+        익스포트 실패 — {exportError}
+      </div>
+    ) : null}
+    {combatLog.length === 0 ? (
+      <div className="empty">
+        전투 액션 · 굴림 · 사망 / 라운드 변동이 여기에 쌓입니다. 전투 종료 시 익스포트하면 한 건의 게시물로 세션 로그에 보존됩니다.
+      </div>
+    ) : (
+      <ul className="combat-log combat-log-tracker">
+        {[...combatLog].reverse().map((e) => {
+          const isSystem = e.kind === "system";
+          return (
+            <li
+              key={e.id}
+              className={`cl-row${isSystem ? " is-system" : " is-roll"}${e.character_id != null ? " is-pc" : ""}`}
+            >
+              <span className="cl-actor" title={e.character_id != null ? "PC" : (isSystem ? "시스템" : "NPC")}>
+                {isSystem ? "·" : (e.character_id != null ? "♟" : "▲")} {e.actor}
+              </span>
+              <span className="cl-label">{e.label}</span>
+              {e.kind === "roll" && e.skill_val != null ? (
+                <>
+                  <span className="cl-skill">{e.skill_val}%</span>
+                  <span className="cl-arrow">→</span>
+                  <span className="cl-roll">{e.roll}</span>
+                  <span className={`cl-level level ${e.level ?? "fail"}`}>
+                    {e.level ? LEVEL_LABEL[e.level] : ""}
+                  </span>
+                </>
+              ) : e.detail ? (
+                <span className="cl-detail">— {e.detail}</span>
+              ) : null}
+              <span className="cl-time">{formatTime(e.ts)}</span>
+            </li>
+          );
+        })}
+      </ul>
+    )}
+    </>
   );
 }
 

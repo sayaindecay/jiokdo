@@ -7835,6 +7835,95 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
   color: var(--ink-3);
 }
 
+/* 전투 트래커 in-page log (PostBoard 와 분리된 자체 list) */
+.combat-log-tracker {
+  list-style: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  overflow: hidden;
+}
+.combat-log-tracker .cl-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.85rem;
+  border-bottom: 1px dashed var(--line);
+  font-size: 0.86rem;
+  font-family: var(--font-mono);
+}
+.combat-log-tracker .cl-row:last-child { border-bottom: none; }
+.combat-log-tracker .cl-row.is-system {
+  background: var(--bg-elev-2);
+  color: var(--ink-2);
+}
+.combat-log-tracker .cl-actor {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  min-width: 5rem;
+}
+.combat-log-tracker .cl-row.is-pc .cl-actor { color: var(--accent); }
+.combat-log-tracker .cl-row.is-roll:not(.is-pc) .cl-actor { color: var(--purple); }
+.combat-log-tracker .cl-row.is-system .cl-actor { color: var(--ink-3); font-weight: 400; }
+.combat-log-tracker .cl-label {
+  flex: 1;
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.combat-log-tracker .cl-arrow { color: var(--ink-3); }
+.combat-log-tracker .cl-time {
+  color: var(--ink-3);
+  font-size: 0.72rem;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.section-head-tracker-log .actions { display: flex; gap: 0.4rem; }
+
+/* 시네마틱 다크 인버트 */
+body:has(.scene-side, .cinematic) .combat-log-tracker {
+  background: rgba(245, 243, 238, 0.04);
+  border-color: rgba(245, 243, 238, 0.16);
+}
+body:has(.scene-side, .cinematic) .combat-log-tracker .cl-row {
+  border-bottom-color: rgba(245, 243, 238, 0.1);
+}
+body:has(.scene-side, .cinematic) .combat-log-tracker .cl-row.is-system {
+  background: rgba(245, 243, 238, 0.03);
+  color: rgba(245, 243, 238, 0.55);
+}
+body:has(.scene-side, .cinematic) .combat-log-tracker .cl-actor { color: #fff; }
+body:has(.scene-side, .cinematic) .combat-log-tracker .cl-label { color: rgba(245, 243, 238, 0.7); }
+body:has(.scene-side, .cinematic) .combat-log-tracker .cl-time,
+body:has(.scene-side, .cinematic) .combat-log-tracker .cl-arrow {
+  color: rgba(245, 243, 238, 0.5);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log-tracker {
+  background: var(--bg-elev);
+  border-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log-tracker .cl-row {
+  border-bottom-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log-tracker .cl-row.is-system {
+  background: var(--bg-elev-2);
+  color: var(--ink-2);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log-tracker .cl-actor { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log-tracker .cl-label { color: var(--ink-2); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log-tracker .cl-time,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .combat-log-tracker .cl-arrow {
+  color: var(--ink-3);
+}
+
 /* 시네마틱 다크에서 로그 내부 텍스트 */
 body:has(.scene-side, .cinematic) .combat-log .cl-skill,
 body:has(.scene-side, .cinematic) .combat-log .cl-detail {
