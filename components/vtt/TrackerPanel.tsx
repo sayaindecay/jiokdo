@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { BestiaryEntry, CocAttrs, CocSkillGroup, DiceLevel } from "@/lib/types";
 import { InitiativeTracker, type InitiativeRow } from "@/components/vtt/InitiativeTracker";
 import { VitalsEditor } from "@/components/vtt/VitalsEditor";
-import { judgeCoc, LEVEL_LABEL } from "@/lib/dice";
+import { contentToSegments, judgeCoc, LEVEL_LABEL } from "@/lib/dice";
 import { formatTime } from "@/lib/format";
 import {
   appendCombatDraftAction, clearAllCombatDraftsAction, clearCombatDraftsAction,
@@ -68,14 +68,14 @@ function getActionForPc(action: CombatAction, c: PcLite, weaponIdx: number) {
     case "attack": {
       const w = c.weapons[weaponIdx] ?? c.weapons[0];
       if (w) return { label: `공격 (${w.name})`, skillName: w.name, skillVal: w.skill };
-      return { label: "공격 (주먹)", skillName: "주먹", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
+      return { label: "맨손 공격", skillName: "맨손", skillVal: findSkill(c, ["맨손", "근접전 (격투)"]) ?? 25 };
     }
     case "brawl":
-      return { label: "근접전 액션 (주먹)", skillName: "주먹", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
+      return { label: "근접전 액션", skillName: "근접전 (격투)", skillVal: findSkill(c, ["근접전 (격투)", "맨손"]) ?? 25 };
     case "dodge":
       return { label: "회피", skillName: "회피", skillVal: findSkill(c, ["회피"]) ?? Math.floor(c.attrs.dex / 2) };
     case "fightback":
-      return { label: "반격 (주먹)", skillName: "주먹", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
+      return { label: "반격", skillName: "근접전 (격투)", skillVal: findSkill(c, ["근접전 (격투)", "맨손"]) ?? 25 };
     case "flee":
       return { label: "도주 (DEX)", skillName: "DEX", skillVal: c.attrs.dex };
   }
@@ -310,6 +310,48 @@ export function TrackerPanel({
   const submitNarration = () => {
     const t = narrationText.trim();
     if (!t || !resolvedNarrator) return;
+    // 명령어로 시작하면 다이스 굴림으로 처리: /cc 회피 60, /roll 1d6+2, /r 2d6
+    if (/^\/(cc|roll|r)\s/i.test(t)) {
+      const segments = contentToSegments(t);
+      let any = false;
+      for (const seg of segments) {
+        if (seg.type === "dice") {
+          any = true;
+          const r = seg.result;
+          if (r.kind === "cc") {
+            writeDraft({
+              kind: "roll",
+              actor: resolvedNarrator.actor,
+              character_id: resolvedNarrator.character_id,
+              label: r.name ?? "굴림",
+              skill_name: r.name ?? null,
+              skill_val: r.skill,
+              roll: r.roll,
+              level: r.level,
+            });
+          } else {
+            // /roll → narration entry with summary
+            writeDraft({
+              kind: "narration",
+              actor: resolvedNarrator.actor,
+              character_id: resolvedNarrator.character_id,
+              label: `🎲 ${r.notation} → ${r.total}`,
+              detail: r.dice.length > 1 ? `[${r.dice.join(", ")}]` : null,
+            });
+          }
+        } else if (seg.type === "text" && seg.value.trim()) {
+          // 명령어 앞에 텍스트가 있으면 묘사로 함께 기록
+          writeDraft({
+            kind: "narration",
+            actor: resolvedNarrator.actor,
+            character_id: resolvedNarrator.character_id,
+            label: seg.value,
+          });
+        }
+      }
+      if (any) setNarrationText("");
+      return;
+    }
     writeDraft({
       kind: "narration",
       actor: resolvedNarrator.actor,
@@ -698,8 +740,8 @@ export function TrackerPanel({
 
             <div className="stk-foot stk-actions stk-combat-actions">
               <span className="stk-foot-label">전투 액션</span>
-              <button type="button" className="chip" onClick={() => fireAction("attack")}>공격</button>
-              <button type="button" className="chip" onClick={() => fireAction("brawl")}>근접전</button>
+              <button type="button" className="chip" onClick={() => fireAction("attack")}>맨손 공격</button>
+              <button type="button" className="chip" onClick={() => fireAction("brawl")}>근접전 액션</button>
               <button type="button" className="chip" onClick={() => fireAction("dodge")}>회피</button>
               <button type="button" className="chip" onClick={() => fireAction("fightback")}>반격</button>
               <button type="button" className="chip" onClick={() => fireAction("flee")}>도주</button>
@@ -811,7 +853,7 @@ export function TrackerPanel({
         <input
           type="text"
           className="tn-input"
-          placeholder={`묘사 / 상황 한 줄 — Enter 로 로그에 추가 (${resolvedNarrator?.actor ?? "익명"})`}
+          placeholder={`묘사 또는 /cc 회피 60 · /roll 1d6+2 — Enter (${resolvedNarrator?.actor ?? "익명"})`}
           value={narrationText}
           onChange={(e) => setNarrationText(e.target.value)}
           onKeyDown={(e) => {

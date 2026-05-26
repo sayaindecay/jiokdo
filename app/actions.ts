@@ -218,7 +218,7 @@ export async function createCharacterAction(fd: FormData): Promise<void> {
       { name: "관찰력", value: 25, group: "investigation" },
       { name: "은밀행동", value: 20, group: "investigation" },
       { name: "응급처치", value: 30, group: "academic" },
-      { name: "근접 (격투)", value: 25, group: "combat" },
+      { name: "근접전 (격투)", value: 25, group: "combat" },
       { name: "권총", value: 20, group: "combat" },
       { name: "설득", value: 10, group: "social" },
       { name: "매혹", value: 15, group: "social" },
@@ -236,7 +236,7 @@ export async function createCharacterAction(fd: FormData): Promise<void> {
       mp, mp_max: mp,
       san: attrs.pow, san_max: 99 - 0,
       skills,
-      weapons: [{ name: "주먹", skill: 50, damage: "1d3 + DB" }],
+      weapons: [{ name: "맨손", skill: 50, damage: "1d3 + DB" }],
       backstory: "",
     });
     revalidatePath(`/campaigns/${campaign_id}`);
@@ -282,7 +282,7 @@ export async function createCharacterAction(fd: FormData): Promise<void> {
       { name: "탐색", value: 25 }, { name: "회피", value: 25 },
       { name: "자료조사", value: 20 }, { name: "심리학", value: 10 },
     ],
-    weapons: [{ name: "주먹", skill: 50, damage: "1d3 + DB" }],
+    weapons: [{ name: "맨손", skill: 50, damage: "1d3 + DB" }],
     backstory: "",
   });
   revalidatePath(`/campaigns/${campaign_id}`);

@@ -195,6 +195,50 @@ function ensureReady(): Promise<void> {
       await runOnce("nuke_bestiary_2025_05_v1", "DELETE FROM bestiary");
       // 슬러그 ASCII 강제 전후로 기존 데이터 한 번 더 정리 (사용자 재요청)
       await runOnce("nuke_bestiary_2025_05_v2", "DELETE FROM bestiary");
+
+      // characters.skills_json / weapons_json 에서 이름 일괄 변경:
+      //   "주먹" → "맨손", "근접 (격투)" → "근접전 (격투)"
+      const renameKey = "rename_주먹_근접격투_v1";
+      const renameCheck = await client.execute({
+        sql: "SELECT 1 FROM _migrations WHERE key = ?",
+        args: [renameKey],
+      });
+      if (renameCheck.rows.length === 0) {
+        const rows = await client.execute(
+          "SELECT id, skills_json, weapons_json FROM characters"
+        );
+        for (const r of rows.rows) {
+          const row = r as unknown as Record<string, unknown>;
+          const id = Number(row.id);
+          let skillsChanged = false;
+          let weaponsChanged = false;
+          let skills: Array<{ name: string } & Record<string, unknown>> = [];
+          let weapons: Array<{ name: string } & Record<string, unknown>> = [];
+          try { skills = JSON.parse(String(row.skills_json ?? "[]")); } catch { skills = []; }
+          try { weapons = JSON.parse(String(row.weapons_json ?? "[]")); } catch { weapons = []; }
+          if (Array.isArray(skills)) {
+            for (const s of skills) {
+              if (s && s.name === "근접 (격투)") { s.name = "근접전 (격투)"; skillsChanged = true; }
+              if (s && s.name === "주먹") { s.name = "맨손"; skillsChanged = true; }
+            }
+          }
+          if (Array.isArray(weapons)) {
+            for (const w of weapons) {
+              if (w && w.name === "주먹") { w.name = "맨손"; weaponsChanged = true; }
+            }
+          }
+          if (skillsChanged || weaponsChanged) {
+            await client.execute({
+              sql: "UPDATE characters SET skills_json = ?, weapons_json = ? WHERE id = ?",
+              args: [JSON.stringify(skills), JSON.stringify(weapons), id],
+            });
+          }
+        }
+        await client.execute({
+          sql: "INSERT OR IGNORE INTO _migrations (key, ran_at) VALUES (?, ?)",
+          args: [renameKey, Date.now()],
+        });
+      }
     } catch { /* 실패해도 무시 */ }
 
     for (const s of RULE_SECTIONS) {

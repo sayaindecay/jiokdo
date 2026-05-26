@@ -8396,6 +8396,30 @@ body:has(.scene-side, .cinematic) .combat-log .cl-roll {
   border-top: 1px dashed rgba(245, 243, 238, 0.08);
   background: rgba(245, 243, 238, 0.02);
 }
+/* 무기 선택 chip — 모드 관계없이 어두운 필드 톤으로 통일 */
+.stk-weapon-row .chip {
+  background: var(--ink) !important;
+  border: 1px solid var(--ink) !important;
+  color: var(--bg) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.74rem !important;
+  padding: 0.3rem 0.65rem !important;
+  letter-spacing: 0.02em;
+}
+.stk-weapon-row .chip:hover {
+  background: #000 !important;
+  border-color: #000 !important;
+  color: var(--bg) !important;
+}
+.stk-weapon-row .chip.accent {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+.stk-weapon-row .chip.accent:hover {
+  background: var(--accent-hover) !important;
+  border-color: var(--accent-hover) !important;
+}
 
 /* 라스트 굴림 결과 */
 .stk-last-roll {
