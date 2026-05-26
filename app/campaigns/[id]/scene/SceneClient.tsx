@@ -544,18 +544,16 @@ function PcStatSheet({
         <div className="stat-grid stat-grid-rollable">
           {ATTR_LABELS.map(({ key, label }) => {
             const v = a[key];
-            const skillVal = v * 5;
             return (
               <button
                 key={key}
                 type="button"
                 className="stat-cell-btn"
-                onClick={() => onRoll(actorName, `${label}×5`, skillVal)}
-                title={`${label}×5 = ${skillVal}% 굴림`}
+                onClick={() => onRoll(actorName, label, v)}
+                title={`${label} ${v}% 굴림`}
               >
                 <div className="k">{label}</div>
                 <div className="v">{v}</div>
-                <div className="kx5">×5 = {skillVal}</div>
               </button>
             );
           })}
@@ -628,18 +626,17 @@ function NpcStatSheet({
           {NPC_ATTR_LABELS.map(({ key, label }) => {
             const v = a[key];
             if (v == null) return null;
-            const skillVal = Number(v) * 5;
+            const num = Number(v);
             return (
               <button
                 key={key}
                 type="button"
                 className="stat-cell-btn"
-                onClick={() => onRoll(rowName, `${label}×5`, skillVal)}
-                title={`${label}×5 = ${skillVal}% 굴림`}
+                onClick={() => onRoll(rowName, label, num)}
+                title={`${label} ${num}% 굴림`}
               >
                 <div className="k">{label}</div>
                 <div className="v">{v}</div>
-                <div className="kx5">×5 = {skillVal}</div>
               </button>
             );
           })}
@@ -679,6 +676,27 @@ function NpcStatSheet({
                 </button>
               ))}
             </div>
+          </>
+        ) : null}
+
+        {entry.skills.length > 0 ? (
+          <>
+            <h3 className="pc-sb-heading">기능 (클릭 → 굴림)</h3>
+            <ul className="pc-skill-list">
+              {entry.skills.map((s) => (
+                <li key={s.name}>
+                  <button
+                    type="button"
+                    className="pc-skill-btn"
+                    onClick={() => onRoll(rowName, s.name, s.value)}
+                    title={`${s.name} ${s.value}% 굴림`}
+                  >
+                    <span className="pc-skill-name">{s.name}</span>
+                    <span className="pc-skill-val">{s.value}%</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </>
         ) : null}
 

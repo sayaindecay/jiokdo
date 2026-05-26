@@ -141,6 +141,7 @@ function ensureReady(): Promise<void> {
       "ALTER TABLE bestiary ADD COLUMN image_url TEXT",
       "ALTER TABLE campaigns ADD COLUMN scene_pin TEXT",
       "ALTER TABLE play_entries ADD COLUMN title TEXT NOT NULL DEFAULT ''",
+      "ALTER TABLE bestiary ADD COLUMN skills_json TEXT NOT NULL DEFAULT '[]'",
     ]) {
       try { await client.execute(stmt); } catch { /* 이미 존재 */ }
     }
@@ -232,11 +233,18 @@ export async function getRuleSection(slug: string): Promise<RuleSection | null> 
 
 // ───── 몬스터 ─────
 function rowToBestiary(r: Record<string, unknown>): BestiaryEntry {
+  let skills: CocSkill[] = [];
+  try {
+    const raw = r.skills_json;
+    if (raw) skills = JSON.parse(String(raw));
+    if (!Array.isArray(skills)) skills = [];
+  } catch { skills = []; }
   return {
     id: Number(r.id), slug: String(r.slug), name: String(r.name),
     category: String(r.category), description: String(r.description),
     attrs: JSON.parse(String(r.attrs_json)),
     attacks: JSON.parse(String(r.attacks_json)),
+    skills,
     sanity_loss: String(r.sanity_loss), source: String(r.source),
     image_url: r.image_url == null ? null : String(r.image_url),
     created_by: r.created_by == null ? null : String(r.created_by),
@@ -330,6 +338,7 @@ export async function createBestiaryEntry(input: {
   description: string;
   attrs: BestiaryEntry["attrs"];
   attacks: BestiaryEntry["attacks"];
+  skills: BestiaryEntry["skills"];
   sanity_loss: string;
   source: string;
   image_url: string | null;
@@ -337,11 +346,11 @@ export async function createBestiaryEntry(input: {
 }): Promise<void> {
   await ensureReady();
   await client.execute({
-    sql: `INSERT INTO bestiary (slug, name, category, description, attrs_json, attacks_json, sanity_loss, source, image_url, created_by, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    sql: `INSERT INTO bestiary (slug, name, category, description, attrs_json, attacks_json, skills_json, sanity_loss, source, image_url, created_by, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     args: [
       input.slug, input.name, input.category, input.description,
-      JSON.stringify(input.attrs), JSON.stringify(input.attacks),
+      JSON.stringify(input.attrs), JSON.stringify(input.attacks), JSON.stringify(input.skills),
       input.sanity_loss, input.source, input.image_url, input.created_by, Date.now(),
     ],
   });
@@ -353,6 +362,7 @@ export async function updateBestiaryEntry(slug: string, input: {
   description: string;
   attrs: BestiaryEntry["attrs"];
   attacks: BestiaryEntry["attacks"];
+  skills: BestiaryEntry["skills"];
   sanity_loss: string;
   source: string;
   image_url: string | null;
@@ -360,11 +370,11 @@ export async function updateBestiaryEntry(slug: string, input: {
   await ensureReady();
   await client.execute({
     sql: `UPDATE bestiary SET name = ?, category = ?, description = ?,
-            attrs_json = ?, attacks_json = ?, sanity_loss = ?, source = ?, image_url = ?
+            attrs_json = ?, attacks_json = ?, skills_json = ?, sanity_loss = ?, source = ?, image_url = ?
           WHERE slug = ?`,
     args: [
       input.name, input.category, input.description,
-      JSON.stringify(input.attrs), JSON.stringify(input.attacks),
+      JSON.stringify(input.attrs), JSON.stringify(input.attacks), JSON.stringify(input.skills),
       input.sanity_loss, input.source, input.image_url, slug,
     ],
   });

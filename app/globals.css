@@ -4234,9 +4234,87 @@ select:focus-visible {
   grid-template-columns: 1.6fr 70px 1fr 1.4fr;
   gap: 0.4rem;
   margin-bottom: 0.4rem;
+  align-items: center;
+}
+.bestiary-form .bf-attack-preview {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  padding: 0.1rem 0.2rem 0.3rem;
+  margin-top: -0.15rem;
+}
+.bestiary-form .bf-attack-preview b {
+  color: var(--accent);
+  font-weight: 700;
 }
 @media (max-width: 720px) {
   .bestiary-form .attack-row-input {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* 자동 계산 4-tile */
+.bestiary-form .bf-derived {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  margin: 0.3rem 0 0.5rem;
+}
+.bestiary-form .bf-derived-cell {
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.7rem;
+  text-align: center;
+}
+.bestiary-form .bf-derived-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+}
+.bestiary-form .bf-derived-val {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  margin: 0.1rem 0;
+}
+.bestiary-form .bf-derived-formula {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--ink-3);
+  letter-spacing: 0.03em;
+}
+@media (max-width: 720px) {
+  .bestiary-form .bf-derived { grid-template-columns: 1fr 1fr; }
+}
+
+/* 기능 입력 */
+.bestiary-form .bf-skills {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.bestiary-form .bf-skill-row {
+  display: grid;
+  grid-template-columns: 1.6fr 80px 1fr 36px;
+  gap: 0.4rem;
+  align-items: center;
+}
+.bestiary-form .bf-skill-row .btn.ghost.small {
+  padding: 0.3rem 0.5rem;
+  min-height: 36px;
+}
+.bestiary-form .bf-skill-add {
+  align-self: flex-start;
+  margin-top: 0.35rem;
+}
+@media (max-width: 720px) {
+  .bestiary-form .bf-skill-row {
     grid-template-columns: 1fr 1fr;
   }
 }

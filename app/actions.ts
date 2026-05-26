@@ -668,6 +668,7 @@ function parseBestiaryFormData(fd: FormData): {
   description: string;
   attrs: BestiaryEntry["attrs"];
   attacks: BestiaryEntry["attacks"];
+  skills: BestiaryEntry["skills"];
   sanity_loss: string;
   source: string;
   image_url: string | null;
@@ -722,7 +723,25 @@ function parseBestiaryFormData(fd: FormData): {
     }
   }
 
-  return { name, category, description, attrs, attacks, sanity_loss, source, image_url };
+  // skills: 최대 20개
+  const skills: BestiaryEntry["skills"] = [];
+  for (let i = 0; i < 20; i++) {
+    const sn = text(fd, `skill_${i}_name`, 40);
+    if (!sn) continue;
+    const valRaw = text(fd, `skill_${i}_value`, 4);
+    const val = Number(valRaw);
+    if (sn && Number.isFinite(val) && val >= 0 && val <= 100) {
+      const groupRaw = text(fd, `skill_${i}_group`, 16);
+      const group =
+        groupRaw === "combat" || groupRaw === "investigation" ||
+        groupRaw === "social" || groupRaw === "academic" || groupRaw === "other"
+          ? groupRaw
+          : undefined;
+      skills.push({ name: sn, value: val, group });
+    }
+  }
+
+  return { name, category, description, attrs, attacks, skills, sanity_loss, source, image_url };
 }
 
 export async function createBestiaryAction(fd: FormData): Promise<{ slug: string }> {

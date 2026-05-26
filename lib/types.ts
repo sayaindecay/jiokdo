@@ -102,6 +102,7 @@ export type BestiaryEntry = {
   description: string;
   attrs: Partial<CocAttrs> & { hp?: number; move?: number | string; build?: number; damage_bonus?: string };
   attacks: { name: string; skill: number; damage: string; note?: string }[];
+  skills: CocSkill[];
   sanity_loss: string;
   source: string;
   image_url: string | null;

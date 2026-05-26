@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { BestiaryEntry } from "@/lib/types";
+import type { BestiaryEntry, CocSkillGroup } from "@/lib/types";
 import { createBestiaryAction, updateBestiaryAction } from "@/app/actions";
 import { fileToResizedDataUrl } from "@/lib/image-resize";
 import { FormError } from "./FormError";
@@ -18,7 +18,55 @@ const DEFAULT_CATEGORIES = [
   "기타",
 ];
 
-const MAX_IMAGE_BYTES = 10_000_000; // 10MB 원본까지 받고 클라이언트에서 리사이즈
+const MAX_IMAGE_BYTES = 10_000_000;
+
+type SkillRow = { name: string; value: string; group: CocSkillGroup | "" };
+type AttackRow = { name: string; skill: string; damage: string; note: string };
+
+function clamp(n: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, n));
+}
+
+// 사용자 규칙: STR+CON 합계로 DB / 체격 결정
+function computeBuildDb(strCon: number): { db: string; build: number } {
+  if (strCon < 2) return { db: "0", build: 0 };
+  if (strCon <= 64) return { db: "-2", build: -2 };
+  if (strCon <= 84) return { db: "-1", build: -1 };
+  if (strCon <= 124) return { db: "0", build: 0 };
+  if (strCon <= 164) return { db: "1d4", build: 1 };
+  if (strCon <= 204) return { db: "1d6", build: 2 };
+  if (strCon <= 284) return { db: "2d6", build: 3 };
+  if (strCon <= 364) return { db: "3d6", build: 4 };
+  if (strCon <= 444) return { db: "4d6", build: 5 };
+  if (strCon <= 524) return { db: "5d6", build: 6 };
+  const extra = Math.floor((strCon - 525) / 80) + 1;
+  return { db: `${5 + extra}d6`, build: 6 + extra };
+}
+
+function computeMove(str: number, dex: number, siz: number): number {
+  if (dex < siz && str < siz) return 7;
+  if (dex > siz && str > siz) return 9;
+  return 8;
+}
+
+function computeHp(con: number, siz: number): number {
+  return Math.floor((con + siz) / 10);
+}
+
+function formatDbSuffix(db: string): string {
+  // "0" → no suffix, "-2" → "- 2", "1d4" → "+ 1d4", "+1" → "+ 1"
+  if (!db || db === "0") return "";
+  if (db.startsWith("-")) return ` - ${db.slice(1).trim()}`;
+  return ` + ${db}`;
+}
+
+const SKILL_GROUPS: { value: CocSkillGroup; label: string }[] = [
+  { value: "combat", label: "전투" },
+  { value: "investigation", label: "조사" },
+  { value: "social", label: "사회" },
+  { value: "academic", label: "지식" },
+  { value: "other", label: "기타" },
+];
 
 export function BestiaryForm({
   initial,
@@ -36,6 +84,62 @@ export function BestiaryForm({
   const [imageUrl, setImageUrl] = useState(initial?.image_url ?? "");
   const [imageErr, setImageErr] = useState<string | null>(null);
 
+  // 특성치 — 입력 가능 (자유 입력으로 두되 음수/큰값 방지)
+  const [str, setStr] = useState<string>(initial?.attrs.str != null ? String(initial.attrs.str) : "");
+  const [con, setCon] = useState<string>(initial?.attrs.con != null ? String(initial.attrs.con) : "");
+  const [siz, setSiz] = useState<string>(initial?.attrs.siz != null ? String(initial.attrs.siz) : "");
+  const [dex, setDex] = useState<string>(initial?.attrs.dex != null ? String(initial.attrs.dex) : "");
+  const [intel, setIntel] = useState<string>(initial?.attrs.int != null ? String(initial.attrs.int) : "");
+  const [pow, setPow] = useState<string>(initial?.attrs.pow != null ? String(initial.attrs.pow) : "");
+  const [app, setApp] = useState<string>(initial?.attrs.app != null ? String(initial.attrs.app) : "");
+  const [edu, setEdu] = useState<string>(initial?.attrs.edu != null ? String(initial.attrs.edu) : "");
+
+  const nStr = Number(str) || 0;
+  const nCon = Number(con) || 0;
+  const nSiz = Number(siz) || 0;
+  const nDex = Number(dex) || 0;
+
+  const buildDb = useMemo(() => computeBuildDb(nStr + nCon), [nStr, nCon]);
+  const moveVal = useMemo(() => computeMove(nStr, nDex, nSiz), [nStr, nDex, nSiz]);
+  const hpVal = useMemo(() => computeHp(nCon, nSiz), [nCon, nSiz]);
+
+  // 공격 — 기본 피해(base)만 입력받고 DB는 자동 접미. 저장 직전에 합쳐서 hidden 으로 넘김.
+  const seedAttacks = (initial?.attacks ?? []).slice(0, 5);
+  const [attacks, setAttacks] = useState<AttackRow[]>(
+    Array.from({ length: 5 }, (_, i) => {
+      const a = seedAttacks[i];
+      // 기존 damage 가 "1d6 + 1d4" 같은 형식이면 DB 부분을 분리 시도
+      let baseDmg = a?.damage ?? "";
+      if (a) {
+        const m = a.damage.match(/^(.*?)\s*[+\-]\s*([0-9]+d?[0-9]*|\d+)\s*$/);
+        if (m) baseDmg = m[1].trim();
+      }
+      return {
+        name: a?.name ?? "",
+        skill: a?.skill != null ? String(a.skill) : "",
+        damage: baseDmg,
+        note: a?.note ?? "",
+      };
+    }),
+  );
+
+  // 기능 (skills)
+  const seedSkills = initial?.skills ?? [];
+  const [skills, setSkills] = useState<SkillRow[]>(
+    seedSkills.length > 0
+      ? seedSkills.map((s) => ({ name: s.name, value: String(s.value), group: s.group ?? "" }))
+      : [{ name: "", value: "", group: "" }],
+  );
+
+  const addSkill = () => setSkills((prev) => [...prev, { name: "", value: "", group: "" }]);
+  const removeSkill = (i: number) =>
+    setSkills((prev) => (prev.length === 1 ? prev : prev.filter((_, idx) => idx !== i)));
+  const updateSkill = (i: number, patch: Partial<SkillRow>) =>
+    setSkills((prev) => prev.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
+
+  const updateAttack = (i: number, patch: Partial<AttackRow>) =>
+    setAttacks((prev) => prev.map((a, idx) => (idx === i ? { ...a, ...patch } : a)));
+
   const onPickImage = (file: File) => {
     setImageErr(null);
     if (!file.type.startsWith("image/")) {
@@ -51,7 +155,6 @@ export function BestiaryForm({
       .catch(() => setImageErr("이미지를 처리하지 못했습니다."));
   };
 
-  // 기본 추천 + DB 의 기존 카테고리 (중복 제거, 등록 순서 유지)
   const seen = new Set<string>();
   const chipCategories: string[] = [];
   for (const c of [...DEFAULT_CATEGORIES, ...categories]) {
@@ -62,7 +165,6 @@ export function BestiaryForm({
   }
 
   const submit = (fd: FormData) => {
-    // 카테고리 chip 으로 선택된 값을 form data 에 반영 (controlled input 도 함께 동기화됨)
     setError(null);
     start(async () => {
       try {
@@ -78,6 +180,8 @@ export function BestiaryForm({
       }
     });
   };
+
+  const dbSuffix = formatDbSuffix(buildDb.db);
 
   return (
     <form className="form bestiary-form" action={submit}>
@@ -187,73 +291,93 @@ export function BestiaryForm({
         placeholder="생물의 외양, 행동 양식, 키퍼가 기억해 둘 만한 점"
       />
 
-      <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>능력치</h3>
+      <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>특성치</h3>
       <div className="attr-grid">
-        {(["str", "con", "siz", "dex", "int", "pow", "app", "edu"] as const).map((k) => (
-          <label key={k}>
-            {k.toUpperCase()}
-            <input
-              type="number"
-              min={0}
-              max={500}
-              name={`attr_${k}`}
-              defaultValue={initial?.attrs[k] != null ? String(initial.attrs[k]) : ""}
-            />
-          </label>
-        ))}
         <label>
-          HP <span className="bf-req">*</span>
-          <input
-            type="number"
-            min={1}
-            max={500}
-            name="attr_hp"
-            required
-            defaultValue={initial?.attrs.hp != null ? String(initial.attrs.hp) : ""}
-          />
+          STR
+          <input type="number" min={0} max={500} name="attr_str"
+            value={str} onChange={(e) => setStr(e.target.value)} />
         </label>
         <label>
-          이동
-          <input
-            type="text"
-            name="attr_move"
-            defaultValue={initial?.attrs.move != null ? String(initial.attrs.move) : ""}
-            placeholder="8/10 수영"
-            style={{ width: "5.5rem" }}
-          />
+          CON
+          <input type="number" min={0} max={500} name="attr_con"
+            value={con} onChange={(e) => setCon(e.target.value)} />
         </label>
         <label>
-          체격
-          <input
-            type="number"
-            name="attr_build"
-            defaultValue={initial?.attrs.build != null ? String(initial.attrs.build) : ""}
-          />
+          SIZ
+          <input type="number" min={0} max={500} name="attr_siz"
+            value={siz} onChange={(e) => setSiz(e.target.value)} />
         </label>
         <label>
-          DB
-          <input
-            type="text"
-            name="attr_damage_bonus"
-            defaultValue={initial?.attrs.damage_bonus ?? ""}
-            placeholder="+1d6"
-            style={{ width: "5rem" }}
-          />
+          DEX
+          <input type="number" min={0} max={500} name="attr_dex"
+            value={dex} onChange={(e) => setDex(e.target.value)} />
+        </label>
+        <label>
+          INT
+          <input type="number" min={0} max={500} name="attr_int"
+            value={intel} onChange={(e) => setIntel(e.target.value)} />
+        </label>
+        <label>
+          POW
+          <input type="number" min={0} max={500} name="attr_pow"
+            value={pow} onChange={(e) => setPow(e.target.value)} />
+        </label>
+        <label>
+          APP
+          <input type="number" min={0} max={500} name="attr_app"
+            value={app} onChange={(e) => setApp(e.target.value)} />
+        </label>
+        <label>
+          EDU
+          <input type="number" min={0} max={500} name="attr_edu"
+            value={edu} onChange={(e) => setEdu(e.target.value)} />
         </label>
       </div>
 
       <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>
-        공격 <span className="bf-req">*</span>
-        <span className="bf-hint"> 최소 1개 (최대 5개)</span>
+        자동 계산 <span className="bf-hint">특성치로부터 산출</span>
       </h3>
-      {Array.from({ length: 5 }, (_, i) => {
-        const a = initial?.attacks[i];
+      <div className="bf-derived">
+        <div className="bf-derived-cell">
+          <div className="bf-derived-label">체력 (HP)</div>
+          <div className="bf-derived-val">{hpVal}</div>
+          <div className="bf-derived-formula">⌊(CON+SIZ)/10⌋</div>
+          <input type="hidden" name="attr_hp" value={String(hpVal || 1)} />
+        </div>
+        <div className="bf-derived-cell">
+          <div className="bf-derived-label">이동력</div>
+          <div className="bf-derived-val">{moveVal}</div>
+          <div className="bf-derived-formula">STR · DEX vs SIZ</div>
+          <input type="hidden" name="attr_move" value={String(moveVal)} />
+        </div>
+        <div className="bf-derived-cell">
+          <div className="bf-derived-label">체격</div>
+          <div className="bf-derived-val">{buildDb.build > 0 ? `+${buildDb.build}` : buildDb.build}</div>
+          <div className="bf-derived-formula">STR+CON 기반</div>
+          <input type="hidden" name="attr_build" value={String(buildDb.build)} />
+        </div>
+        <div className="bf-derived-cell">
+          <div className="bf-derived-label">DB (피해 보너스)</div>
+          <div className="bf-derived-val">{buildDb.db}</div>
+          <div className="bf-derived-formula">STR+CON 기반</div>
+          <input type="hidden" name="attr_damage_bonus" value={buildDb.db} />
+        </div>
+      </div>
+
+      <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>
+        공격 <span className="bf-req">*</span>
+        <span className="bf-hint"> 최소 1개 (최대 5개) · 피해에는 DB({buildDb.db})가 자동 추가됩니다</span>
+      </h3>
+      {attacks.map((a, i) => {
         const isFirst = i === 0;
+        const combined = a.damage ? `${a.damage}${dbSuffix}` : "";
         return (
           <div className="attack-row-input" key={i}>
             <input
               name={`attack_${i}_name`}
-              defaultValue={a?.name ?? ""}
+              value={a.name}
+              onChange={(e) => updateAttack(i, { name: e.target.value })}
               maxLength={60}
               placeholder={isFirst ? "공격 이름 *" : "공격 이름"}
               required={isFirst && !isEdit}
@@ -263,26 +387,91 @@ export function BestiaryForm({
               type="number"
               min={0}
               max={100}
-              defaultValue={a?.skill != null ? String(a.skill) : ""}
+              value={a.skill}
+              onChange={(e) => updateAttack(i, { skill: e.target.value })}
               placeholder={isFirst ? "% *" : "%"}
               required={isFirst && !isEdit}
             />
             <input
-              name={`attack_${i}_damage`}
-              defaultValue={a?.damage ?? ""}
+              type="text"
+              value={a.damage}
+              onChange={(e) => updateAttack(i, { damage: e.target.value })}
               maxLength={80}
-              placeholder={isFirst ? "1d6 + DB *" : "1d6 + DB"}
+              placeholder={isFirst ? "기본 피해 (1d6) *" : "기본 피해 (1d6)"}
               required={isFirst && !isEdit}
+              title={combined ? `최종 피해: ${combined}` : undefined}
+            />
+            <input
+              type="hidden"
+              name={`attack_${i}_damage`}
+              value={combined}
             />
             <input
               name={`attack_${i}_note`}
-              defaultValue={a?.note ?? ""}
+              value={a.note}
+              onChange={(e) => updateAttack(i, { note: e.target.value })}
               maxLength={120}
               placeholder="비고"
             />
+            {a.damage ? (
+              <div className="bf-attack-preview">최종 피해: <b>{combined}</b></div>
+            ) : null}
           </div>
         );
       })}
+
+      <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>
+        기능 <span className="bf-hint"> 탐사자와 동일한 형식 (최대 20개)</span>
+      </h3>
+      <div className="bf-skills">
+        {skills.map((s, i) => (
+          <div className="bf-skill-row" key={i}>
+            <input
+              name={`skill_${i}_name`}
+              value={s.name}
+              onChange={(e) => updateSkill(i, { name: e.target.value })}
+              maxLength={40}
+              placeholder="예) 위협, 관찰력, 회피"
+            />
+            <input
+              name={`skill_${i}_value`}
+              type="number"
+              min={0}
+              max={100}
+              value={s.value}
+              onChange={(e) => updateSkill(i, { value: e.target.value })}
+              placeholder="%"
+            />
+            <select
+              name={`skill_${i}_group`}
+              value={s.group}
+              onChange={(e) => updateSkill(i, { group: e.target.value as CocSkillGroup | "" })}
+            >
+              <option value="">분류 없음</option>
+              {SKILL_GROUPS.map((g) => (
+                <option key={g.value} value={g.value}>{g.label}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="btn ghost small"
+              onClick={() => removeSkill(i)}
+              disabled={skills.length === 1}
+              aria-label="이 기능 삭제"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="btn ghost small bf-skill-add"
+          onClick={addSkill}
+          disabled={skills.length >= 20}
+        >
+          + 기능 추가
+        </button>
+      </div>
 
       <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>기타</h3>
       <div className="row cols-2">
