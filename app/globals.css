@@ -2652,22 +2652,61 @@ body:has(.scene-side, .cinematic) {
 /* ════════════════════════════════════════════════
    시네마틱 인버트 — data-theme="dark" + 시네마틱 = LIGHT 톤
    (헤더의 다크 모드 토글이 시네마틱 페이지에서는 '라이트 모드'로 동작)
+
+   핵심: 이 스코프 안에서 CSS 변수를 라이트 톤 값으로 다시 묶어둠.
+   그러면 아래 자식 요소들이 var(--ink)/var(--bg-elev) 등을 참조할 때
+   자동으로 라이트 톤이 적용됨.
    ════════════════════════════════════════════════ */
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) {
+  /* 라이트 페이퍼 팔레트 (기본 라이트 테마 값과 동일) */
+  --bg: #f5f3ee;
+  --bg-2: #ebe7df;
+  --bg-elev: #fbf9f4;
+  --bg-elev-2: #ebe7df;
+  --ink: #1a1714;
+  --ink-2: #4a443c;
+  --ink-3: #7a7268;
+  --text: var(--ink);
+  --text-dim: var(--ink-2);
+  --text-faint: var(--ink-3);
+  --line: rgba(26, 23, 20, 0.18);
+  --line-strong: rgba(26, 23, 20, 0.32);
+  --accent-soft: rgba(138, 28, 28, 0.10);
+
   background: #f5f3ee !important;
   background-image: none;
+  color: var(--ink);
 }
 /* 헤더 / 푸터 / breadcrumb */
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header {
-  background: rgba(245, 243, 238, 0.94) !important;
-  border-bottom-color: rgba(26, 23, 20, 0.18) !important;
+  background: rgba(251, 249, 244, 0.94) !important;
+  border-bottom-color: var(--ink) !important;
 }
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .brand,
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .brand-ko,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .nick-badge,
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .nick-badge-inner,
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .nav a,
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .nav .active {
   color: var(--ink) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .brand:hover,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .nav a:hover {
+  color: var(--accent) !important;
+  background: transparent !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .nick-badge {
+  background: var(--bg-elev) !important;
+  border-color: var(--line-strong) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .search-trigger {
+  background: var(--bg-elev) !important;
+  border-color: var(--line-strong) !important;
+  color: var(--ink-2) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .search-trigger:hover {
+  color: var(--ink) !important;
+  border-color: var(--ink) !important;
 }
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .breadcrumb { color: var(--ink-3) !important; }
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .breadcrumb a { color: var(--ink-2) !important; }
@@ -2823,7 +2862,7 @@ body:has(.scene-side, .cinematic) {
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-pin-counter { color: var(--ink-3); }
 /* Composer */
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-composer-sticky {
-  background: rgba(245, 243, 238, 0.96);
+  background: rgba(251, 249, 244, 0.96);
   border-color: var(--line-strong);
 }
 :root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-title {
