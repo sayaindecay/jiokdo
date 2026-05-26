@@ -129,10 +129,10 @@ export function PlayComposerSticky({
               }}
               placeholder={
                 kind === "narration"
-                  ? "장면을 묘사하세요. /cc 명령으로 NPC 굴림도 가능합니다."
+                  ? "장면을 묘사하세요. 같은 줄 끝에 /cc 탐색 65 처럼 굴림 명령을 붙일 수 있습니다."
                   : kind === "system"
                     ? "키퍼 공지나 룰 설명."
-                    : "행동 한 줄. 예) /cc 탐색 65 — Enter 로 즉시 제출"
+                    : "예) 책을 살핀다 /cc 도서관 60 — 텍스트 뒤에 굴림 명령을 붙이세요"
               }
             />
 
