@@ -3900,6 +3900,41 @@ select:focus-visible {
   margin: 0 0 0.6rem;
 }
 
+/* 관리자 DB 통계 페이지 */
+.admin-page { padding-top: 0.25rem; }
+.admin-stat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+}
+.admin-stat-table th,
+.admin-stat-table td {
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px dashed var(--line);
+  text-align: left;
+}
+.admin-stat-table th {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  border-bottom: 1.5px solid var(--ink);
+}
+.admin-stat-table td.ast-name { color: var(--ink); font-weight: 700; }
+.admin-stat-table td.ast-label {
+  font-family: var(--font-anno);
+  color: var(--ink-2);
+}
+.admin-stat-table td.ast-count {
+  text-align: right;
+  font-weight: 700;
+  color: var(--ink);
+}
+.admin-stat-table td.ast-count.err { color: var(--accent); }
+.admin-stat-table tr:hover td { background: var(--bg-elev-2); }
+
 /* 비밀번호 입력 (눈 토글) — 어느 폼에서나 동작 */
 .password-input {
   position: relative;

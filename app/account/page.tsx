@@ -142,6 +142,25 @@ export default async function AccountPage({
         </section>
       </div>
 
+      {/* ─── 내 데이터 다운로드 ─── */}
+      <section className="acc-card" style={{ marginBottom: "1.5rem" }}>
+        <header className="acc-card-head">
+          <div>
+            <div className="acc-card-eyebrow">EXPORT</div>
+            <h2>내 데이터 다운로드</h2>
+          </div>
+        </header>
+        <p style={{ fontFamily: "var(--font-anno)", color: "var(--ink-2)", fontSize: "0.92rem", margin: 0 }}>
+          내가 만든 캐릭터·플레이 로그·등록한 에너미 + 참여 중인 캠페인 정보를
+          JSON 한 파일로 내려받습니다. 비밀번호 같은 자격 정보는 포함되지 않습니다.
+        </p>
+        <div className="acc-form-actions" style={{ marginTop: "0.6rem" }}>
+          <a href="/api/account/export" className="btn primary" download>
+            JSON 다운로드
+          </a>
+        </div>
+      </section>
+
       {/* ─── 위험 영역: 계정 삭제 ─── */}
       <div className="danger-divider" aria-hidden="true">
         <span>위험 영역</span>

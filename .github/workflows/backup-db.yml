@@ -1,0 +1,50 @@
+name: Daily Turso DB backup
+
+# 매일 한국 시각 02:00 (UTC 17:00) + 수동 실행 가능
+on:
+  schedule:
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+
+# 필요한 secrets (Repository Settings → Secrets and variables → Actions):
+#   TURSO_DB_NAME       : Turso 데이터베이스 이름 (예: jiokdo)
+#   TURSO_API_TOKEN     : Turso API 토큰 (turso auth api-tokens mint <name>)
+#
+# 결과:
+#   - 90일 동안 Actions Artifact 로 .sql.gz 보관
+#   - 워크플로 페이지에서 다운로드 가능
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Install Turso CLI
+        run: |
+          curl -sSfL https://get.tur.so/install.sh | bash
+          echo "$HOME/.turso" >> "$GITHUB_PATH"
+
+      - name: Dump database
+        env:
+          TURSO_API_TOKEN: ${{ secrets.TURSO_API_TOKEN }}
+          DB_NAME: ${{ secrets.TURSO_DB_NAME }}
+        run: |
+          if [ -z "$DB_NAME" ] || [ -z "$TURSO_API_TOKEN" ]; then
+            echo "::error::TURSO_DB_NAME / TURSO_API_TOKEN secrets 가 설정되지 않았습니다." >&2
+            exit 1
+          fi
+          STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+          OUT="jiokdo-${STAMP}.sql"
+          turso db shell "$DB_NAME" .dump > "$OUT"
+          gzip "$OUT"
+          ls -lh "$OUT.gz"
+          echo "ARTIFACT_PATH=$OUT.gz" >> "$GITHUB_ENV"
+          echo "ARTIFACT_NAME=jiokdo-backup-$STAMP" >> "$GITHUB_ENV"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.ARTIFACT_PATH }}
+          retention-days: 90
+          compression-level: 0

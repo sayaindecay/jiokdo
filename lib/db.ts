@@ -697,6 +697,62 @@ export async function listPlayEntries(campaignId: number): Promise<PlayEntry[]> 
   });
   return res.rows.map((r) => rowToPlayEntry(r as unknown as Record<string, unknown>));
 }
+
+// ───── 데이터 export 보조 ─────
+export async function listAllCharactersOwnedBy(nick: string): Promise<Character[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM characters WHERE owner_nick = ? ORDER BY created_at ASC",
+    args: [nick],
+  });
+  return res.rows.map((r) => rowToCharacter(r as unknown as Record<string, unknown>));
+}
+export async function listAllPlayEntriesAuthoredBy(nick: string): Promise<PlayEntry[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `SELECT p.*, c.name AS character_name
+          FROM play_entries p
+          LEFT JOIN characters c ON c.id = p.character_id
+          WHERE p.nickname = ?
+          ORDER BY p.created_at ASC`,
+    args: [nick],
+  });
+  return res.rows.map((r) => rowToPlayEntry(r as unknown as Record<string, unknown>));
+}
+export async function listBestiaryCreatedBy(nick: string): Promise<BestiaryEntry[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM bestiary WHERE created_by = ? ORDER BY created_at ASC",
+    args: [nick],
+  });
+  return res.rows.map((r) => rowToBestiary(r as unknown as Record<string, unknown>));
+}
+export async function listAllSessions(campaignId: number): Promise<Session[]> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT * FROM sessions WHERE campaign_id = ? ORDER BY number ASC",
+    args: [campaignId],
+  });
+  return res.rows.map((r) => rowToSession(r as unknown as Record<string, unknown>));
+}
+export async function getTableCounts(): Promise<Record<string, number>> {
+  await ensureReady();
+  const tables = [
+    "users", "user_sessions", "campaigns", "campaign_members",
+    "characters", "bestiary", "rule_sections", "play_entries",
+    "sessions", "clues",
+  ];
+  const out: Record<string, number> = {};
+  for (const t of tables) {
+    try {
+      const r = await client.execute(`SELECT COUNT(*) AS n FROM ${t}`);
+      out[t] = Number((r.rows[0] as Record<string, unknown>).n);
+    } catch {
+      out[t] = -1;
+    }
+  }
+  return out;
+}
 export async function createPlayEntry(input: {
   campaign_id: number; nickname: string; character_id: number | null;
   kind: PlayEntry["kind"]; segments: Segment[];

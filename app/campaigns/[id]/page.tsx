@@ -106,6 +106,16 @@ export default async function CampaignDashboard({
           </dl>
         </div>
         <div className="cd-actions">
+          {isKeeper ? (
+            <a
+              href={`/api/campaigns/${id}/export`}
+              className="btn ghost"
+              title="캠페인 전체를 JSON 파일로 다운로드"
+              download
+            >
+              ↓ 백업
+            </a>
+          ) : null}
           <Link href={`/campaigns/${id}/scene`} className="btn ghost">
             장면 트래커
           </Link>
