@@ -209,7 +209,7 @@ export async function createCharacterAction(fd: FormData): Promise<void> {
     const skills: CocSkill[] = [
       { name: "탐색", value: 25, group: "investigation" },
       { name: "회피", value: Math.floor(attrs.dex / 2), group: "combat" },
-      { name: "도서관 이용", value: 20, group: "investigation" },
+      { name: "자료조사", value: 20, group: "investigation" },
       { name: "심리학", value: 10, group: "social" },
       { name: "청각", value: 20, group: "investigation" },
       { name: "관찰력", value: 25, group: "investigation" },
@@ -277,7 +277,7 @@ export async function createCharacterAction(fd: FormData): Promise<void> {
     san: 50, san_max: 99,
     skills: [
       { name: "탐색", value: 25 }, { name: "회피", value: 25 },
-      { name: "도서관 이용", value: 20 }, { name: "심리학", value: 10 },
+      { name: "자료조사", value: 20 }, { name: "심리학", value: 10 },
     ],
     weapons: [{ name: "주먹", skill: 50, damage: "1d3 + DB" }],
     backstory: "",
