@@ -8200,7 +8200,42 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
   margin-left: auto;
 }
 
-.section-head-tracker-log .actions { display: flex; gap: 0.4rem; }
+.section-head-tracker-log .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+/* 비우기 / 전체 삭제 ghost 버튼 — 시네마틱 다크에서 가독성 보정 */
+body:has(.scene-side, .cinematic) .section-head-tracker-log .actions .btn.ghost {
+  background: rgba(245, 243, 238, 0.04);
+  border-color: rgba(245, 243, 238, 0.25);
+  color: rgba(245, 243, 238, 0.85);
+  box-shadow: none;
+}
+body:has(.scene-side, .cinematic) .section-head-tracker-log .actions .btn.ghost:hover {
+  background: rgba(138, 28, 28, 0.25);
+  border-color: var(--accent);
+  color: #fff;
+}
+body:has(.scene-side, .cinematic) .section-head-tracker-log .actions .btn.ghost:disabled {
+  opacity: 0.35;
+  background: transparent;
+  border-color: rgba(245, 243, 238, 0.15);
+  color: rgba(245, 243, 238, 0.4);
+}
+/* 라이트 시네마틱 인버트 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .section-head-tracker-log .actions .btn.ghost {
+  background: var(--bg-elev);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .section-head-tracker-log .actions .btn.ghost:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .section-head-tracker-log .actions .btn.ghost:disabled {
+  opacity: 0.4;
+  background: var(--bg-elev);
+  color: var(--ink-3);
+}
 
 /* 한 줄 묘사 입력창 */
 .tracker-narration {
