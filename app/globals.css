@@ -3172,6 +3172,15 @@ body:has(.scene-side, .cinematic) .site-header .brand-ko {
   color: rgba(245, 243, 238, 0.92);
 }
 body:has(.scene-side, .cinematic) .link-btn { color: rgba(245, 243, 238, 0.55); }
+body:has(.scene-side, .cinematic) .link-btn:hover { color: var(--accent); }
+/* 라이트 시네마틱 — 위 cinematic 다크 규칙이 light cinematic 에도 그대로 먹으면
+   .link-btn 이 흰색이 되어 사라지므로 인버트로 잉크 톤 되돌림 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .link-btn {
+  color: var(--ink-2) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .link-btn:hover {
+  color: var(--accent) !important;
+}
 body:has(.scene-side, .cinematic) .breadcrumb { color: rgba(245, 243, 238, 0.55); }
 body:has(.scene-side, .cinematic) .breadcrumb a { color: rgba(245, 243, 238, 0.75); }
 body:has(.scene-side, .cinematic) .breadcrumb a:hover { color: var(--accent); }
