@@ -5840,11 +5840,24 @@ select:focus-visible {
 
 .vital-bar {
   display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+  flex-direction: column;
+  gap: 0.4rem;
   font-family: var(--font-mono);
   font-size: 0.78rem;
+}
+.vital-bar .vital-cells {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem;
+}
+@media (min-width: 600px) {
+  .vital-bar .vital-cells {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.vital-bar .vital-foot {
+  display: flex;
+  justify-content: flex-end;
 }
 .vital-cell {
   display: inline-flex;
@@ -5860,6 +5873,24 @@ select:focus-visible {
   padding: 0.25rem 0.6rem;
   align-items: center;
   gap: 0.4rem;
+}
+.vital-cell.vital-num {
+  padding: 0.2rem 0.5rem 0.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  cursor: text;
+}
+.vital-cell.vital-num .vital-label {
+  flex-shrink: 0;
+}
+.vital-cell.vital-num .vital-val {
+  flex: 1;
+  justify-content: center;
+}
+.vital-cell.vital-num .vital-val input {
+  width: 2.4rem;
+  text-align: center;
 }
 .vital-cell .vital-main {
   flex: 1;
@@ -5936,14 +5967,12 @@ select:focus-visible {
 .vital-cell.vital-san.warn .vital-val { color: #f0a8a8; }
 .vital-cell.vital-luck { box-shadow: inset 3px 0 0 var(--green, #94c084); flex: 0 0 auto; }
 
-/* 저장 버튼 — dirty 일 때만 강조, 평소엔 약하게 */
+/* 저장 버튼 — 카드 하단, dirty 일 때만 강조 */
 .vital-bar .vital-save {
-  margin-left: auto;
-  align-self: stretch;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   letter-spacing: 0.04em;
-  padding: 0.2rem 0.7rem;
+  padding: 0.25rem 0.95rem;
 }
 .vital-bar .vital-save:disabled {
   opacity: 0.3;

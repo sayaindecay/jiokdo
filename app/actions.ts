@@ -637,10 +637,15 @@ export async function updateCharacterVitalsAction(fd: FormData): Promise<void> {
   const ch = await getCharacter(id);
   if (!ch) throw new Error("캐릭터를 찾을 수 없습니다");
   if (ch.owner_nick !== nick) throw new Error("자신의 캐릭터만 수정할 수 있습니다");
+  const luckRaw = fd.get("luck");
+  const luck = typeof luckRaw === "string" && luckRaw !== ""
+    ? Math.max(0, Math.min(99, Number(luckRaw) || 0))
+    : undefined;
   await updateCharacterVitals(id, {
     hp: Math.max(0, Math.min(ch.hp_max, num(fd, "hp"))),
     mp: Math.max(0, Math.min(ch.mp_max, num(fd, "mp"))),
     san: Math.max(0, Math.min(ch.san_max, num(fd, "san"))),
+    luck,
   });
   revalidatePath(`/characters/${id}`);
 }

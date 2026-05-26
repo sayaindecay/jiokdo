@@ -653,11 +653,31 @@ export async function listCampaignCharacters(campaignId: number): Promise<Charac
   });
   return res.rows.map((r) => rowToCharacter(r as unknown as Record<string, unknown>));
 }
-export async function updateCharacterVitals(id: number, vitals: { hp: number; mp: number; san: number }): Promise<void> {
+export async function updateCharacterVitals(
+  id: number,
+  vitals: { hp: number; mp: number; san: number; luck?: number },
+): Promise<void> {
   await ensureReady();
+  if (vitals.luck == null) {
+    await client.execute({
+      sql: "UPDATE characters SET hp = ?, mp = ?, san = ? WHERE id = ?",
+      args: [vitals.hp, vitals.mp, vitals.san, id],
+    });
+    return;
+  }
+  // luck 은 attrs_json 안에 들어있어서 read-modify-write
+  const cur = await client.execute({
+    sql: "SELECT attrs_json FROM characters WHERE id = ?",
+    args: [id],
+  });
+  const row = cur.rows[0] as unknown as Record<string, unknown> | undefined;
+  if (!row) return;
+  let attrs: Record<string, number>;
+  try { attrs = JSON.parse(String(row.attrs_json)); } catch { attrs = {}; }
+  attrs.luck = Math.max(0, Math.min(99, Math.floor(vitals.luck)));
   await client.execute({
-    sql: "UPDATE characters SET hp = ?, mp = ?, san = ? WHERE id = ?",
-    args: [vitals.hp, vitals.mp, vitals.san, id],
+    sql: "UPDATE characters SET hp = ?, mp = ?, san = ?, attrs_json = ? WHERE id = ?",
+    args: [vitals.hp, vitals.mp, vitals.san, JSON.stringify(attrs), id],
   });
 }
 

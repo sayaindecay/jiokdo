@@ -11,8 +11,8 @@ export type VitalsRef = {
   san: number; san_max: number;
 };
 
-// 인라인형 vital bar — HP/MP/SAN(+ optional LUCK) 를 한 줄 카드로 표시하고
-// 각 셀의 ± 버튼으로 직접 조절. dirty 일 때만 '저장' 버튼 노출.
+// 인라인형 vital bar — HP/MP 는 ± 스텝, SAN/LUCK 은 직접 숫자 입력.
+// 저장 버튼은 카드 하단에 가로로 배치.
 export function VitalsEditor({
   character, luck,
 }: {
@@ -22,34 +22,39 @@ export function VitalsEditor({
   const [hp, setHp] = useState(character.hp);
   const [mp, setMp] = useState(character.mp);
   const [san, setSan] = useState(character.san);
+  const [luckVal, setLuckVal] = useState(luck ?? 0);
   const dirty =
-    hp !== character.hp || mp !== character.mp || san !== character.san;
+    hp !== character.hp ||
+    mp !== character.mp ||
+    san !== character.san ||
+    (luck != null && luckVal !== luck);
 
   return (
     <form action={updateCharacterVitalsAction} className="vital-bar">
       <input type="hidden" name="character_id" value={character.id} />
-      <VitalCell name="hp"  label="HP"  value={hp}  max={character.hp_max}  onChange={setHp}  variant="hp" />
-      <VitalCell name="mp"  label="MP"  value={mp}  max={character.mp_max}  onChange={setMp}  variant="mp" />
-      <VitalCell name="san" label="SAN" value={san} max={character.san_max} onChange={setSan} variant="san" danger={san < 30} />
-      {luck != null ? (
-        <div className="vital-cell vital-luck is-readonly" aria-label={`LUCK ${luck}`}>
-          <span className="vital-label">LUCK</span>
-          <span className="vital-val">{luck}</span>
-        </div>
-      ) : null}
-      <SubmitButton
-        className="btn small vital-save"
-        disabled={!dirty}
-        pendingLabel="저장 중…"
-        title={dirty ? "변경된 vitals 저장" : "변경 사항 없음"}
-      >
-        저장
-      </SubmitButton>
+      <div className="vital-cells">
+        <StepVitalCell name="hp" label="HP" value={hp} max={character.hp_max} onChange={setHp} variant="hp" />
+        <StepVitalCell name="mp" label="MP" value={mp} max={character.mp_max} onChange={setMp} variant="mp" />
+        <NumVitalCell  name="san" label="SAN" value={san} max={character.san_max} onChange={setSan} variant="san" danger={san < 30} />
+        {luck != null ? (
+          <NumVitalCell name="luck" label="LUCK" value={luckVal} max={99} onChange={setLuckVal} variant="luck" />
+        ) : null}
+      </div>
+      <div className="vital-foot">
+        <SubmitButton
+          className="btn small vital-save"
+          disabled={!dirty}
+          pendingLabel="저장 중…"
+          title={dirty ? "변경된 vitals 저장" : "변경 사항 없음"}
+        >
+          저장
+        </SubmitButton>
+      </div>
     </form>
   );
 }
 
-function VitalCell({
+function StepVitalCell({
   name, label, value, max, onChange, variant, danger,
 }: {
   name: string;
@@ -57,7 +62,7 @@ function VitalCell({
   value: number;
   max: number;
   onChange: (n: number) => void;
-  variant: "hp" | "mp" | "san";
+  variant: "hp" | "mp";
   danger?: boolean;
 }) {
   return (
@@ -95,5 +100,38 @@ function VitalCell({
         tabIndex={-1}
       >+</button>
     </div>
+  );
+}
+
+function NumVitalCell({
+  name, label, value, max, onChange, variant, danger,
+}: {
+  name: string;
+  label: string;
+  value: number;
+  max: number;
+  onChange: (n: number) => void;
+  variant: "san" | "luck";
+  danger?: boolean;
+}) {
+  return (
+    <label className={`vital-cell vital-num vital-${variant}${danger ? " warn" : ""}`}>
+      <span className="vital-label">{label}</span>
+      <span className="vital-val">
+        <input
+          type="number"
+          name={name}
+          value={value}
+          min={0}
+          max={max}
+          onChange={(e) =>
+            onChange(Math.max(0, Math.min(max, Number(e.target.value) || 0)))
+          }
+          aria-label={`${label} 현재값`}
+        />
+        <span className="vital-sep">/</span>
+        <span className="vital-max">{max}</span>
+      </span>
+    </label>
   );
 }
