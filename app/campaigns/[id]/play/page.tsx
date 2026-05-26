@@ -9,6 +9,7 @@ import { formatTime } from "@/lib/format";
 import { LEVEL_LABEL } from "@/lib/dice";
 import { SceneStage } from "@/components/vtt/SceneStage";
 import { CluesPanel, SceneRoster } from "@/components/vtt/SceneRoster";
+import { MySheetPanel } from "@/components/vtt/MySheetPanel";
 import { PlayComposerSticky } from "@/components/vtt/PlayComposerSticky";
 import { speakerHueStyle } from "@/lib/hue";
 import type { PlayEntry, Segment } from "@/lib/types";
@@ -108,6 +109,7 @@ export default async function PlayPage({
           isKeeper={isKeeper}
         />
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {isMember ? <MySheetPanel character={myChar} /> : null}
           <SceneRoster members={members} characters={characters} myNick={nick} />
           <CluesPanel clues={clues} campaignId={id} isKeeper={isKeeper} />
         </div>

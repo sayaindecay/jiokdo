@@ -4093,6 +4093,262 @@ body:has(.scene-side) .session-row .ks-crown {
   color: #f0a8a8;
 }
 
+/* 내 시트 패널 (플레이 사이드바) — Roll20 스타일 */
+.ms-panel {
+  background: rgba(245, 243, 238, 0.04);
+  border: 1px solid rgba(245, 243, 238, 0.16);
+  border-radius: var(--radius);
+  color: rgba(245, 243, 238, 0.92);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ms-panel .ms-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem 0.5rem;
+  border-bottom: 1px solid rgba(245, 243, 238, 0.12);
+  background: rgba(245, 243, 238, 0.04);
+}
+.ms-panel .ms-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ms-panel .ms-occu {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: rgba(245, 243, 238, 0.55);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+  max-width: 50%;
+}
+.ms-panel .ms-empty-body {
+  padding: 1rem 0.85rem;
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+  color: rgba(245, 243, 238, 0.55);
+  text-align: center;
+}
+
+.ms-panel .ms-vitals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem 0.4rem;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid rgba(245, 243, 238, 0.12);
+}
+.ms-panel .ms-vital {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: rgba(245, 243, 238, 0.55);
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.ms-panel .ms-vital b {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+.ms-panel .ms-vital.warn b { color: #f0a8a8; }
+.ms-panel .ms-vital-hp b { color: #f0a8a8; }
+.ms-panel .ms-vital-mp b { color: #a8c6e0; }
+.ms-panel .ms-vital-san b { color: #e0c685; }
+.ms-panel .ms-vital-luck b { color: #b0d99a; }
+
+.ms-panel .ms-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(245, 243, 238, 0.12);
+}
+.ms-panel .ms-tab {
+  flex: 1;
+  padding: 0.5rem 0.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(245, 243, 238, 0.55);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  transition: color var(--tx-fast), border-color var(--tx-fast);
+}
+.ms-panel .ms-tab:hover { color: #fff; }
+.ms-panel .ms-tab.active {
+  color: #fff;
+  border-bottom-color: var(--accent);
+}
+.ms-panel .ms-tab-count {
+  font-size: 0.65rem;
+  background: rgba(245, 243, 238, 0.1);
+  padding: 0.05rem 0.35rem;
+  border-radius: 999px;
+  color: rgba(245, 243, 238, 0.7);
+}
+.ms-panel .ms-tab.active .ms-tab-count {
+  background: var(--accent);
+  color: #fff;
+}
+
+.ms-panel .ms-group-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px dashed rgba(245, 243, 238, 0.1);
+}
+.ms-panel .ms-group-chip {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  padding: 0.18rem 0.5rem;
+  background: rgba(245, 243, 238, 0.06);
+  border: 1px solid rgba(245, 243, 238, 0.16);
+  color: rgba(245, 243, 238, 0.65);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--tx-fast);
+}
+.ms-panel .ms-group-chip:hover {
+  color: #fff;
+  border-color: var(--accent);
+}
+.ms-panel .ms-group-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.ms-panel .ms-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.ms-panel .ms-list.ms-skills { max-height: 420px; }
+.ms-panel .ms-list li {
+  border-bottom: 1px dashed rgba(245, 243, 238, 0.08);
+}
+.ms-panel .ms-list li:last-child { border-bottom: none; }
+
+.ms-panel .ms-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 3rem 2.2rem 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--tx-fast);
+}
+.ms-panel .ms-row:hover { background: var(--accent-soft); }
+.ms-panel .ms-row:active { background: rgba(193, 78, 78, 0.3); }
+.ms-panel .ms-row .ms-row-key {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: rgba(245, 243, 238, 0.55);
+  font-weight: 700;
+}
+.ms-panel .ms-row .ms-row-val {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+}
+.ms-panel .ms-row .ms-row-halves {
+  display: inline-flex;
+  gap: 0.4rem;
+  justify-self: end;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: rgba(245, 243, 238, 0.4);
+}
+.ms-panel .ms-row:hover .ms-row-halves { color: rgba(245, 243, 238, 0.7); }
+
+/* skill row 는 2 col */
+.ms-panel .ms-skills .ms-row {
+  grid-template-columns: 1fr auto;
+}
+.ms-panel .ms-row .ms-row-name {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: rgba(245, 243, 238, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ms-panel .ms-row.used .ms-row-name {
+  color: #fff;
+  font-weight: 600;
+}
+.ms-panel .ms-row.used::before {
+  content: "●";
+  position: absolute;
+  left: 0.3rem;
+  color: var(--accent);
+  font-size: 0.5rem;
+}
+.ms-panel .ms-row.used { position: relative; }
+
+.ms-panel .ms-group-head {
+  padding: 0.35rem 0.7rem !important;
+  background: rgba(245, 243, 238, 0.04);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245, 243, 238, 0.45);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(245, 243, 238, 0.08) !important;
+}
+.ms-panel .ms-group-count {
+  font-size: 0.62rem;
+  color: rgba(245, 243, 238, 0.35);
+}
+
+.ms-panel .ms-row-empty {
+  padding: 1rem 0.85rem;
+  text-align: center;
+  font-family: var(--font-anno);
+  font-size: 0.85rem;
+  color: rgba(245, 243, 238, 0.45);
+}
+
+.ms-panel .ms-foot {
+  padding: 0.5rem 0.85rem;
+  font-family: var(--font-anno);
+  font-size: 0.75rem;
+  color: rgba(245, 243, 238, 0.45);
+  border-top: 1px dashed rgba(245, 243, 238, 0.12);
+  line-height: 1.4;
+}
+
 /* 단서 패널 — 키퍼 인라인 추가 / 토글 / 삭제 */
 .clues-panel { padding-bottom: 0.4rem; }
 .clues-panel .clues-head {
