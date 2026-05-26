@@ -63,6 +63,7 @@ export type Campaign = {
   system: string;
   status: CampaignStatus;
   illustration_url: string | null;
+  scene_pin: string | null;
   created_at: number;
   member_count?: number;
   character_count?: number;

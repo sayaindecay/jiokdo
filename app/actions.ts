@@ -11,7 +11,7 @@ import {
   findUser, getBestiaryEntry, getCampaign, getCampaignByCode, getCharacter,
   isBestiarySlugTaken, joinCampaign, listKeperCampaigns, touchUserLogin,
   createClue, deleteClue, setClueResolved,
-  setCampaignIllustration, setCharacterPortrait,
+  setCampaignIllustration, setCampaignScenePin, setCharacterPortrait,
   updateBestiaryEntry, updateCampaignProfile, updateCharacterProfile, updateCharacterVitals,
   updateUserPassword,
 } from "@/lib/db";
@@ -503,6 +503,20 @@ export async function setCharacterPortraitAction(fd: FormData): Promise<void> {
 
   await setCharacterPortrait(id, nick, trimmed);
   revalidatePath(`/characters/${id}`);
+}
+
+export async function setCampaignScenePinAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const id = num(fd, "campaign_id");
+  const camp = await getCampaign(id);
+  if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
+  if (camp.keeper_nick !== nick) {
+    throw new Error("키퍼만 장면 핀을 변경할 수 있습니다");
+  }
+  const raw = text(fd, "scene_pin", 400);
+  await setCampaignScenePin(id, nick, raw || null);
+  revalidatePath(`/campaigns/${id}/play`);
+  revalidatePath(`/campaigns/${id}/scene`);
 }
 
 export async function setCampaignIllustrationAction(fd: FormData): Promise<void> {

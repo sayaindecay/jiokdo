@@ -139,6 +139,7 @@ function ensureReady(): Promise<void> {
       "ALTER TABLE campaigns ADD COLUMN illustration_url TEXT",
       "ALTER TABLE characters ADD COLUMN portrait_url TEXT",
       "ALTER TABLE bestiary ADD COLUMN image_url TEXT",
+      "ALTER TABLE campaigns ADD COLUMN scene_pin TEXT",
     ]) {
       try { await client.execute(stmt); } catch { /* 이미 존재 */ }
     }
@@ -398,6 +399,7 @@ function rowToCampaign(r: Record<string, unknown>): Campaign {
     system: String(r.system),
     status,
     illustration_url: r.illustration_url == null ? null : String(r.illustration_url),
+    scene_pin: r.scene_pin == null ? null : String(r.scene_pin),
     created_at: Number(r.created_at),
     member_count: r.member_count != null ? Number(r.member_count) : undefined,
     character_count: r.character_count != null ? Number(r.character_count) : undefined,
@@ -439,6 +441,19 @@ export async function setCampaignIllustration(
   const res = await client.execute({
     sql: "UPDATE campaigns SET illustration_url = ? WHERE id = ? AND keeper_nick = ?",
     args: [url, id, keeperNick],
+  });
+  return Number(res.rowsAffected) > 0;
+}
+
+export async function setCampaignScenePin(
+  id: number,
+  keeperNick: string,
+  pin: string | null
+): Promise<boolean> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "UPDATE campaigns SET scene_pin = ? WHERE id = ? AND keeper_nick = ?",
+    args: [pin, id, keeperNick],
   });
   return Number(res.rowsAffected) > 0;
 }
@@ -942,6 +957,7 @@ export async function getNextScheduledSession(nick: string): Promise<{ session: 
     keeper_nick: String(r.c_keeper), system: String(r.c_system),
     status,
     illustration_url: null,
+    scene_pin: null,
     created_at: Number(r.c_created),
   };
   return { session, campaign };

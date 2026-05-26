@@ -8,6 +8,7 @@ import {
 import { formatTime } from "@/lib/format";
 import { LEVEL_LABEL } from "@/lib/dice";
 import { SceneStage } from "@/components/vtt/SceneStage";
+import { SceneSpotlight } from "@/components/vtt/SceneSpotlight";
 import { CluesPanel, SceneRoster } from "@/components/vtt/SceneRoster";
 import { MySheetPanel } from "@/components/vtt/MySheetPanel";
 import { PlayComposerSticky } from "@/components/vtt/PlayComposerSticky";
@@ -73,13 +74,21 @@ export default async function PlayPage({
       </div>
 
       <div className="scene-side">
-        <SceneStage
-          campaign={camp}
-          session={currentSession}
-          lastEntry={lastEntry}
-          memberCount={members.length}
-          isKeeper={isKeeper}
-        />
+        <div className="scene-col">
+          <SceneStage
+            campaign={camp}
+            session={currentSession}
+            lastEntry={lastEntry}
+            memberCount={members.length}
+            isKeeper={isKeeper}
+          />
+          <SceneSpotlight
+            campaignId={id}
+            scenePin={camp.scene_pin}
+            clues={clues}
+            isKeeper={isKeeper}
+          />
+        </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {isMember ? <MySheetPanel characters={myChars} campaignId={id} /> : null}
           <SceneRoster members={members} characters={characters} myNick={nick} />

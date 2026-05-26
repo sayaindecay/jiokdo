@@ -4165,6 +4165,185 @@ select:focus-visible {
   letter-spacing: 0.02em;
 }
 
+/* scene-side 왼쪽 컬럼 (SceneStage + Spotlight) */
+.scene-side .scene-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+/* 장면 spotlight — 현재 핀 + 추적 중 단서 */
+.scene-spotlight {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: rgba(245, 243, 238, 0.04);
+  border: 1px solid rgba(245, 243, 238, 0.14);
+  border-radius: var(--radius);
+}
+@media (max-width: 900px) {
+  .scene-spotlight { grid-template-columns: 1fr; }
+}
+
+.scene-spotlight .ss-pin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.scene-spotlight .ss-pin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.scene-spotlight .ss-pin-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245, 243, 238, 0.6);
+  font-weight: 700;
+}
+.scene-spotlight .ss-pin-edit {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(245, 243, 238, 0.7);
+  background: rgba(245, 243, 238, 0.08);
+  border: 1px solid rgba(245, 243, 238, 0.18);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all var(--tx-fast);
+}
+.scene-spotlight .ss-pin-edit:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.scene-spotlight .ss-pin-text {
+  font-family: var(--font-anno);
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: rgba(245, 243, 238, 0.92);
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.scene-spotlight .ss-pin-empty {
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+  font-style: italic;
+  color: rgba(245, 243, 238, 0.45);
+  margin: 0;
+}
+
+.scene-spotlight .ss-pin-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.scene-spotlight .ss-pin-edit-form textarea {
+  font-family: var(--font-anno);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  background: rgba(245, 243, 238, 0.06);
+  border: 1px solid rgba(245, 243, 238, 0.22);
+  color: rgba(245, 243, 238, 0.92);
+  border-radius: 4px;
+  padding: 0.5rem 0.65rem;
+  resize: vertical;
+}
+.scene-spotlight .ss-pin-edit-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(193, 78, 78, 0.25);
+}
+.scene-spotlight .ss-pin-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.scene-spotlight .ss-pin-edit-actions .btn { padding: 0.3rem 0.7rem; font-size: 0.82rem; }
+.scene-spotlight .ss-pin-counter {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: rgba(245, 243, 238, 0.4);
+}
+.scene-spotlight .ss-pin-error {
+  font-family: var(--font-anno);
+  font-size: 0.82rem;
+  color: var(--accent);
+}
+
+/* 단서 spotlight */
+.scene-spotlight .ss-clues {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+  border-left: 1px dashed rgba(245, 243, 238, 0.18);
+  padding-left: 0.85rem;
+}
+@media (max-width: 900px) {
+  .scene-spotlight .ss-clues {
+    border-left: none;
+    border-top: 1px dashed rgba(245, 243, 238, 0.18);
+    padding-left: 0;
+    padding-top: 0.7rem;
+  }
+}
+.scene-spotlight .ss-clues-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.scene-spotlight .ss-clues-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+}
+.scene-spotlight .ss-clues-count {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: rgba(245, 243, 238, 0.5);
+}
+.scene-spotlight .ss-clue-strip {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.scene-spotlight .ss-clue-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+  color: rgba(245, 243, 238, 0.85);
+  line-height: 1.4;
+}
+.scene-spotlight .ss-clue-chip .sscc-dot {
+  color: var(--gold);
+  font-weight: 700;
+}
+.scene-spotlight .ss-clue-chip .sscc-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* 세션 로그 — 게시판 스타일 (.session-post) */
 .session-log {
   display: flex;
