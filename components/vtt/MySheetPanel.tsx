@@ -148,17 +148,8 @@ export function MySheetPanel({
         </div>
       ) : null}
 
-      <div className="ms-vitals" aria-hidden="true">
-        <span className="ms-vital ms-vital-hp">HP <b>{active.hp}/{active.hp_max}</b></span>
-        <span className="ms-vital ms-vital-mp">MP <b>{active.mp}/{active.mp_max}</b></span>
-        <span className={`ms-vital ms-vital-san${active.san < 30 ? " warn" : ""}`}>
-          SAN <b>{active.san}/{active.san_max}</b>
-        </span>
-        <span className="ms-vital ms-vital-luck">LUCK <b>{active.attrs.luck}</b></span>
-      </div>
-
-      <div className="ms-vitals-editor">
-        <VitalsEditor character={active} />
+      <div className="ms-vitals-bar">
+        <VitalsEditor character={active} luck={active.attrs.luck} />
       </div>
 
       <div className="ms-tabs" role="tablist">

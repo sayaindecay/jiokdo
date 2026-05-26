@@ -5834,48 +5834,163 @@ select:focus-visible {
 }
 
 /* HP/MP/SAN 인라인 편집기 — 패널 안 톤 보정 */
-.ms-vitals-editor,
-.stk-vitals-edit {
-  padding: 0 0.7rem 0.5rem;
+/* ───── Inline vital bar — MySheetPanel / TrackerPanel 공용 ───── */
+.ms-vitals-bar,
+.stk-my-vitals { padding: 0.5rem 0.7rem 0.6rem; }
+
+.vital-bar {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
 }
-.ms-vitals-editor > form,
-.stk-vitals-edit > form {
-  margin-top: 0 !important;
-  border-color: rgba(245, 243, 238, 0.22) !important;
-  color: rgba(245, 243, 238, 0.85);
-}
-.ms-vitals-editor > form input[type="number"],
-.stk-vitals-edit > form input[type="number"] {
+.vital-cell {
+  display: inline-flex;
+  align-items: stretch;
   background: rgba(245, 243, 238, 0.06);
-  border: 1px solid rgba(245, 243, 238, 0.18);
+  border: 1px solid rgba(245, 243, 238, 0.16);
+  border-radius: 6px;
+  overflow: hidden;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.vital-cell.is-readonly {
+  padding: 0.25rem 0.6rem;
+  align-items: center;
+  gap: 0.4rem;
+}
+.vital-cell .vital-main {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.18rem 0.45rem;
+  min-width: 0;
+}
+.vital-cell .vital-label {
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  color: rgba(245, 243, 238, 0.55);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.vital-cell .vital-val {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  font-weight: 700;
   color: #fff;
 }
-.ms-vitals-editor > form button[aria-label*="감소"],
-.ms-vitals-editor > form button[aria-label*="증가"],
-.stk-vitals-edit > form button[aria-label*="감소"],
-.stk-vitals-edit > form button[aria-label*="증가"] {
-  background: rgba(245, 243, 238, 0.06) !important;
-  border-color: rgba(245, 243, 238, 0.2) !important;
+.vital-cell .vital-val input {
+  width: 2.2rem;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 700;
   color: #fff !important;
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-vitals-editor > form,
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-vitals-edit > form {
-  border-color: var(--line-strong) !important;
-  color: var(--ink);
+.vital-cell .vital-val input::-webkit-inner-spin-button,
+.vital-cell .vital-val input::-webkit-outer-spin-button {
+  -webkit-appearance: none; margin: 0;
 }
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-vitals-editor > form input[type="number"],
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-vitals-edit > form input[type="number"] {
+.vital-cell .vital-val input:focus { outline: 1.5px dashed var(--accent); outline-offset: 1px; }
+.vital-cell .vital-sep { color: rgba(245, 243, 238, 0.35); }
+.vital-cell .vital-max { color: rgba(245, 243, 238, 0.55); font-weight: 400; font-size: 0.82rem; }
+
+.vital-cell .vital-step {
+  background: rgba(245, 243, 238, 0.04);
+  border: none;
+  border-right: 1px solid rgba(245, 243, 238, 0.1);
+  color: rgba(245, 243, 238, 0.75);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0 0.55rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--tx-fast);
+}
+.vital-cell .vital-step:last-child {
+  border-right: none;
+  border-left: 1px solid rgba(245, 243, 238, 0.1);
+}
+.vital-cell .vital-step:hover {
+  background: rgba(138, 28, 28, 0.25);
+  color: #fff;
+}
+
+/* 변형 색감 — accent stripe (왼쪽) */
+.vital-cell.vital-hp  { box-shadow: inset 3px 0 0 var(--red, #e07474); }
+.vital-cell.vital-mp  { box-shadow: inset 3px 0 0 var(--blue, #7a9fce); }
+.vital-cell.vital-san { box-shadow: inset 3px 0 0 var(--gold, #c89c4a); }
+.vital-cell.vital-san.warn { box-shadow: inset 3px 0 0 var(--accent); }
+.vital-cell.vital-san.warn .vital-val { color: #f0a8a8; }
+.vital-cell.vital-luck { box-shadow: inset 3px 0 0 var(--green, #94c084); flex: 0 0 auto; }
+
+/* 저장 버튼 — dirty 일 때만 강조, 평소엔 약하게 */
+.vital-bar .vital-save {
+  margin-left: auto;
+  align-self: stretch;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.7rem;
+}
+.vital-bar .vital-save:disabled {
+  opacity: 0.3;
+}
+
+/* 라이트(시네마틱 X) — 일반 화면용 */
+:root:not([data-theme="dark"]) .vital-cell {
   background: var(--bg-elev);
   border-color: var(--line);
-  color: var(--ink);
 }
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-vitals-editor > form button[aria-label*="감소"],
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-vitals-editor > form button[aria-label*="증가"],
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-vitals-edit > form button[aria-label*="감소"],
-:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-vitals-edit > form button[aria-label*="증가"] {
-  background: var(--bg-elev) !important;
-  border-color: var(--line) !important;
-  color: var(--ink) !important;
+:root:not([data-theme="dark"]) .vital-cell .vital-label { color: var(--ink-3); }
+:root:not([data-theme="dark"]) .vital-cell .vital-val,
+:root:not([data-theme="dark"]) .vital-cell .vital-val input { color: var(--ink) !important; }
+:root:not([data-theme="dark"]) .vital-cell .vital-max { color: var(--ink-3); }
+:root:not([data-theme="dark"]) .vital-cell .vital-step {
+  background: var(--bg-elev-2);
+  color: var(--ink-2);
+  border-right-color: var(--line);
+}
+:root:not([data-theme="dark"]) .vital-cell .vital-step:last-child {
+  border-left-color: var(--line);
+}
+:root:not([data-theme="dark"]) .vital-cell .vital-step:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* 라이트 시네마틱 인버트 — 다크 모드 + 시네마틱 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .vital-cell {
+  background: var(--bg-elev);
+  border-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .vital-cell .vital-label { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .vital-cell .vital-val,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .vital-cell .vital-val input { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .vital-cell .vital-max { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .vital-cell .vital-step {
+  background: var(--bg-elev-2);
+  color: var(--ink-2);
+  border-right-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .vital-cell .vital-step:last-child {
+  border-left-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .vital-cell .vital-step:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 /* 시네마틱 모드 — scene-roster (참여자 / 단서 패널 공용) 다크 톤 통일 */

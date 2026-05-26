@@ -379,6 +379,9 @@ export function TrackerPanel({
   };
 
   const focusedActiveStatblockId = focused?.rowId;
+  const myPc = currentNick
+    ? pcChars.find((c) => c.owner_nick === currentNick) ?? null
+    : null;
 
   return (
     <>
@@ -406,6 +409,26 @@ export function TrackerPanel({
       </div>
 
       <div className="stk-col">
+        {myPc ? (
+          <div className="stk-panel">
+            <div className="stk-head">
+              <span className="stk-eyebrow">MY · 내 캐릭터</span>
+              <span className="stk-title">{myPc.name}</span>
+            </div>
+            <div className="stk-my-vitals">
+              <VitalsEditor
+                character={{
+                  id: myPc.id,
+                  hp: myPc.hp, hp_max: myPc.hp_max,
+                  mp: myPc.mp, mp_max: myPc.mp_max,
+                  san: myPc.san, san_max: myPc.san_max,
+                }}
+                luck={myPc.attrs.luck}
+              />
+            </div>
+          </div>
+        ) : null}
+
         <div className="stk-panel">
           <div className="stk-head">
             <span className="stk-eyebrow">ADD · 장면에 등장</span>
@@ -517,11 +540,6 @@ export function TrackerPanel({
                   currentHp={focusedRow?.hp ?? focused.char.hp}
                   hpMax={focusedRow?.hp_max ?? focused.char.hp_max}
                   characterId={focused.rowId.startsWith("pc-") ? focused.char.id : null}
-                  canEditVitals={
-                    focused.rowId.startsWith("pc-") &&
-                    currentNick != null &&
-                    focused.char.owner_nick === currentNick
-                  }
                   onRoll={rollAndLog}
                 />
               )}
@@ -639,14 +657,13 @@ export function TrackerPanel({
 }
 
 function PcStatSheet({
-  char, actorName, currentHp, hpMax, characterId, canEditVitals, onRoll,
+  char, actorName, currentHp, hpMax, characterId, onRoll,
 }: {
   char: PcLite;
   actorName: string;
   currentHp: number;
   hpMax: number;
   characterId: number | null;
-  canEditVitals: boolean;
   onRoll: (
     actor: string, label: string, skillName: string, skillVal: number, characterId: number | null,
   ) => void;
@@ -678,17 +695,6 @@ function PcStatSheet({
           <div className="mrow"><span className="k">SAN</span><span className="v">{char.san} / {char.san_max}</span></div>
           <div className="mrow"><span className="k">DEX (도주)</span><span className="v">{a.dex}</span></div>
         </div>
-
-        {canEditVitals ? (
-          <div className="stk-vitals-edit">
-            <VitalsEditor character={{
-              id: char.id,
-              hp: char.hp, hp_max: char.hp_max,
-              mp: char.mp, mp_max: char.mp_max,
-              san: char.san, san_max: char.san_max,
-            }} />
-          </div>
-        ) : null}
 
         {char.weapons.length > 0 ? (
           <>
