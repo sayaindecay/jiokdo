@@ -2911,6 +2911,74 @@ body:has(.scene-side, .cinematic) {
   border-color: var(--line-strong) !important;
   color: var(--ink-3) !important;
 }
+
+/* 라이트 시네마틱 — 글로벌 light-on-light 으로 남은 텍스트 일괄 보정 */
+/* SceneStage */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-last-activity .sla-who { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-last-activity .sla-when { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-last-activity .sla-kind { color: var(--ink-2) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-top-meta { color: var(--ink-2) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-members { color: var(--ink-3) !important; }
+
+/* 세션 post (구) — 일부 화면에서 아직 쓰일 수 있음 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post .sp-text { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post .sp-head { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post .sp-head .sp-author { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post.is-keeper .sp-head .sp-author { color: var(--accent) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post .sp-head .sp-time { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post .sp-head .kind-tag { color: var(--ink-3) !important; background: var(--bg-elev-2) !important; border-color: var(--line) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post .sp-dice { color: var(--ink) !important; background: var(--bg-elev-2) !important; border-color: var(--line) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post .sp-dice-expr { color: var(--ink-2) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post .sp-dice-arrow { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .session-post .sp-dice-total { color: var(--ink) !important; }
+
+/* Composer */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-title { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-title::placeholder { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-composer-sticky textarea { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-composer-sticky textarea::placeholder { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .kind-pill { color: var(--ink-2) !important; background: var(--bg-elev-2) !important; border-color: var(--line) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .kind-pill.active { color: #fff !important; background: var(--accent) !important; border-color: var(--accent) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .kind-pill .kp-sub { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .kind-pill.active .kp-sub { color: rgba(255, 255, 255, 0.75) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-nudge { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .cmd-help-trigger { color: var(--ink-2) !important; }
+
+/* MySheetPanel — picker / chip strip / vital 강조색 / group head / empty / 글로벌 ink */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-char-picker { color: var(--ink) !important; background: var(--bg) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-char-picker option { background: var(--bg) !important; color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-char-chip { color: var(--ink-2) !important; background: var(--bg-elev-2) !important; border-color: var(--line) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-char-chip.active { color: #fff !important; background: var(--accent) !important; border-color: var(--accent) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-vital-hp b { color: var(--accent) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-vital-mp b { color: var(--blue) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-vital-san b { color: var(--gold) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-vital-luck b { color: var(--green) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-tab-count { color: var(--ink-3) !important; background: var(--bg-elev-2) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-tab.active .ms-tab-count { color: #fff !important; background: var(--accent) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-group-head { color: var(--ink-3) !important; background: var(--bg-elev-2) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-row-empty { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-group-chip { color: var(--ink-2) !important; background: var(--bg-elev-2) !important; border-color: var(--line) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-group-chip.active { color: #fff !important; background: var(--accent) !important; border-color: var(--accent) !important; }
+
+/* Scene Spotlight 핀 편집 버튼 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-pin-edit { color: var(--ink-2) !important; background: var(--bg-elev-2) !important; border-color: var(--line) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-pin-edit:hover { color: #fff !important; background: var(--accent) !important; border-color: var(--accent) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-clues-eyebrow { color: var(--gold) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-clues-count { color: var(--ink-3) !important; }
+
+/* 단서 row */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-row .clue-text .name { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-row .clue-delete { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clues-panel .clues-add-btn { color: #fff !important; background: var(--accent) !important; }
+
+/* 글 상세 — 편집 폼/액션 (작성자) */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-edit-form { background: var(--bg-elev-2) !important; border-color: var(--line) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-edit-title,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-edit-kind { color: var(--ink) !important; background: var(--bg) !important; border-color: var(--line-strong) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-edit-label { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-edit-note { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-edit-actions .btn.ghost { background: var(--bg-elev) !important; border-color: var(--line-strong) !important; color: var(--ink-2) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-edit-actions .btn.ghost.danger { color: var(--accent) !important; border-color: var(--accent) !important; }
 body:has(.scene-side, .cinematic) .site-header {
   background: rgba(20, 17, 13, 0.94);
   border-bottom-color: rgba(245, 243, 238, 0.18);
