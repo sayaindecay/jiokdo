@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Campaign, Character, PlayEntry } from "@/lib/types";
 import { LEVEL_LABEL } from "@/lib/dice";
+import { computeBuildDb, computeMove, formatBuild } from "@/lib/coc-derive";
 import { Meter } from "./Meter";
 import { SkillList } from "./SkillList";
 import { RollButton } from "./RollButton";
@@ -23,6 +24,8 @@ export function CharacterSheet({
   recentRolls: PlayEntry[];
   isOwner: boolean;
 }) {
+  const buildDb = computeBuildDb(character.attrs.str + character.attrs.con);
+  const move = computeMove(character.attrs.str, character.attrs.dex, character.attrs.siz);
   return (
     <>
       <div className="breadcrumb">
@@ -140,6 +143,22 @@ export function CharacterSheet({
                 <div className="char-row" key={key}>{inner}</div>
               );
             })}
+
+            <h3>파생 / Derived</h3>
+            <div className="char-derived">
+              <div className="cd-cell">
+                <span className="cd-k">체구</span>
+                <span className="cd-v">{formatBuild(buildDb.build)}</span>
+              </div>
+              <div className="cd-cell">
+                <span className="cd-k">DB</span>
+                <span className="cd-v">{buildDb.db}</span>
+              </div>
+              <div className="cd-cell">
+                <span className="cd-k">이동력</span>
+                <span className="cd-v">{move}</span>
+              </div>
+            </div>
 
             <h3>상태 / Status</h3>
             <Meter label="HP" current={character.hp} max={character.hp_max} variant="hp" />

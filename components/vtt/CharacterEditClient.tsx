@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import type { Character, CocAttrs, CocSkill, CocSkillGroup, CocWeapon } from "@/lib/types";
 import { updateCharacterProfileAction } from "@/app/actions";
+import { computeBuildDb, computeHpMax, computeMove, formatBuild } from "@/lib/coc-derive";
 import { FormError } from "./FormError";
 
 const ATTR_LIST: { key: keyof CocAttrs; label: string }[] = [
@@ -67,6 +68,24 @@ export function CharacterEditClient({ character }: { character: Character }) {
   const [weapons, setWeapons] = useState<WeaponState[]>(
     character.weapons.map((w) => ({ ...w, id: newId() }))
   );
+
+  // ─── 파생: 체구, DB, 이동력, HP MAX ───
+  const derivedBuildDb = useMemo(
+    () => computeBuildDb((attrs.str || 0) + (attrs.con || 0)),
+    [attrs.str, attrs.con],
+  );
+  const derivedMove = useMemo(
+    () => computeMove(attrs.str || 0, attrs.dex || 0, attrs.siz || 0),
+    [attrs.str, attrs.dex, attrs.siz],
+  );
+  const derivedHpMax = useMemo(
+    () => computeHpMax(attrs.con || 0, attrs.siz || 0),
+    [attrs.con, attrs.siz],
+  );
+  // 자동 계산값을 hpMax 상태와 동기화 (dirty 검사가 이 값을 기준으로 동작하도록)
+  useEffect(() => {
+    setHpMax(String(derivedHpMax));
+  }, [derivedHpMax]);
 
   const [err, formAction, pending] = useActionState<string | null, FormData>(
     (_p, fd) => wrap(updateCharacterProfileAction, fd),
@@ -240,23 +259,45 @@ export function CharacterEditClient({ character }: { character: Character }) {
         ))}
       </div>
 
-      {/* ─── 최대치 ─── */}
-      <h3>최대치 (HP / MP / SAN)</h3>
+      {/* ─── 파생 — 체구 / DB / 이동력 / HP MAX (자동) ─── */}
+      <h3>자동 계산 <span className="hint" style={{ fontWeight: 400, fontSize: "0.8rem" }}>특성치로부터 산출</span></h3>
+      <div className="bestiary-form bf-derived" style={{ marginBottom: "1rem" }}>
+        <div className="bf-derived-cell">
+          <div className="bf-derived-label">체력 (HP MAX)</div>
+          <div className="bf-derived-val">{derivedHpMax}</div>
+          <div className="bf-derived-formula">⌊(CON+SIZ)/10⌋</div>
+        </div>
+        <div className="bf-derived-cell">
+          <div className="bf-derived-label">이동력</div>
+          <div className="bf-derived-val">{derivedMove}</div>
+          <div className="bf-derived-formula">STR · DEX vs SIZ</div>
+        </div>
+        <div className="bf-derived-cell">
+          <div className="bf-derived-label">체구</div>
+          <div className="bf-derived-val">{formatBuild(derivedBuildDb.build)}</div>
+          <div className="bf-derived-formula">STR+CON 기반</div>
+        </div>
+        <div className="bf-derived-cell">
+          <div className="bf-derived-label">DB</div>
+          <div className="bf-derived-val">{derivedBuildDb.db}</div>
+          <div className="bf-derived-formula">STR+CON 기반</div>
+        </div>
+      </div>
+
+      {/* ─── 최대치 (MP / SAN — HP 는 위 자동 계산값을 사용) ─── */}
+      <h3>최대치 (MP / SAN)</h3>
       <p className="hint" style={{ marginBottom: "0.5rem" }}>
-        최대치를 줄이면 현재값이 자동으로 그 이하로 떨어집니다.
+        최대치를 줄이면 현재값이 자동으로 그 이하로 떨어집니다. HP MAX 는 위 체력값을 자동 적용합니다.
       </p>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: "repeat(2, 1fr)",
           gap: "0.6rem",
           marginBottom: "1rem",
         }}
       >
-        <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", margin: 0 }}>
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.74rem", color: "var(--ink-3)" }}>HP MAX</span>
-          <input name="hp_max" type="number" min={1} max={99} value={hpMax} onChange={(e) => setHpMax(e.target.value)} />
-        </label>
+        <input type="hidden" name="hp_max" value={String(derivedHpMax)} />
         <label style={{ display: "flex", flexDirection: "column", gap: "0.25rem", margin: 0 }}>
           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.74rem", color: "var(--ink-3)" }}>MP MAX</span>
           <input name="mp_max" type="number" min={1} max={99} value={mpMax} onChange={(e) => setMpMax(e.target.value)} />

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import type { BestiaryEntry, CocSkillGroup } from "@/lib/types";
 import { createBestiaryAction, updateBestiaryAction } from "@/app/actions";
 import { fileToResizedDataUrl } from "@/lib/image-resize";
+import { computeBuildDb, computeHpMax, computeMove, formatDbSuffix } from "@/lib/coc-derive";
 import { FormError } from "./FormError";
 
 const DEFAULT_CATEGORIES = [
@@ -22,43 +23,6 @@ const MAX_IMAGE_BYTES = 10_000_000;
 
 type SkillRow = { name: string; value: string; group: CocSkillGroup | "" };
 type AttackRow = { name: string; skill: string; damage: string; note: string };
-
-function clamp(n: number, lo: number, hi: number) {
-  return Math.max(lo, Math.min(hi, n));
-}
-
-// 사용자 규칙: STR+CON 합계로 DB / 체격 결정
-function computeBuildDb(strCon: number): { db: string; build: number } {
-  if (strCon < 2) return { db: "0", build: 0 };
-  if (strCon <= 64) return { db: "-2", build: -2 };
-  if (strCon <= 84) return { db: "-1", build: -1 };
-  if (strCon <= 124) return { db: "0", build: 0 };
-  if (strCon <= 164) return { db: "1d4", build: 1 };
-  if (strCon <= 204) return { db: "1d6", build: 2 };
-  if (strCon <= 284) return { db: "2d6", build: 3 };
-  if (strCon <= 364) return { db: "3d6", build: 4 };
-  if (strCon <= 444) return { db: "4d6", build: 5 };
-  if (strCon <= 524) return { db: "5d6", build: 6 };
-  const extra = Math.floor((strCon - 525) / 80) + 1;
-  return { db: `${5 + extra}d6`, build: 6 + extra };
-}
-
-function computeMove(str: number, dex: number, siz: number): number {
-  if (dex < siz && str < siz) return 7;
-  if (dex > siz && str > siz) return 9;
-  return 8;
-}
-
-function computeHp(con: number, siz: number): number {
-  return Math.floor((con + siz) / 10);
-}
-
-function formatDbSuffix(db: string): string {
-  // "0" → no suffix, "-2" → "- 2", "1d4" → "+ 1d4", "+1" → "+ 1"
-  if (!db || db === "0") return "";
-  if (db.startsWith("-")) return ` - ${db.slice(1).trim()}`;
-  return ` + ${db}`;
-}
 
 const SKILL_GROUPS: { value: CocSkillGroup; label: string }[] = [
   { value: "combat", label: "전투" },
@@ -101,7 +65,7 @@ export function BestiaryForm({
 
   const buildDb = useMemo(() => computeBuildDb(nStr + nCon), [nStr, nCon]);
   const moveVal = useMemo(() => computeMove(nStr, nDex, nSiz), [nStr, nDex, nSiz]);
-  const hpVal = useMemo(() => computeHp(nCon, nSiz), [nCon, nSiz]);
+  const hpVal = useMemo(() => computeHpMax(nCon, nSiz), [nCon, nSiz]);
 
   // 공격 — 기본 피해(base)만 입력받고 DB는 자동 접미. 저장 직전에 합쳐서 hidden 으로 넘김.
   const seedAttacks = (initial?.attacks ?? []).slice(0, 5);
@@ -366,6 +330,59 @@ export function BestiaryForm({
       </div>
 
       <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>
+        기능 <span className="bf-hint"> 탐사자와 동일한 형식 (최대 20개)</span>
+      </h3>
+      <div className="bf-skills">
+        {skills.map((s, i) => (
+          <div className="bf-skill-row" key={i}>
+            <input
+              name={`skill_${i}_name`}
+              value={s.name}
+              onChange={(e) => updateSkill(i, { name: e.target.value })}
+              maxLength={40}
+              placeholder="예) 위협, 관찰력, 회피"
+            />
+            <input
+              name={`skill_${i}_value`}
+              type="number"
+              min={0}
+              max={100}
+              value={s.value}
+              onChange={(e) => updateSkill(i, { value: e.target.value })}
+              placeholder="%"
+            />
+            <select
+              name={`skill_${i}_group`}
+              value={s.group}
+              onChange={(e) => updateSkill(i, { group: e.target.value as CocSkillGroup | "" })}
+            >
+              <option value="">분류 없음</option>
+              {SKILL_GROUPS.map((g) => (
+                <option key={g.value} value={g.value}>{g.label}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="btn ghost small"
+              onClick={() => removeSkill(i)}
+              disabled={skills.length === 1}
+              aria-label="이 기능 삭제"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="btn ghost small bf-skill-add"
+          onClick={addSkill}
+          disabled={skills.length >= 20}
+        >
+          + 기능 추가
+        </button>
+      </div>
+
+      <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>
         공격 <span className="bf-req">*</span>
         <span className="bf-hint"> 최소 1개 (최대 5개) · 피해에는 DB({buildDb.db})가 자동 추가됩니다</span>
       </h3>
@@ -419,59 +436,6 @@ export function BestiaryForm({
           </div>
         );
       })}
-
-      <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>
-        기능 <span className="bf-hint"> 탐사자와 동일한 형식 (최대 20개)</span>
-      </h3>
-      <div className="bf-skills">
-        {skills.map((s, i) => (
-          <div className="bf-skill-row" key={i}>
-            <input
-              name={`skill_${i}_name`}
-              value={s.name}
-              onChange={(e) => updateSkill(i, { name: e.target.value })}
-              maxLength={40}
-              placeholder="예) 위협, 관찰력, 회피"
-            />
-            <input
-              name={`skill_${i}_value`}
-              type="number"
-              min={0}
-              max={100}
-              value={s.value}
-              onChange={(e) => updateSkill(i, { value: e.target.value })}
-              placeholder="%"
-            />
-            <select
-              name={`skill_${i}_group`}
-              value={s.group}
-              onChange={(e) => updateSkill(i, { group: e.target.value as CocSkillGroup | "" })}
-            >
-              <option value="">분류 없음</option>
-              {SKILL_GROUPS.map((g) => (
-                <option key={g.value} value={g.value}>{g.label}</option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="btn ghost small"
-              onClick={() => removeSkill(i)}
-              disabled={skills.length === 1}
-              aria-label="이 기능 삭제"
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="btn ghost small bf-skill-add"
-          onClick={addSkill}
-          disabled={skills.length >= 20}
-        >
-          + 기능 추가
-        </button>
-      </div>
 
       <h3 style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>기타</h3>
       <div className="row cols-2">

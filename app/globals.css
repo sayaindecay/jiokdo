@@ -1606,6 +1606,37 @@ body:has(.scene-side, .cinematic) .play-tracker-link:hover {
 }
 .sheet-col h3 + h3 { margin-top: 1.3rem; }
 
+/* 파생 — 체구 / DB / 이동력 */
+.char-derived {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+.char-derived .cd-cell {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.45rem 0.5rem 0.5rem;
+  text-align: center;
+}
+.char-derived .cd-k {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.char-derived .cd-v {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  margin-top: 0.15rem;
+}
+
 .char-row {
   display: grid;
   grid-template-columns: 2.6rem 2.2rem 1fr;
