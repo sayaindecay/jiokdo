@@ -13,9 +13,18 @@ import { NotificationsCard } from "@/components/vtt/NotificationsCard";
 
 export const dynamic = "force-dynamic";
 
-export default async function CampaignsDashboardPage() {
+export default async function CampaignsDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ join?: string }>;
+}) {
+  const sp = await searchParams;
+  const joinCode = (sp.join ?? "").toUpperCase().slice(0, 16);
   const nick = await getNickname();
   if (!nick) {
+    const redirectPath = joinCode
+      ? `/campaigns?join=${encodeURIComponent(joinCode)}`
+      : "/campaigns";
     return (
       <>
         <div className="breadcrumb">
@@ -23,7 +32,7 @@ export default async function CampaignsDashboardPage() {
           <span className="sep">/</span>
           <span>내 캠페인</span>
         </div>
-        <NicknameInline redirect="/campaigns" />
+        <NicknameInline redirect={redirectPath} />
       </>
     );
   }
@@ -91,20 +100,44 @@ export default async function CampaignsDashboardPage() {
         </div>
       </header>
 
+      {/* ─── 빈 상태 분기 (캠페인 0개) ─── */}
+      {campaigns.length === 0 && !joinCode ? (
+        <section className="cl-welcome">
+          <a href="#campaign-forms-create" className="cl-welcome-card cl-welcome-keeper">
+            <div className="clw-eyebrow">키퍼로 시작</div>
+            <div className="clw-title">새 캠페인 만들기</div>
+            <p className="clw-hint">
+              내가 직접 시나리오를 끌고 갑니다. 만들고 나면 초대 코드가 발급돼, 그 코드를 플레이어에게 공유합니다.
+            </p>
+            <span className="clw-cta">아래에서 시작 →</span>
+          </a>
+          <a href="#campaign-forms-join" className="cl-welcome-card cl-welcome-player">
+            <div className="clw-eyebrow">플레이어로 참여</div>
+            <div className="clw-title">초대 코드로 참여</div>
+            <p className="clw-hint">
+              키퍼가 알려준 초대 코드를 입력하면 해당 캠페인에 멤버로 합류합니다. 그 다음 캐릭터를 만듭니다.
+            </p>
+            <span className="clw-cta">초대 코드 입력 →</span>
+          </a>
+        </section>
+      ) : null}
+
       {/* ─── 신규 알림 ─── */}
-      <section className="cl-section">
-        <div className="cl-section-head">
-          <div className="cl-section-eyebrow">FOCUS · 신규 알림</div>
-          <h2>최근 변동 사항</h2>
-          <p className="cl-section-hint">
-            참여 중인 캠페인의 최근 글·굴림·캐릭터 등록·단서. 클릭하면 해당 장소로 이동합니다.
-          </p>
-        </div>
-        <NotificationsCard
-          notifications={notifications}
-          hasCampaigns={campaigns.length > 0}
-        />
-      </section>
+      {notifications.length > 0 || campaigns.length > 0 ? (
+        <section className="cl-section">
+          <div className="cl-section-head">
+            <div className="cl-section-eyebrow">FOCUS · 신규 알림</div>
+            <h2>최근 변동 사항</h2>
+            <p className="cl-section-hint">
+              참여 중인 캠페인의 최근 글·굴림·캐릭터 등록·단서. 클릭하면 해당 장소로 이동합니다.
+            </p>
+          </div>
+          <NotificationsCard
+            notifications={notifications}
+            hasCampaigns={campaigns.length > 0}
+          />
+        </section>
+      ) : null}
 
       {/* ─── 모든 캠페인 표 ─── */}
       {campaigns.length > 0 ? (
@@ -131,7 +164,9 @@ export default async function CampaignsDashboardPage() {
       ) : null}
 
       {/* ─── 새 캠페인 / 참여 폼 ─── */}
-      <section className="cl-section">
+      <section className="cl-section" id="campaign-forms">
+        <span id="campaign-forms-create" aria-hidden="true" />
+        <span id="campaign-forms-join" aria-hidden="true" />
         <div className="cl-section-head">
           <div className="cl-section-eyebrow">JOIN · CREATE</div>
           <h2>새 캠페인 / 초대 코드</h2>
@@ -141,7 +176,10 @@ export default async function CampaignsDashboardPage() {
               : "첫 캠페인을 만들거나, 다른 키퍼가 보낸 초대 코드를 입력해 합류하세요."}
           </p>
         </div>
-        <CampaignForms />
+        <CampaignForms
+          initialTab={joinCode ? "join" : "create"}
+          initialCode={joinCode}
+        />
       </section>
 
       {/* ─── 내 캐릭터 ─── */}

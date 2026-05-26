@@ -14,6 +14,8 @@ import { CampaignProfileEditor } from "@/components/vtt/CampaignProfileEditor";
 import { CampaignStatusToggle } from "@/components/vtt/CampaignStatusToggle";
 import { CopyButton } from "@/components/vtt/CopyButton";
 import { EmptyState } from "@/components/vtt/EmptyState";
+import { InviteShareLink } from "@/components/vtt/InviteShareLink";
+import { KeeperChecklist } from "@/components/vtt/KeeperChecklist";
 import type { Segment } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -125,6 +127,15 @@ export default async function CampaignDashboard({
         </div>
       </header>
 
+      {isKeeper ? (
+        <KeeperChecklist
+          campaignId={id}
+          membersCount={members.length}
+          sessionsCount={sessions.length}
+          entriesCount={entries.length}
+        />
+      ) : null}
+
       <div className="cd-grid">
         {/* ─── 멤버 ─── */}
         <section className="cd-card">
@@ -154,10 +165,11 @@ export default async function CampaignDashboard({
               <div className="cd-invite-label">초대 코드</div>
               <div className="cd-invite-row">
                 <code className="cd-invite-code">{camp.invite_code}</code>
-                <CopyButton value={camp.invite_code} label="복사" copiedLabel="복사됨" />
+                <CopyButton value={camp.invite_code} label="코드 복사" copiedLabel="복사됨" />
+                <InviteShareLink inviteCode={camp.invite_code} />
               </div>
               <p className="cd-invite-hint">
-                플레이어에게 이 코드를 알려주면 캠페인에 합류합니다.
+                코드를 직접 알려주거나, 공유 링크를 보내면 클릭 한 번으로 합류합니다.
               </p>
             </div>
           ) : null}

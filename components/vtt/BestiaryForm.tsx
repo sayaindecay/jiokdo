@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { BestiaryEntry } from "@/lib/types";
 import { createBestiaryAction, updateBestiaryAction } from "@/app/actions";
+import { fileToResizedDataUrl } from "@/lib/image-resize";
 import { FormError } from "./FormError";
 
 const DEFAULT_CATEGORIES = [
@@ -17,7 +18,7 @@ const DEFAULT_CATEGORIES = [
   "기타",
 ];
 
-const MAX_IMAGE_BYTES = 1_000_000;
+const MAX_IMAGE_BYTES = 10_000_000; // 10MB 원본까지 받고 클라이언트에서 리사이즈
 
 export function BestiaryForm({
   initial,
@@ -42,16 +43,12 @@ export function BestiaryForm({
       return;
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      setImageErr(`파일이 너무 큽니다. ${(file.size / 1024 / 1024).toFixed(1)}MB → 1MB 이하로 줄여 주세요.`);
+      setImageErr(`파일이 너무 큽니다. ${(file.size / 1024 / 1024).toFixed(1)}MB → 10MB 이하 권장.`);
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === "string") setImageUrl(result);
-    };
-    reader.onerror = () => setImageErr("파일을 읽지 못했습니다.");
-    reader.readAsDataURL(file);
+    fileToResizedDataUrl(file, { maxDim: 960, quality: 0.85 })
+      .then((url) => setImageUrl(url))
+      .catch(() => setImageErr("이미지를 처리하지 못했습니다."));
   };
 
   // 기본 추천 + DB 의 기존 카테고리 (중복 제거, 등록 순서 유지)
@@ -103,7 +100,7 @@ export function BestiaryForm({
         </div>
         <div className="bf-image-controls">
           <label className="bf-image-field">
-            <span className="bf-image-label">파일 업로드 <span className="bf-hint">최대 1MB · PNG/JPG/WebP</span></span>
+            <span className="bf-image-label">파일 업로드 <span className="bf-hint">자동 리사이즈 · 최대 10MB · PNG/JPG/WebP</span></span>
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp,image/gif"

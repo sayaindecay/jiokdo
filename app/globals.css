@@ -3921,6 +3921,317 @@ select:focus-visible {
   margin: 0 0 0.6rem;
 }
 
+/* 캠페인 페이지 — 캠페인 0개 환영 분기 카드 */
+.cl-welcome {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 0.5rem 0 1.5rem;
+}
+.cl-welcome-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.25rem 1.35rem 1.1rem;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--tx-fast), transform var(--tx-fast), background var(--tx-fast);
+  cursor: pointer;
+}
+.cl-welcome-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+.cl-welcome-keeper {
+  border-left: 3px solid var(--accent);
+}
+.cl-welcome-player {
+  border-left: 3px solid var(--gold);
+}
+.cl-welcome .clw-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.cl-welcome-player .clw-eyebrow { color: var(--gold); }
+.cl-welcome .clw-title {
+  font-family: var(--font-script);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.cl-welcome .clw-hint {
+  font-family: var(--font-anno);
+  font-size: 0.92rem;
+  color: var(--ink-2);
+  line-height: 1.55;
+  margin: 0;
+}
+.cl-welcome .clw-cta {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  margin-top: 0.3rem;
+}
+.cl-welcome-player .clw-cta { color: var(--gold); }
+@media (max-width: 720px) {
+  .cl-welcome { grid-template-columns: 1fr; }
+}
+
+/* 키퍼 첫 단계 체크리스트 */
+.kc-card {
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  padding: 1rem 1.1rem 1.1rem;
+  margin-bottom: 1.5rem;
+}
+.kc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px dashed rgba(138, 28, 28, 0.3);
+}
+.kc-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+.kc-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--accent);
+  font-weight: 400;
+}
+.kc-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: kc-pulse 1.6s ease-in-out infinite;
+}
+@keyframes kc-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+.kc-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+.kc-step {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--bg-elev);
+  border: 1px solid rgba(138, 28, 28, 0.18);
+  border-radius: var(--radius);
+}
+.kc-step.done {
+  opacity: 0.6;
+  border-color: var(--line);
+  background: transparent;
+}
+.kc-step .kc-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+}
+.kc-step.done .kc-num {
+  background: var(--ink-3);
+  color: var(--bg-elev);
+}
+.kc-step .kc-label {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: var(--ink);
+}
+.kc-step .kc-hint {
+  font-family: var(--font-anno);
+  font-size: 0.82rem;
+  color: var(--ink-2);
+  margin-top: 0.1rem;
+}
+.kc-step .kc-go {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.kc-step .kc-go:hover { text-decoration: underline; }
+@media (max-width: 560px) {
+  .kc-step { grid-template-columns: 24px 1fr; }
+  .kc-step .kc-go { grid-column: 1 / -1; padding-left: 32px; }
+}
+
+/* 초대 공유 링크 버튼 */
+.cd-invite-share { white-space: nowrap; }
+
+/* 명령어 도움말 (composer 옆 ? 트리거 + 모달) */
+.cmd-help-trigger {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(245, 243, 238, 0.3);
+  background: rgba(245, 243, 238, 0.08);
+  color: rgba(245, 243, 238, 0.8);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: all var(--tx-fast);
+}
+.cmd-help-trigger:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.cmd-help-modal {
+  max-width: 520px;
+  padding: 1.2rem 1.4rem 1rem;
+}
+.cmd-help-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+.cmd-help-head h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0;
+  color: var(--ink);
+}
+.cmd-help-close {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: var(--ink-2);
+  padding: 0 0.3rem;
+  line-height: 1;
+}
+.cmd-help-close:hover { color: var(--accent); }
+.cmd-help-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+}
+.cmd-help-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px dashed var(--line);
+  vertical-align: top;
+}
+.cmd-help-table td:first-child {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+.cmd-help-table td:last-child { color: var(--ink-2); }
+.cmd-help-table code {
+  font-family: var(--font-mono);
+  background: var(--bg-elev-2);
+  padding: 0.08rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.82rem;
+  color: var(--accent);
+}
+.cmd-help-table kbd {
+  font-family: var(--font-mono);
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0.08rem 0.35rem;
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+.cmd-help-table .cmd-help-spacer {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-top: 0.7rem;
+  border-bottom: 1.5px solid var(--ink);
+}
+.cmd-help-foot {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  margin-top: 0.6rem;
+  text-align: right;
+}
+
+/* 캐릭터 생성 옵션 (3분기) */
+.cc-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.65rem;
+}
+.cc-option {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: 0.7rem;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  cursor: pointer;
+  transition: border-color var(--tx-fast), background var(--tx-fast);
+}
+.cc-option:hover { border-color: var(--accent); }
+.cc-option-primary {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.cc-option .btn { width: 100%; }
+.cc-option-hint {
+  font-family: var(--font-anno);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
 /* 관리자 DB 통계 페이지 */
 .admin-page { padding-top: 0.25rem; }
 .admin-stat-table {

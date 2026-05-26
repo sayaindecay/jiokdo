@@ -13,8 +13,15 @@ async function wrap(action: (fd: FormData) => Promise<void>, fd: FormData) {
   }
 }
 
-export function CampaignForms() {
-  const [tab, setTab] = useState<"create" | "join">("create");
+export function CampaignForms({
+  initialTab = "create",
+  initialCode = "",
+}: {
+  initialTab?: "create" | "join";
+  initialCode?: string;
+}) {
+  const [tab, setTab] = useState<"create" | "join">(initialTab);
+  const [code, setCode] = useState(initialCode);
   const [createErr, createForm, createPending] = useActionState<string | null, FormData>(
     (_p, fd) => wrap(createCampaignAction, fd),
     null
@@ -59,7 +66,16 @@ export function CampaignForms() {
       ) : (
         <form className="form" action={joinForm}>
           <label>초대 코드</label>
-          <input name="code" required maxLength={16} placeholder="예) ABCDEF" style={{ textTransform: "uppercase" }} />
+          <input
+            name="code"
+            required
+            maxLength={16}
+            placeholder="예) ABCDEF"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            style={{ textTransform: "uppercase" }}
+            autoFocus={initialCode.length > 0}
+          />
           <FormError message={joinErr} />
           <div className="actions">
             <button type="submit" className="btn" disabled={joinPending}>

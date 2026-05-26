@@ -2,9 +2,10 @@
 
 import { useRef, useState, useTransition } from "react";
 import { setCharacterPortraitAction } from "@/app/actions";
+import { fileToResizedDataUrl } from "@/lib/image-resize";
 import { PortraitSilhouette } from "./Illustrations";
 
-const MAX_FILE_BYTES = 1_000_000;
+const MAX_FILE_BYTES = 8_000_000; // 8MB 원본까지 받고 클라이언트에서 리사이즈
 
 export function CharacterPortraitEditor({
   characterId,
@@ -27,19 +28,12 @@ export function CharacterPortraitEditor({
       return;
     }
     if (file.size > MAX_FILE_BYTES) {
-      setError(`파일이 너무 큽니다. ${(file.size / 1024 / 1024).toFixed(1)}MB → 1MB 이하로 줄여 주세요.`);
+      setError(`파일이 너무 큽니다. ${(file.size / 1024 / 1024).toFixed(1)}MB → 8MB 이하 권장.`);
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === "string") {
-        setPreview(result);
-        setUrlInput("");
-      }
-    };
-    reader.onerror = () => setError("파일을 읽지 못했습니다.");
-    reader.readAsDataURL(file);
+    fileToResizedDataUrl(file, { maxDim: 640, quality: 0.85 })
+      .then((url) => { setPreview(url); setUrlInput(""); })
+      .catch(() => setError("이미지를 처리하지 못했습니다."));
   };
 
   const submit = () => {
@@ -118,7 +112,7 @@ export function CharacterPortraitEditor({
 
             <div className="pep-body">
               <label className="pep-field">
-                <span className="pep-label">파일 업로드 (최대 1MB · PNG/JPG/WebP)</span>
+                <span className="pep-label">파일 업로드 (자동 리사이즈 · 최대 8MB · PNG/JPG/WebP)</span>
                 <input
                   ref={fileRef}
                   type="file"

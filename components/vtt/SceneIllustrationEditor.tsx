@@ -2,8 +2,9 @@
 
 import { useRef, useState, useTransition } from "react";
 import { setCampaignIllustrationAction } from "@/app/actions";
+import { fileToResizedDataUrl } from "@/lib/image-resize";
 
-const MAX_FILE_BYTES = 1_000_000; // 1MB 원본 (base64 인플레이션 ~33% 고려 시 1.4MB 미만 데이터 URL)
+const MAX_FILE_BYTES = 10_000_000; // 10MB 원본까지 받고 클라이언트에서 리사이즈
 
 export function SceneIllustrationEditor({
   campaignId,
@@ -26,19 +27,12 @@ export function SceneIllustrationEditor({
       return;
     }
     if (file.size > MAX_FILE_BYTES) {
-      setError(`파일이 너무 큽니다. ${(file.size / 1024 / 1024).toFixed(1)}MB → 1MB 이하로 줄여 주세요.`);
+      setError(`파일이 너무 큽니다. ${(file.size / 1024 / 1024).toFixed(1)}MB → 10MB 이하 권장.`);
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === "string") {
-        setPreview(result);
-        setUrlInput("");
-      }
-    };
-    reader.onerror = () => setError("파일을 읽지 못했습니다.");
-    reader.readAsDataURL(file);
+    fileToResizedDataUrl(file, { maxDim: 1280, quality: 0.82 })
+      .then((url) => { setPreview(url); setUrlInput(""); })
+      .catch(() => setError("이미지를 처리하지 못했습니다."));
   };
 
   const submitUpload = () => {
@@ -112,7 +106,7 @@ export function SceneIllustrationEditor({
 
       <div className="sip-body">
         <label className="sip-field">
-          <span className="sip-label">파일 업로드 (최대 1MB · PNG/JPG/WebP)</span>
+          <span className="sip-label">파일 업로드 (자동 리사이즈 · 최대 10MB · PNG/JPG/WebP)</span>
           <input
             ref={fileRef}
             type="file"

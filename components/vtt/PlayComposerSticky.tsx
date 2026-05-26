@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { postPlayEntryAction } from "@/app/actions";
+import { CommandHelp } from "./CommandHelp";
 
 export function PlayComposerSticky({
   campaignId,
@@ -103,6 +104,7 @@ export function PlayComposerSticky({
               − 접기
             </button>
           )}
+          <CommandHelp />
         </div>
 
         {!collapsed ? (
