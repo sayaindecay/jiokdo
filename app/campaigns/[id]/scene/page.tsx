@@ -5,7 +5,7 @@ import {
   listCampaignCharacters, listSessions,
 } from "@/lib/db";
 import { getNickname } from "@/lib/auth";
-import { SceneClient } from "./SceneClient";
+import { SceneClient, type PcLite } from "./SceneClient";
 
 export const dynamic = "force-dynamic";
 
@@ -25,15 +25,24 @@ export default async function ScenePage({
   ]);
 
   const isKeeper = nick != null && nick === camp.keeper_nick;
-  // 키퍼가 소유한 모든 캐릭터 시트를 NPC 후보로 노출 (다른 캠페인 / 이 캠페인 모두)
   const keeperChars = isKeeper
     ? await listAllCharactersOwnedBy(camp.keeper_nick)
     : [];
 
   const currentSession = sessions[0];
 
-  // 기본 트래커: PC 들만. NPC 는 SceneClient 의 picker 로 추가.
-  const focusedNpc = bestiary[0] ?? null;
+  const toPcLite = (c: typeof chars[number]): PcLite => ({
+    id: c.id,
+    name: c.name,
+    occupation: c.occupation,
+    attrs: c.attrs,
+    hp: c.hp,
+    hp_max: c.hp_max,
+    skills: c.skills.map((s) => ({ name: s.name, value: s.value, group: s.group })),
+    weapons: c.weapons.map((w) => ({ name: w.name, skill: w.skill, damage: w.damage })),
+  });
+
+  const pcLite = chars.map(toPcLite);
   const initialRows = chars.map((c) => ({
     id: `pc-${c.id}`,
     dex: c.attrs.dex,
@@ -45,36 +54,37 @@ export default async function ScenePage({
 
   return (
     <>
-      <div className="breadcrumb">
-        <Link href={`/campaigns/${camp.id}`}>{camp.name}</Link>
-        <span className="sep">/</span>
-        {currentSession ? (
-          <>
-            <span>세션 #{currentSession.number}</span>
-            <span className="sep">/</span>
-          </>
-        ) : null}
-        <span>장면 트래커</span>
+      <div className="play-topbar">
+        <div className="breadcrumb">
+          <Link href={`/campaigns/${camp.id}`}>{camp.name}</Link>
+          <span className="sep">/</span>
+          {currentSession ? (
+            <>
+              <span>세션 #{currentSession.number}</span>
+              <span className="sep">/</span>
+            </>
+          ) : null}
+          <span>장면 트래커</span>
+        </div>
+        <Link
+          href={`/campaigns/${camp.id}/play`}
+          className="play-tracker-link"
+          title="세션 로그 / 본문 작성"
+        >
+          ☰ 플레이 페이지 →
+        </Link>
       </div>
 
       <div className="section-head">
         <h2>장면 트래커</h2>
-        <span className="count">라운드 · NPC · HP 추적</span>
+        <span className="count">라운드 · 행동 · NPC HP</span>
       </div>
 
       <SceneClient
         initialRows={initialRows}
-        focusedNpc={focusedNpc}
         bestiary={bestiary}
-        keeperChars={keeperChars.map((c) => ({
-          id: c.id,
-          name: c.name,
-          campaign_id: c.campaign_id,
-          dex: c.attrs.dex,
-          hp: c.hp,
-          hp_max: c.hp_max,
-          occupation: c.occupation,
-        }))}
+        pcChars={pcLite}
+        keeperChars={keeperChars.map(toPcLite)}
       />
     </>
   );

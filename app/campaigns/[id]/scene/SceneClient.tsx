@@ -2,67 +2,153 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import type { BestiaryEntry } from "@/lib/types";
+import type { BestiaryEntry, CocAttrs, CocSkillGroup, DiceLevel } from "@/lib/types";
 import { InitiativeTracker, type InitiativeRow } from "@/components/vtt/InitiativeTracker";
 import { StatBlock } from "@/components/vtt/StatBlock";
 import { ThreatStars } from "@/components/vtt/ThreatStars";
+import { judgeCoc, LEVEL_LABEL } from "@/lib/dice";
 
-export type KeeperCharLite = {
+export type PcLite = {
   id: number;
   name: string;
-  campaign_id: number;
-  dex: number;
+  occupation: string;
+  attrs: CocAttrs;
   hp: number;
   hp_max: number;
-  occupation: string;
+  skills: Array<{ name: string; value: number; group?: CocSkillGroup }>;
+  weapons: Array<{ name: string; skill: number; damage: string }>;
 };
 
 type AddTab = "enemy" | "char";
 
+type FocusedEntity =
+  | { kind: "npc"; entry: BestiaryEntry }
+  | { kind: "pc"; char: PcLite; rowId: string };
+
+type CombatAction = "attack" | "brawl" | "dodge" | "fightback" | "flee";
+
+type LastRoll = {
+  actor: string;
+  label: string;
+  skillVal: number;
+  roll: number;
+  level: DiceLevel;
+};
+
+function rolld(sides: number): number {
+  return Math.floor(Math.random() * sides) + 1;
+}
+
+function findSkill(pc: PcLite, names: string[]): number | undefined {
+  for (const n of names) {
+    const hit = pc.skills.find((s) => s.name === n);
+    if (hit) return hit.value;
+  }
+  return undefined;
+}
+
+function getActionForPc(action: CombatAction, c: PcLite, weaponIdx: number) {
+  switch (action) {
+    case "attack": {
+      const w = c.weapons[weaponIdx] ?? c.weapons[0];
+      if (w) return { label: `공격 (${w.name})`, skillVal: w.skill };
+      return { label: "공격 (주먹)", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
+    }
+    case "brawl":
+      return { label: "근접전 액션 (주먹)", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
+    case "dodge":
+      return { label: "회피", skillVal: findSkill(c, ["회피"]) ?? Math.floor(c.attrs.dex / 2) };
+    case "fightback":
+      return { label: "반격 (주먹)", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
+    case "flee":
+      return { label: "도주 (DEX×5)", skillVal: c.attrs.dex * 5 };
+  }
+}
+
+function getActionForNpc(action: CombatAction, e: BestiaryEntry) {
+  const first = e.attacks[0];
+  const dex = Number(e.attrs.dex ?? 50);
+  switch (action) {
+    case "attack":
+      if (first) return { label: `공격 (${first.name})`, skillVal: first.skill };
+      return { label: "공격", skillVal: dex };
+    case "brawl":
+      if (first) return { label: `근접전 (${first.name})`, skillVal: first.skill };
+      return { label: "근접전", skillVal: dex };
+    case "dodge":
+      return { label: "회피", skillVal: Math.floor(dex / 2) };
+    case "fightback":
+      if (first) return { label: `반격 (${first.name})`, skillVal: first.skill };
+      return { label: "반격", skillVal: dex };
+    case "flee":
+      return { label: "도주 (DEX×5)", skillVal: dex * 5 };
+  }
+}
+
 export function SceneClient({
   initialRows,
-  focusedNpc,
   bestiary,
+  pcChars,
   keeperChars,
 }: {
   initialRows: InitiativeRow[];
-  focusedNpc: BestiaryEntry | null;
   bestiary: BestiaryEntry[];
-  keeperChars: KeeperCharLite[];
+  pcChars: PcLite[];
+  keeperChars: PcLite[];
 }) {
   const [rows, setRows] = useState<InitiativeRow[]>(initialRows);
   const [round, setRound] = useState(1);
   const [activeIndex, setActiveIndex] = useState(0);
   const [roundFlash, setRoundFlash] = useState(false);
-  const [focused, setFocused] = useState<BestiaryEntry | null>(focusedNpc);
+  const [actedIds, setActedIds] = useState<Set<string>>(new Set());
+  const [focused, setFocused] = useState<FocusedEntity | null>(
+    bestiary[0] ? { kind: "npc", entry: bestiary[0] } : null,
+  );
   const [addTab, setAddTab] = useState<AddTab>("enemy");
   const [addedCharIds, setAddedCharIds] = useState<number[]>([]);
+  const [lastRoll, setLastRoll] = useState<LastRoll | null>(null);
+  const [weaponIdx, setWeaponIdx] = useState(0);
 
   const sorted = useMemo(() => [...rows].sort((a, b) => b.dex - a.dex), [rows]);
+  const sortedWithActed = useMemo(
+    () => sorted.map((r) => ({ ...r, acted: actedIds.has(r.id) })),
+    [sorted, actedIds],
+  );
+  const liveRows = sortedWithActed.filter((r) => !r.dead);
+  const allActed = liveRows.length > 0 && liveRows.every((r) => r.acted);
 
   const flash = () => {
     setRoundFlash(true);
     setTimeout(() => setRoundFlash(false), 700);
   };
 
+  // 모두 행동했으면 라운드 종료 + 다음 라운드 시작.
+  // 그렇지 않으면 현재 활성 row 를 acted 로 마킹하고 다음 미행동 live 로 이동.
   const advance = () => {
-    const live = sorted.map((r, i) => ({ r, i })).filter((x) => !x.r.dead);
-    if (live.length === 0) return;
-    const cur = live.findIndex((x) => x.i === activeIndex);
-    if (cur < 0) {
-      setActiveIndex(live[0].i);
-      return;
-    }
-    const next = (cur + 1) % live.length;
-    if (next === 0) {
+    if (liveRows.length === 0) return;
+    if (allActed) {
+      setActedIds(new Set());
       setRound((r) => r + 1);
       flash();
+      const firstLiveIdx = sorted.findIndex((r) => r.id === liveRows[0].id);
+      setActiveIndex(firstLiveIdx >= 0 ? firstLiveIdx : 0);
+      return;
     }
-    setActiveIndex(live[next].i);
+    const cur = sorted[activeIndex];
+    const newActed = new Set(actedIds);
+    if (cur && !cur.dead) newActed.add(cur.id);
+    setActedIds(newActed);
+    const next = liveRows.find((r) => !newActed.has(r.id) && r.id !== cur?.id);
+    if (next) {
+      const nextIdx = sorted.findIndex((r) => r.id === next.id);
+      if (nextIdx >= 0) setActiveIndex(nextIdx);
+    }
+    // 모두 acted 가 되면 다음 클릭에서 라운드 ++ 분기로 진입
   };
 
   const reset = () => {
     setRound(1);
+    setActedIds(new Set());
     flash();
     setActiveIndex(0);
     setRows((prev) => prev.map((r) => ({ ...r, dead: false, hp: r.hp_max })));
@@ -80,10 +166,18 @@ export function SceneClient({
 
   const remove = (rowId: string) => {
     setRows((prev) => prev.filter((r) => r.id !== rowId));
+    setActedIds((prev) => {
+      const n = new Set(prev);
+      n.delete(rowId);
+      return n;
+    });
     const m = rowId.match(/^char-(\d+)-/);
     if (m) {
       const cid = Number(m[1]);
       setAddedCharIds((prev) => prev.filter((id) => id !== cid));
+    }
+    if (focused) {
+      if (focused.kind === "pc" && focused.rowId === rowId) setFocused(null);
     }
   };
 
@@ -104,7 +198,7 @@ export function SceneClient({
       source_slug: entry.slug,
     };
     setRows((prev) => [...prev, newRow]);
-    setFocused(entry);
+    setFocused({ kind: "npc", entry });
   };
 
   const addNpcFromChar = (charId: number) => {
@@ -112,9 +206,10 @@ export function SceneClient({
     if (!ch) return;
     const existing = rows.filter((r) => r.id.startsWith(`char-${ch.id}-`));
     const num = existing.length + 1;
+    const rowId = `char-${ch.id}-${Date.now()}-${num}`;
     const newRow: InitiativeRow = {
-      id: `char-${ch.id}-${Date.now()}-${num}`,
-      dex: ch.dex,
+      id: rowId,
+      dex: ch.attrs.dex,
       name: existing.length > 0 ? `${ch.name} #${num}` : ch.name,
       is_pc: false,
       hp: ch.hp,
@@ -122,27 +217,80 @@ export function SceneClient({
     };
     setRows((prev) => [...prev, newRow]);
     setAddedCharIds((prev) => (prev.includes(ch.id) ? prev : [...prev, ch.id]));
-    setFocused(null);
+    setFocused({ kind: "pc", char: ch, rowId });
+    setWeaponIdx(0);
   };
 
   const onSelect = (row: InitiativeRow) => {
-    if (row.is_pc || !row.source_slug) return;
-    const entry = bestiary.find((b) => b.slug === row.source_slug);
-    if (entry) setFocused(entry);
+    // PC row (현재 캠페인 소속): pc-{id}
+    const pcMatch = row.id.match(/^pc-(\d+)$/);
+    if (pcMatch) {
+      const c = pcChars.find((x) => x.id === Number(pcMatch[1]));
+      if (c) {
+        setFocused({ kind: "pc", char: c, rowId: row.id });
+        setWeaponIdx(0);
+        return;
+      }
+    }
+    // 키퍼 캐릭터 NPC: char-{id}-...
+    const charMatch = row.id.match(/^char-(\d+)-/);
+    if (charMatch) {
+      const c = keeperChars.find((x) => x.id === Number(charMatch[1]));
+      if (c) {
+        setFocused({ kind: "pc", char: c, rowId: row.id });
+        setWeaponIdx(0);
+        return;
+      }
+    }
+    // 베스티어리 NPC
+    if (row.source_slug) {
+      const entry = bestiary.find((b) => b.slug === row.source_slug);
+      if (entry) {
+        setFocused({ kind: "npc", entry });
+        return;
+      }
+    }
   };
 
-  // 키퍼 액션 chip — 현재 focused NPC 의 모든 인스턴스에 적용 (없으면 active row)
   const applyToFocused = (amount: number) => {
-    if (focused) {
-      const target = rows.find((r) => r.source_slug === focused.slug && !r.dead);
+    if (focused?.kind === "npc") {
+      const target = rows.find((r) => r.source_slug === focused.entry.slug && !r.dead);
       if (target) damage(target.id, amount);
+    } else if (focused?.kind === "pc") {
+      damage(focused.rowId, amount);
     } else if (sorted[activeIndex] && !sorted[activeIndex].dead) {
       damage(sorted[activeIndex].id, amount);
     }
   };
 
-  const otherNpcs = bestiary.filter((b) => b.slug !== focused?.slug).slice(0, 4);
+  const fireAction = (action: CombatAction) => {
+    if (!focused) return;
+    const setup =
+      focused.kind === "pc"
+        ? getActionForPc(action, focused.char, weaponIdx)
+        : getActionForNpc(action, focused.entry);
+    const roll = rolld(100);
+    const level = judgeCoc(roll, setup.skillVal);
+    setLastRoll({
+      actor: focused.kind === "pc" ? focused.char.name : focused.entry.name,
+      label: setup.label,
+      skillVal: setup.skillVal,
+      roll,
+      level,
+    });
+  };
+
+  const otherNpcs = bestiary
+    .filter((b) => focused?.kind === "npc" ? b.slug !== focused.entry.slug : true)
+    .slice(0, 4);
   const addedChars = keeperChars.filter((c) => addedCharIds.includes(c.id));
+
+  const focusedActiveStatblockId =
+    focused?.kind === "npc"
+      ? rows.find((r) => r.source_slug === focused.entry.slug)?.id
+      : focused?.kind === "pc"
+        ? focused.rowId
+        : undefined;
 
   return (
     <>
@@ -154,24 +302,23 @@ export function SceneClient({
           </div>
           <div className="stk-body stk-body-flush">
             <InitiativeTracker
-              rows={sorted}
+              rows={sortedWithActed}
               round={round}
               activeIndex={activeIndex}
               roundFlash={roundFlash}
+              allActed={allActed}
               onAdvance={advance}
               onReset={reset}
               onDamage={damage}
               onRemove={remove}
               onSelect={onSelect}
-              activeStatblockId={
-                focused?.slug ? rows.find((r) => r.source_slug === focused.slug)?.id : undefined
-              }
+              activeStatblockId={focusedActiveStatblockId}
             />
           </div>
         </div>
 
         <div className="stk-col">
-          {/* 장면에 추가 — 탭 + 리스트 */}
+          {/* 장면에 추가 */}
           <div className="stk-panel">
             <div className="stk-head">
               <span className="stk-eyebrow">ADD · 장면에 등장</span>
@@ -195,7 +342,7 @@ export function SceneClient({
                 className={`stk-tab${addTab === "char" ? " active" : ""}`}
                 onClick={() => setAddTab("char")}
                 disabled={keeperChars.length === 0}
-                title={keeperChars.length === 0 ? "다른 캠페인에 등록된 키퍼 캐릭터가 없습니다" : ""}
+                title={keeperChars.length === 0 ? "키퍼 소유 캐릭터 시트가 없습니다" : ""}
               >
                 내 캐릭터
                 <span className="stk-tab-count">{keeperChars.length}</span>
@@ -232,9 +379,7 @@ export function SceneClient({
                 </ul>
               )
             ) : keeperChars.length === 0 ? (
-              <div className="stk-empty">
-                다른 캠페인에 등록된 내 캐릭터가 없습니다.
-              </div>
+              <div className="stk-empty">소유 캐릭터 시트가 없습니다.</div>
             ) : (
               <ul className="stk-add-list">
                 {keeperChars.map((c) => (
@@ -242,7 +387,7 @@ export function SceneClient({
                     <div className="stk-add-main">
                       <span className="stk-add-name">{c.name}</span>
                       <span className="stk-add-meta">
-                        HP {c.hp_max} · DEX {c.dex} · {c.occupation || "직업 미기재"}
+                        HP {c.hp_max} · DEX {c.attrs.dex} · {c.occupation || "직업 미기재"}
                       </span>
                     </div>
                     <button
@@ -263,33 +408,79 @@ export function SceneClient({
           {focused ? (
             <div className="stk-panel">
               <div className="stk-head">
-                <span className="stk-eyebrow">FOCUS · 스탯블록</span>
-                <span className="stk-title">{focused.name}</span>
+                <span className="stk-eyebrow">
+                  FOCUS · {focused.kind === "pc" ? "캐릭터 시트" : "스탯블록"}
+                </span>
+                <span className="stk-title">
+                  {focused.kind === "pc" ? focused.char.name : focused.entry.name}
+                </span>
               </div>
               <div className="stk-body stk-body-flush">
-                <StatBlock entry={focused} />
+                {focused.kind === "npc" ? (
+                  <StatBlock entry={focused.entry} />
+                ) : (
+                  <PcStatBlock char={focused.char} />
+                )}
               </div>
+
+              {/* 전투 액션 */}
+              <div className="stk-foot stk-actions stk-combat-actions">
+                <span className="stk-foot-label">전투 액션</span>
+                <button type="button" className="chip" onClick={() => fireAction("attack")}>공격</button>
+                <button type="button" className="chip" onClick={() => fireAction("brawl")}>근접전</button>
+                <button type="button" className="chip" onClick={() => fireAction("dodge")}>회피</button>
+                <button type="button" className="chip" onClick={() => fireAction("fightback")}>반격</button>
+                <button type="button" className="chip" onClick={() => fireAction("flee")}>도주</button>
+              </div>
+
+              {/* PC 무기 선택 */}
+              {focused.kind === "pc" && focused.char.weapons.length > 1 ? (
+                <div className="stk-weapon-row">
+                  <span className="stk-foot-label">무기 선택</span>
+                  {focused.char.weapons.map((w, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={`chip${i === weaponIdx ? " accent" : ""}`}
+                      onClick={() => setWeaponIdx(i)}
+                      title={`${w.skill}% · ${w.damage}`}
+                    >
+                      {w.name} {w.skill}%
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {/* 라스트 굴림 결과 */}
+              {lastRoll ? (
+                <div className="stk-last-roll">
+                  <span className="lr-actor">{lastRoll.actor}</span>
+                  <span className="lr-label">{lastRoll.label}</span>
+                  <span className="lr-skill">{lastRoll.skillVal}%</span>
+                  <span className="lr-arrow">→</span>
+                  <span className="lr-roll">{lastRoll.roll}</span>
+                  <span className={`lr-level level ${lastRoll.level}`}>
+                    {LEVEL_LABEL[lastRoll.level]}
+                  </span>
+                </div>
+              ) : null}
+
+              {/* HP 조절 */}
               <div className="stk-foot stk-actions">
-                <span className="stk-foot-label">{focused.name} 에 액션 →</span>
-                <button type="button" className="chip" onClick={() => applyToFocused(rolld(6))}>
-                  -1d6 HP
-                </button>
-                <button type="button" className="chip" onClick={() => applyToFocused(rolld(4))}>
-                  -1d4 HP
-                </button>
-                <button type="button" className="chip" onClick={() => applyToFocused(2)}>
-                  -2 HP
-                </button>
-                <button type="button" className="chip" onClick={() => applyToFocused(-5)}>
-                  +5 HP
-                </button>
-                <button
-                  type="button"
-                  className="chip accent"
-                  onClick={() => addNpcFromSlug(focused.slug)}
-                >
-                  + NPC 복제
-                </button>
+                <span className="stk-foot-label">HP 조절</span>
+                <button type="button" className="chip" onClick={() => applyToFocused(rolld(6))}>-1d6</button>
+                <button type="button" className="chip" onClick={() => applyToFocused(rolld(4))}>-1d4</button>
+                <button type="button" className="chip" onClick={() => applyToFocused(2)}>-2</button>
+                <button type="button" className="chip" onClick={() => applyToFocused(-5)}>+5</button>
+                {focused.kind === "npc" ? (
+                  <button
+                    type="button"
+                    className="chip accent"
+                    onClick={() => addNpcFromSlug(focused.entry.slug)}
+                  >
+                    + NPC 복제
+                  </button>
+                ) : null}
               </div>
             </div>
           ) : (
@@ -299,7 +490,7 @@ export function SceneClient({
                 <span className="stk-title">선택 대기</span>
               </div>
               <div className="stk-empty">
-                트래커에서 NPC 이름을 누르거나 위에서 추가하면 스탯블록이 여기에 표시됩니다.
+                트래커에서 이름을 누르거나 위에서 추가하면 시트/스탯블록이 여기에 표시됩니다.
               </div>
             </div>
           )}
@@ -320,7 +511,7 @@ export function SceneClient({
             <p className="desc">{c.occupation || "직업 미기재"}</p>
             <div className="stats">
               <span>HP <b>{c.hp_max}</b></span>
-              <span>DEX <b>{c.dex}</b></span>
+              <span>DEX <b>{c.attrs.dex}</b></span>
             </div>
           </Link>
         ))}
@@ -346,6 +537,56 @@ export function SceneClient({
   );
 }
 
-function rolld(sides: number): number {
-  return Math.floor(Math.random() * sides) + 1;
+function PcStatBlock({ char }: { char: PcLite }) {
+  const a = char.attrs;
+  const combatSkills = char.skills.filter((s) => s.group === "combat");
+  return (
+    <div className="statblock pc-statblock">
+      <div className="sb-body">
+        <div className="stat-grid">
+          {[
+            ["STR", a.str], ["CON", a.con], ["SIZ", a.siz],
+            ["DEX", a.dex], ["INT", a.int], ["POW", a.pow],
+          ].map(([k, v]) => (
+            <div key={k as string}>
+              <div className="k">{k}</div>
+              <div className="v">{v}</div>
+            </div>
+          ))}
+        </div>
+        <div className="sb-meta">
+          <div className="mrow"><span className="k">HP</span><span className="v">{char.hp} / {char.hp_max}</span></div>
+          <div className="mrow"><span className="k">DEX×5</span><span className="v">{char.attrs.dex * 5}</span></div>
+        </div>
+
+        {char.weapons.length > 0 ? (
+          <>
+            <h3 className="pc-sb-heading">무기</h3>
+            <div className="attacks">
+              {char.weapons.map((w, i) => (
+                <div className="attack-row" key={i}>
+                  <span className="name">{w.name}</span>
+                  <span className="formula">{w.skill}% · {w.damage}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {combatSkills.length > 0 ? (
+          <>
+            <h3 className="pc-sb-heading">전투 기능</h3>
+            <ul className="pc-skill-list">
+              {combatSkills.map((s) => (
+                <li key={s.name}>
+                  <span className="pc-skill-name">{s.name}</span>
+                  <span className="pc-skill-val">{s.value}%</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
 }

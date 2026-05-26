@@ -8,6 +8,7 @@ export type InitiativeRow = {
   hp: number;
   hp_max: number;
   dead?: boolean;
+  acted?: boolean;
   source_slug?: string;
 };
 
@@ -16,6 +17,7 @@ export function InitiativeTracker({
   round,
   activeIndex,
   roundFlash,
+  allActed,
   onAdvance,
   onReset,
   onDamage,
@@ -27,6 +29,7 @@ export function InitiativeTracker({
   round: number;
   activeIndex: number;
   roundFlash: boolean;
+  allActed: boolean;
   onAdvance: () => void;
   onReset: () => void;
   onDamage: (id: string, amount: number) => void;
@@ -36,6 +39,7 @@ export function InitiativeTracker({
 }) {
   const sorted = [...rows].sort((a, b) => b.dex - a.dex);
   const liveCount = sorted.filter((r) => !r.dead).length;
+  const actedCount = sorted.filter((r) => !r.dead && r.acted).length;
 
   return (
     <div className="initiative">
@@ -44,6 +48,12 @@ export function InitiativeTracker({
         <span>
           라운드{" "}
           <span className={`round${roundFlash ? " flash" : ""}`}>{round}</span>
+          {liveCount > 0 ? (
+            <span className="ini-acted-progress">
+              {" · "}
+              {actedCount}/{liveCount} 행동
+            </span>
+          ) : null}
         </span>
       </div>
 
@@ -70,10 +80,11 @@ export function InitiativeTracker({
         sorted.map((r, i) => {
           const isActive = i === activeIndex && !r.dead;
           const isSelected = activeStatblockId === r.id;
+          const acted = !!r.acted && !r.dead;
           return (
             <div
               key={r.id}
-              className={`ini-row${isActive ? " active" : ""}${r.dead ? " dead" : ""}`}
+              className={`ini-row${isActive ? " active" : ""}${r.dead ? " dead" : ""}${acted ? " acted" : ""}`}
               style={{
                 outline: isSelected ? "1.5px dashed var(--accent)" : undefined,
               }}
@@ -85,6 +96,7 @@ export function InitiativeTracker({
                 className="name name-btn"
                 title={`${r.name} 스탯블록 보기`}
               >
+                {acted ? <span className="ini-check" aria-hidden="true">✓ </span> : null}
                 {r.name}
                 {isActive ? <span className="active-mark"> ← 지금</span> : null}
                 {r.is_pc ? <span className="muted role-mark"> PC</span> : null}
@@ -139,12 +151,13 @@ export function InitiativeTracker({
           ↺ 라운드 초기화
         </button>
         <button
-          className="btn"
+          className={`btn${allActed ? " accent" : ""}`}
           type="button"
           onClick={onAdvance}
           disabled={liveCount === 0}
+          title={allActed ? "전원이 행동했습니다 — 다음 라운드로" : "현재 행동자를 완료로 표시하고 다음으로"}
         >
-          다음 라운드 →
+          {allActed ? "다음 라운드 →" : "다음 턴 →"}
         </button>
       </div>
     </div>

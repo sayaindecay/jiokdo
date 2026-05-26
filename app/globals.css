@@ -7449,6 +7449,143 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
   border-color: var(--accent);
 }
 
+/* 행동 마킹 (CoC 라운드 진행) */
+.ini-acted-progress {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: rgba(245, 243, 238, 0.55);
+  letter-spacing: 0.04em;
+}
+.stk-body-flush .ini-row.acted .name-btn,
+.stk-body-flush .ini-row.acted .hp,
+.stk-body-flush .ini-row.acted .dex {
+  opacity: 0.55;
+}
+.ini-check {
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  margin-right: 0.2rem;
+}
+
+/* PC 시트 — Focus 패널 내 */
+.pc-statblock { background: transparent; border: none; box-shadow: none; border-radius: 0; }
+.pc-sb-heading {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(245, 243, 238, 0.55);
+  margin: 0.85rem 0 0.4rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.pc-skill-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 0.6rem;
+}
+.pc-skill-list li {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  background: rgba(245, 243, 238, 0.04);
+}
+.pc-skill-name { color: rgba(245, 243, 238, 0.85); }
+.pc-skill-val { font-weight: 700; color: #fff; }
+
+/* 전투 액션 chip bar + 무기 선택 */
+.stk-combat-actions {
+  border-top: 1px solid rgba(245, 243, 238, 0.12);
+  background: rgba(245, 243, 238, 0.03);
+}
+.stk-weapon-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-top: 1px dashed rgba(245, 243, 238, 0.08);
+  background: rgba(245, 243, 238, 0.02);
+}
+
+/* 라스트 굴림 결과 */
+.stk-last-roll {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(245, 243, 238, 0.06);
+  border-top: 1px solid rgba(245, 243, 238, 0.12);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: rgba(245, 243, 238, 0.92);
+}
+.stk-last-roll .lr-actor {
+  font-weight: 700;
+  color: #fff;
+}
+.stk-last-roll .lr-label {
+  color: rgba(245, 243, 238, 0.7);
+}
+.stk-last-roll .lr-skill {
+  color: rgba(245, 243, 238, 0.55);
+}
+.stk-last-roll .lr-arrow {
+  color: rgba(245, 243, 238, 0.4);
+}
+.stk-last-roll .lr-roll {
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.stk-last-roll .lr-level {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+/* 라이트 시네마틱 — 새 요소 인버트 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ini-acted-progress {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ini-check { color: var(--green); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-sb-heading { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-list li {
+  background: var(--bg-elev-2);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-name { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .pc-skill-val { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-combat-actions {
+  background: var(--bg-elev-2);
+  border-top-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-weapon-row {
+  background: var(--bg-elev);
+  border-top-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-last-roll {
+  background: var(--bg-elev-2);
+  border-top-color: var(--line);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-last-roll .lr-actor,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-last-roll .lr-roll {
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-last-roll .lr-label,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .stk-last-roll .lr-skill {
+  color: var(--ink-2);
+}
+
 /* 시네마틱 톤의 NPC 보드 카드 (.board-card 재칠) */
 body:has(.scene-side, .cinematic) .board-grid .board-card {
   background: rgba(245, 243, 238, 0.04);
