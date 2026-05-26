@@ -727,6 +727,18 @@ export async function listBestiaryCreatedBy(nick: string): Promise<BestiaryEntry
   });
   return res.rows.map((r) => rowToBestiary(r as unknown as Record<string, unknown>));
 }
+export async function getLastEntryAt(campaignId: number): Promise<number | null> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: "SELECT created_at FROM play_entries WHERE campaign_id = ? ORDER BY created_at DESC LIMIT 1",
+    args: [campaignId],
+  });
+  const r = res.rows[0];
+  if (!r) return null;
+  const v = (r as Record<string, unknown>).created_at;
+  return v == null ? null : Number(v);
+}
+
 export async function listAllSessions(campaignId: number): Promise<Session[]> {
   await ensureReady();
   const res = await client.execute({

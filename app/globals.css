@@ -2277,7 +2277,7 @@ button.char-row.rollable:disabled { cursor: not-allowed; opacity: 0.6; }
 }
 .dash-table .thead {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.3fr 1fr 90px;
+  grid-template-columns: 2fr 1fr 1.3fr 1fr 90px 80px;
   padding: 0.55rem 1rem;
   background: var(--ink);
   color: var(--bg);
@@ -2289,19 +2289,66 @@ button.char-row.rollable:disabled { cursor: not-allowed; opacity: 0.6; }
 }
 .dash-table .trow {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.3fr 1fr 90px;
+  grid-template-columns: 2fr 1fr 1.3fr 1fr 90px 80px;
   padding: 0.75rem 1rem;
   border-bottom: 1px dashed var(--line);
   font-size: 0.9rem;
   align-items: center;
-  cursor: pointer;
   transition: background .1s;
+  position: relative;
 }
 .dash-table .trow:last-child { border-bottom: none; }
 .dash-table .trow:hover { background: var(--bg-2); }
 .dash-table .trow .c-name {
   font-weight: 500;
   font-family: var(--font-ui);
+  text-decoration: none;
+  color: var(--ink);
+}
+.dash-table .trow .c-name:hover { color: var(--accent); }
+.dash-table .trow-empty {
+  padding: 1.5rem 1rem;
+  display: block;
+  text-align: center;
+  color: var(--ink-3);
+  font-family: var(--font-anno);
+}
+.dash-table .trow .c-members {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0;
+}
+.dash-table .trow .c-members-chars {
+  color: var(--ink-3);
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.dash-table .trow .c-play {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.3rem 0.55rem;
+  border-radius: 4px;
+  text-align: center;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity .12s, transform .12s, background .12s;
+  white-space: nowrap;
+}
+.dash-table .trow:hover .c-play,
+.dash-table .trow:focus-within .c-play {
+  opacity: 1;
+  transform: translateX(0);
+}
+.dash-table .trow .c-play:hover {
+  background: var(--accent);
+  color: #fff;
 }
 .dash-table .trow .c-role {
   color: var(--ink-2);
@@ -2388,9 +2435,52 @@ button.char-row.rollable:disabled { cursor: not-allowed; opacity: 0.6; }
   .peek-hero { grid-template-columns: 1fr; }
   .sheet-body { grid-template-columns: 1fr; }
   .sheet-col { border-right: none; border-bottom: 1px dashed var(--line); }
-  .dash-table .thead, .dash-table .trow { grid-template-columns: 2fr 1.3fr 80px; }
-  .dash-table .thead > *:nth-child(2), .dash-table .thead > *:nth-child(4),
-  .dash-table .trow > *:nth-child(2), .dash-table .trow > *:nth-child(4) { display: none; }
+
+  /* 캠페인 표 → 카드뷰 (모바일) */
+  .dash-table .thead { display: none; }
+  .dash-table .trow {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name play"
+      "role role"
+      "next status"
+      "members status";
+    gap: 0.4rem 0.6rem;
+    padding: 0.9rem 1rem;
+    background: var(--bg-elev);
+    border-left: 3px solid hsl(var(--campaign-hue, 8), 38%, 50%);
+  }
+  .dash-table .trow .c-name {
+    grid-area: name;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+  .dash-table .trow .c-role { grid-area: role; font-size: 0.78rem; }
+  .dash-table .trow .c-next { grid-area: next; font-size: 0.82rem; }
+  .dash-table .trow .c-members { grid-area: members; font-size: 0.78rem; }
+  .dash-table .trow .c-status { grid-area: status; justify-self: end; align-self: start; }
+  .dash-table .trow .c-play {
+    grid-area: play;
+    opacity: 1;
+    transform: none;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    padding: 0.25rem 0.55rem;
+  }
+  /* row 안의 data-th 라벨 (모바일에서 라벨 노출) */
+  .dash-table .trow .c-role::before,
+  .dash-table .trow .c-next::before,
+  .dash-table .trow .c-members::before {
+    content: attr(data-th) " ";
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-right: 0.3rem;
+  }
 }
 
 @media (max-width: 640px) {
@@ -4528,6 +4618,201 @@ body:has(.scene-side) .session-row .ks-crown {
 }
 .clues-resolved[open] summary::before { content: "▾ "; }
 .clue-empty { display: block !important; padding: 0.7rem 0.85rem !important; opacity: 0.6; }
+
+/* 이어서 플레이 hero 카드 */
+.continue-card {
+  --hue: 8;
+  --sat: 38%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.1rem 1.4rem;
+  margin: 0.5rem 0 1.5rem;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--campaign-hue, 8), var(--sat), 50%, 0.10) 0%,
+    transparent 70%
+  );
+  border: 1.5px solid var(--line);
+  border-left: 4px solid hsl(var(--campaign-hue, 8), 50%, 48%);
+  border-radius: var(--radius);
+}
+.continue-card .cc-text { min-width: 0; }
+.continue-card .cc-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: hsl(var(--campaign-hue, 8), var(--sat), 38%);
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+.continue-card .cc-title {
+  font-family: var(--font-script);
+  font-size: clamp(1.4rem, 3.2vw, 1.85rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.5rem;
+  line-height: 1.15;
+}
+.continue-card .cc-title a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.continue-card .cc-title a:hover { color: var(--accent); }
+.continue-card .cc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+}
+.continue-card .cc-meta-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+}
+.continue-card .cc-meta-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.continue-card .cc-meta-val { color: var(--ink); font-weight: 600; }
+.continue-card .cc-meta-empty {
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.continue-card .cc-cta {
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  .continue-card { grid-template-columns: 1fr; }
+  .continue-card .cc-cta { width: 100%; text-align: center; }
+}
+
+/* 알림 없을 때 한 줄 hint */
+.cl-notify-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  margin: 0 0 1.5rem;
+  background: var(--bg-elev-2);
+  border-left: 3px solid var(--line-strong);
+  border-radius: 4px;
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+  color: var(--ink-2);
+}
+.cl-notify-mini .cnm-icon {
+  font-family: var(--font-mono);
+  color: var(--ink-3);
+}
+
+/* 상태 필터 pill (Link 기반) */
+.cl-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--line);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all var(--tx-fast);
+}
+.cl-status-pill:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.cl-status-pill.is-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg-elev);
+}
+.cl-status-pill.accent.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.cl-status-pill.closed.is-active {
+  background: var(--ink-3);
+  border-color: var(--ink-3);
+  color: var(--bg-elev);
+}
+
+/* 캠페인 폼 collapsible */
+.cl-forms-collapsed {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+.cl-forms-expand {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: var(--bg-elev);
+  color: var(--ink-2);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  cursor: pointer;
+  transition: all var(--tx-fast);
+}
+.cl-forms-expand:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  border-style: solid;
+}
+.cl-forms-open {
+  position: relative;
+}
+.cl-forms-collapse {
+  position: absolute;
+  top: -0.5rem;
+  right: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+}
+.cl-forms-collapse:hover { color: var(--accent); }
+
+/* 페이지 하단 부가 링크 */
+.cl-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 1.5rem 0 0.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px dashed var(--line);
+}
+.cl-footer-links a {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.cl-footer-links a:hover { color: var(--accent); }
 
 /* 캠페인 페이지 — 캠페인 0개 환영 분기 카드 */
 .cl-welcome {
@@ -7722,29 +8007,11 @@ body:has(.scene-side) .session-row .ks-crown {
   flex-wrap: wrap;
 }
 
-/* 상태 pill */
+/* 상태 pill 컨테이너 (개별 pill 스타일은 위쪽 .cl-status-pill 블록 참고) */
 .cl-status-pills {
   display: flex;
   gap: 0.4rem;
   flex-wrap: wrap;
-}
-.cl-status-pill {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0.25rem 0.7rem;
-  border-radius: 999px;
-  border: 1.5px solid var(--line);
-  background: var(--bg-elev-2);
-  color: var(--ink-2);
-}
-.cl-status-pill.accent {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-  box-shadow: 0 1px 0 rgba(106, 20, 20, 0.3);
 }
 
 /* 다음 세션 영역 — hero 와 history 사이 간격 */
@@ -8595,13 +8862,6 @@ body:has(.scene-side) .session-row .ks-crown {
 .dash-table .trow.status-closed { opacity: 0.48; }
 .dash-table .trow.status-closed::after { background: var(--ink-3); }
 
-/* 캠페인 목록 — 종료 pill */
-.cl-status-pill.closed {
-  background: var(--bg-elev);
-  color: var(--ink-3);
-  border: 1.5px solid var(--ink-3);
-  opacity: 0.85;
-}
 
 @media (max-width: 720px) {
   .status-toggle .st-options { width: 100%; }
@@ -9095,20 +9355,42 @@ body:has(.scene-side) .session-row .ks-crown {
   --sat: 38%;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.95rem 1rem 0.85rem;
   background: var(--bg-elev);
   border: 1.5px solid var(--line);
   border-left: 3px solid hsl(var(--hue), var(--sat), 48%);
   border-radius: var(--radius);
-  text-decoration: none;
-  color: inherit;
+  overflow: hidden;
   transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
 }
 .my-char-card:hover {
   transform: translateY(-1px);
   border-color: hsl(var(--hue), var(--sat), 42%);
   box-shadow: 0 2px 0 hsl(var(--hue), var(--sat), 38%, 0.18);
+}
+.my-char-card .mc-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem 0.85rem;
+  text-decoration: none;
+  color: inherit;
+}
+.my-char-card .mc-play {
+  text-align: center;
+  padding: 0.45rem 0.7rem;
+  background: var(--bg-elev-2);
+  border-top: 1px dashed var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: hsl(var(--hue), var(--sat), 38%);
+  text-decoration: none;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.my-char-card .mc-play:hover {
+  background: hsl(var(--hue), var(--sat), 48%);
+  color: #fff;
 }
 .my-char-card .mc-camp {
   font-family: var(--font-mono);

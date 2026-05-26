@@ -34,17 +34,18 @@ function formatHHMM(ms: number): string {
 export function CampaignsTable({ rows, myNick }: { rows: CampaignTableRow[]; myNick: string }) {
   return (
     <div className="dash-table">
-      <div className="thead">
+      <div className="thead" aria-hidden="true">
         <span>캠페인</span>
         <span>역할</span>
         <span>다음 세션</span>
         <span>멤버</span>
         <span>상태</span>
+        <span></span>
       </div>
       {rows.length === 0 ? (
-        <div className="trow" style={{ opacity: 0.7 }}>
-          <span className="c-name" style={{ gridColumn: "1 / -1", textAlign: "center", padding: "1.5rem", color: "var(--ink-3)", fontFamily: "var(--font-anno)" }}>
-            아직 참여 중인 캠페인이 없습니다. 위에서 만들거나 초대 코드로 참여하세요.
+        <div className="trow trow-empty">
+          <span className="c-name">
+            해당 상태의 캠페인이 없습니다.
           </span>
         </div>
       ) : (
@@ -55,26 +56,46 @@ export function CampaignsTable({ rows, myNick }: { rows: CampaignTableRow[]; myN
             : isKeeper ? "키퍼" : "투자자";
           const next = relTime(r.next_session?.scheduled_at ?? null);
           const statusLabel = r.status === "active" ? "활성" : r.status === "dormant" ? "휴면" : "종료";
-          const memberDots = "●".repeat(Math.min(6, r.members_count));
           const statusColor =
             r.status === "active" ? "var(--accent)" :
             r.status === "closed" ? "var(--ink-3)" : undefined;
           return (
-            <Link
+            <div
               key={r.campaign.id}
-              href={`/campaigns/${r.campaign.id}`}
               className={`trow status-${r.status}`}
-              aria-label={`${r.campaign.name}, ${sessionLabel}, 다음 세션 ${next.label}, 멤버 ${r.members_count}명, 상태 ${statusLabel}`}
               style={campaignHueStyle(r.campaign.slug)}
             >
-              <span className="c-name">{r.campaign.name}</span>
-              <span className="c-role">{sessionLabel}</span>
-              <span className={`c-next${next.urgent ? " urgent" : ""}`}>{next.label}</span>
-              <span className="c-members" aria-hidden="true">{memberDots}</span>
-              <span className="c-status" style={{ color: statusColor }}>
+              <Link
+                href={`/campaigns/${r.campaign.id}`}
+                className="c-name trow-link"
+                aria-label={`${r.campaign.name}, ${sessionLabel}, 다음 세션 ${next.label}, 멤버 ${r.members_count}명, 상태 ${statusLabel}`}
+              >
+                {r.campaign.name}
+              </Link>
+              <span className="c-role" data-th="역할">{sessionLabel}</span>
+              <span className={`c-next${next.urgent ? " urgent" : ""}`} data-th="다음 세션">
+                {next.label}
+              </span>
+              <span className="c-members" data-th="멤버">
+                <span aria-hidden="true">👥</span> {r.members_count}
+                {r.characters_count > 0 ? (
+                  <span className="c-members-chars">
+                    <span aria-hidden="true">🎭</span> {r.characters_count}
+                  </span>
+                ) : null}
+              </span>
+              <span className="c-status" style={{ color: statusColor }} data-th="상태">
                 {statusLabel}
               </span>
-            </Link>
+              <Link
+                href={`/campaigns/${r.campaign.id}/play`}
+                className="c-play"
+                title="플레이 페이지로 이동"
+                aria-label="플레이 페이지"
+              >
+                플레이 →
+              </Link>
+            </div>
           );
         })
       )}
