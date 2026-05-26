@@ -2648,6 +2648,230 @@ body:has(.scene-side, .cinematic) {
   background: #14110d;
   background-image: none;
 }
+
+/* ════════════════════════════════════════════════
+   시네마틱 인버트 — data-theme="dark" + 시네마틱 = LIGHT 톤
+   (헤더의 다크 모드 토글이 시네마틱 페이지에서는 '라이트 모드'로 동작)
+   ════════════════════════════════════════════════ */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) {
+  background: #f5f3ee !important;
+  background-image: none;
+}
+/* 헤더 / 푸터 / breadcrumb */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header {
+  background: rgba(245, 243, 238, 0.94) !important;
+  border-bottom-color: rgba(26, 23, 20, 0.18) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .brand,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .brand-ko,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .nick-badge-inner,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .nav a,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-header .nav .active {
+  color: var(--ink) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .breadcrumb { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .breadcrumb a { color: var(--ink-2) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .site-footer {
+  background: transparent !important;
+  border-top-color: rgba(26, 23, 20, 0.15) !important;
+  color: var(--ink-3) !important;
+}
+/* 세션 로그 board row */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .post-board-row {
+  background: var(--bg-elev);
+  border-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .post-board-row.kind-narration {
+  background: rgba(138, 28, 28, 0.05);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .post-board-row.kind-system {
+  background: rgba(160, 126, 196, 0.06);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .post-board-row .pb-title {
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .post-board-row .pb-author {
+  color: var(--ink-2);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .post-board-row.is-keeper .pb-author { color: var(--accent); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .post-board-row .pb-time {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .post-board-row .kind-tag {
+  background: var(--bg-elev-2);
+  border-color: var(--line);
+  color: var(--ink-3);
+}
+/* 글 상세 카드 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail {
+  background: var(--bg-elev);
+  border-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-head {
+  border-bottom-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-head .kind-tag {
+  background: var(--bg-elev-2);
+  border-color: var(--line-strong);
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-title { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-meta { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-author { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-text { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-dice {
+  background: var(--bg-elev-2);
+  border-color: var(--line);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-dice-expr { color: var(--ink-2); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-dice-arrow { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-dice-total { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-foot {
+  border-top-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .entry-detail .ed-foot .btn.ghost {
+  background: var(--bg-elev);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+/* 사이드 패널 (시트 / 참여자 / 단서) */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-roster {
+  background: var(--bg-elev);
+  border-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-head,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-roster .head {
+  background: var(--bg-elev-2);
+  border-bottom-color: var(--line);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-title,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-row-val,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-row-name,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-vital b,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-roster .name {
+  color: var(--ink) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-occu,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-row-key,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-row-halves,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-vital,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-tab,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-foot,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-roster .info {
+  color: var(--ink-3) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .ms-panel .ms-tab.active { color: var(--accent) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-roster .av {
+  background: var(--bg) !important;
+  color: var(--accent) !important;
+}
+/* 단서 폼 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-form {
+  background: var(--bg-elev-2);
+  border-top-color: var(--line);
+  border-bottom-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-form input,
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-form textarea {
+  background: var(--bg);
+  border-color: var(--line-strong);
+  color: var(--ink) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-form .cf-label { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-form .cf-counter { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-row .clue-check {
+  border-color: var(--line-strong);
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clue-row .clue-text .info {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clues-resolved {
+  border-top-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .clues-resolved summary { color: var(--ink-3); }
+/* SceneStage */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-top-meta { color: var(--ink-2); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-members { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-last-activity {
+  background: var(--bg-elev);
+  border-color: var(--line);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-last-activity .sla-who { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-last-activity .sla-when { color: var(--ink-3); }
+/* Scene Spotlight (현재 핀 + 추적 중) */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight {
+  background: var(--bg-elev);
+  border-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-pin-text { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-pin-empty { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-pin-eyebrow { color: var(--ink-3); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-pin-edit-form textarea {
+  background: var(--bg);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-clues {
+  border-left-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-clue-chip { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .scene-spotlight .ss-pin-counter { color: var(--ink-3); }
+/* Composer */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-composer-sticky {
+  background: rgba(245, 243, 238, 0.96);
+  border-color: var(--line-strong);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-title {
+  background: var(--bg);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-composer-sticky textarea {
+  background: var(--bg);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .kind-pill {
+  background: var(--bg-elev-2) !important;
+  border-color: var(--line) !important;
+  color: var(--ink-2) !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .kind-pill.active {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-char {
+  background: var(--bg);
+  color: var(--ink);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-expand {
+  background: var(--bg-elev-2);
+  color: var(--ink-2);
+  border-color: var(--line);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .cmd-help-trigger {
+  background: var(--bg-elev-2);
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .composer-shortcut-hint {
+  color: var(--ink-3);
+}
+/* 세션 로그 헤더 */
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .section-head { border-bottom-color: var(--line) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .section-head h2 { color: var(--ink) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .section-head .count { color: var(--ink-3) !important; }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .empty {
+  background: var(--bg-elev-2) !important;
+  border-color: var(--line-strong) !important;
+  color: var(--ink-3) !important;
+}
 body:has(.scene-side, .cinematic) .site-header {
   background: rgba(20, 17, 13, 0.94);
   border-bottom-color: rgba(245, 243, 238, 0.18);
@@ -4747,14 +4971,14 @@ select:focus-visible {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.6rem 0.85rem 0.5rem;
+  gap: 0.4rem;
+  padding: 0.45rem 0.7rem 0.4rem;
   border-bottom: 1px solid rgba(245, 243, 238, 0.12);
   background: rgba(245, 243, 238, 0.04);
 }
 .ms-panel .ms-title {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: #fff;
   letter-spacing: -0.005em;
@@ -4764,7 +4988,7 @@ select:focus-visible {
 }
 .ms-panel .ms-occu {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   color: rgba(245, 243, 238, 0.55);
   letter-spacing: 0.04em;
   white-space: nowrap;
@@ -4784,7 +5008,7 @@ select:focus-visible {
 /* 다중 캐릭터 picker — select (head) + chip strip */
 .ms-panel .ms-char-picker {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: #fff;
   background: rgba(245, 243, 238, 0.06);
@@ -4839,23 +5063,23 @@ select:focus-visible {
 .ms-panel .ms-vitals {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.3rem 0.4rem;
-  padding: 0.55rem 0.85rem;
+  gap: 0.2rem 0.4rem;
+  padding: 0.45rem 0.7rem;
   border-bottom: 1px solid rgba(245, 243, 238, 0.12);
 }
 .ms-panel .ms-vital {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   color: rgba(245, 243, 238, 0.55);
   letter-spacing: 0.04em;
   display: flex;
   align-items: baseline;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 .ms-panel .ms-vital b {
   color: #fff;
   font-weight: 700;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
 }
 .ms-panel .ms-vital.warn b { color: #f0a8a8; }
 .ms-panel .ms-vital-hp b { color: #f0a8a8; }
@@ -4870,19 +5094,19 @@ select:focus-visible {
 }
 .ms-panel .ms-tab {
   flex: 1;
-  padding: 0.5rem 0.5rem;
+  padding: 0.38rem 0.4rem;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
   color: rgba(245, 243, 238, 0.55);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   letter-spacing: 0.06em;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   transition: color var(--tx-fast), border-color var(--tx-fast);
 }
 .ms-panel .ms-tab:hover { color: #fff; }
@@ -4891,9 +5115,9 @@ select:focus-visible {
   border-bottom-color: var(--accent);
 }
 .ms-panel .ms-tab-count {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   background: rgba(245, 243, 238, 0.1);
-  padding: 0.05rem 0.35rem;
+  padding: 0.04rem 0.32rem;
   border-radius: 999px;
   color: rgba(245, 243, 238, 0.7);
 }
@@ -4946,10 +5170,10 @@ select:focus-visible {
 .ms-panel .ms-row {
   width: 100%;
   display: grid;
-  grid-template-columns: 3rem 2.2rem 1fr;
+  grid-template-columns: 2.6rem 2rem 1fr;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.7rem;
+  gap: 0.45rem;
+  padding: 0.32rem 0.7rem;
   background: transparent;
   border: none;
   text-align: left;
@@ -4962,24 +5186,24 @@ select:focus-visible {
 .ms-panel .ms-row:active { background: rgba(193, 78, 78, 0.3); }
 .ms-panel .ms-row .ms-row-key {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.64rem;
   letter-spacing: 0.08em;
   color: rgba(245, 243, 238, 0.55);
   font-weight: 700;
 }
 .ms-panel .ms-row .ms-row-val {
   font-family: var(--font-mono);
-  font-size: 0.95rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: #fff;
   text-align: center;
 }
 .ms-panel .ms-row .ms-row-halves {
   display: inline-flex;
-  gap: 0.4rem;
+  gap: 0.35rem;
   justify-self: end;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   color: rgba(245, 243, 238, 0.4);
 }
 .ms-panel .ms-row:hover .ms-row-halves { color: rgba(245, 243, 238, 0.7); }
@@ -4990,7 +5214,7 @@ select:focus-visible {
 }
 .ms-panel .ms-row .ms-row-name {
   font-family: var(--font-ui);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: rgba(245, 243, 238, 0.85);
   white-space: nowrap;
   overflow: hidden;
@@ -5010,10 +5234,10 @@ select:focus-visible {
 .ms-panel .ms-row.used { position: relative; }
 
 .ms-panel .ms-group-head {
-  padding: 0.35rem 0.7rem !important;
+  padding: 0.3rem 0.7rem !important;
   background: rgba(245, 243, 238, 0.04);
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(245, 243, 238, 0.45);
@@ -5023,7 +5247,7 @@ select:focus-visible {
   border-bottom: 1px solid rgba(245, 243, 238, 0.08) !important;
 }
 .ms-panel .ms-group-count {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   color: rgba(245, 243, 238, 0.35);
 }
 
@@ -5036,12 +5260,79 @@ select:focus-visible {
 }
 
 .ms-panel .ms-foot {
-  padding: 0.5rem 0.85rem;
+  padding: 0.4rem 0.7rem;
   font-family: var(--font-anno);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: rgba(245, 243, 238, 0.45);
   border-top: 1px dashed rgba(245, 243, 238, 0.12);
   line-height: 1.4;
+}
+
+/* 시네마틱 모드 — scene-roster (참여자 / 단서 패널 공용) 다크 톤 통일 */
+body:has(.scene-side, .cinematic) .scene-roster {
+  background: rgba(245, 243, 238, 0.04);
+  border-color: rgba(245, 243, 238, 0.16);
+  box-shadow: none;
+}
+body:has(.scene-side, .cinematic) .scene-roster .head {
+  background: rgba(245, 243, 238, 0.06);
+  border-bottom-color: rgba(245, 243, 238, 0.12);
+  color: rgba(245, 243, 238, 0.88);
+}
+body:has(.scene-side, .cinematic) .scene-roster .member {
+  border-bottom-color: rgba(245, 243, 238, 0.1);
+}
+body:has(.scene-side, .cinematic) .scene-roster .av {
+  background: rgba(245, 243, 238, 0.06);
+  border-color: var(--accent);
+  color: #f0a8a8;
+}
+body:has(.scene-side, .cinematic) .scene-roster .name {
+  color: rgba(245, 243, 238, 0.92);
+}
+body:has(.scene-side, .cinematic) .scene-roster .info {
+  color: rgba(245, 243, 238, 0.55);
+}
+
+/* 단서 폼 — 게시판 스타일 라벨 + 큰 textarea */
+.clue-form .cf-label {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245, 243, 238, 0.6);
+  font-weight: 700;
+  margin-top: 0.15rem;
+}
+.clue-form .cf-label:first-child { margin-top: 0; }
+.clue-form .cf-label-sub {
+  font-family: var(--font-anno);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(245, 243, 238, 0.4);
+  margin-left: 0.3rem;
+}
+.clue-form .cf-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.clue-form .cf-body {
+  font-family: var(--font-anno);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+.clue-form .cf-meta {
+  display: flex;
+  justify-content: flex-end;
+}
+.clue-form .cf-counter {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: rgba(245, 243, 238, 0.45);
 }
 
 /* 단서 패널 — 키퍼 인라인 추가 / 토글 / 삭제 */
@@ -6841,6 +7132,7 @@ select:focus-visible {
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  margin-bottom: 0.7rem;
 }
 .play-composer-sticky .composer-bar .kind-picker {
   display: inline-flex;

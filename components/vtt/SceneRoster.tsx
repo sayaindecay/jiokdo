@@ -22,7 +22,7 @@ export function SceneRoster({
             <div className="av">{m.nickname.slice(0, 1)}</div>
             <div>
               <div className="name">
-                {ownChar?.name ?? m.nickname}
+                @{m.nickname}
                 {isMe ? " (당신)" : null}
               </div>
               <div className="info">
@@ -30,7 +30,7 @@ export function SceneRoster({
                   "GM · 운영 중"
                 ) : ownChar ? (
                   <>
-                    SAN {ownChar.san}
+                    {ownChar.name} · SAN {ownChar.san}
                     {ownChar.san < 30 ? (
                       <span aria-label="위험" title="SAN 30 미만 — 위험 상태"> ⚠</span>
                     ) : null}
@@ -117,23 +117,30 @@ export function CluesPanel({
 
       {open && isKeeper ? (
         <div className="clue-form">
+          <label className="cf-label">제목</label>
           <input
             type="text"
+            className="cf-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="단서 제목"
+            placeholder="단서 제목 — 예) 도서관 지하의 봉인된 문"
             maxLength={120}
             autoFocus
             disabled={pending}
           />
+          <label className="cf-label">내용 <span className="cf-label-sub">선택</span></label>
           <textarea
+            className="cf-body"
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            placeholder="내용 (선택)"
+            placeholder={"단서를 발견한 정황·관련된 NPC·다음 단서 힌트.\n줄바꿈으로 단락을 나눌 수 있습니다."}
             maxLength={1200}
-            rows={2}
+            rows={5}
             disabled={pending}
           />
+          <div className="cf-meta">
+            <span className="cf-counter">{body.length} / 1200</span>
+          </div>
           <div className="clue-form-actions">
             <button
               type="button"
