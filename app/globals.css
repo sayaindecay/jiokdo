@@ -565,6 +565,56 @@ h3 {
   flex-wrap: wrap;
 }
 .play-topbar .breadcrumb { margin-bottom: 0; }
+
+/* 모드 토글 (장면 / 트래커) */
+.play-mode-toggle {
+  display: inline-flex;
+  gap: 0;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 2px;
+}
+.play-mode-tab {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  color: var(--ink-3);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all var(--tx-fast);
+}
+.play-mode-tab:hover { color: var(--ink); }
+.play-mode-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+body:has(.scene-side, .cinematic) .play-mode-toggle {
+  background: rgba(245, 243, 238, 0.04);
+  border-color: rgba(245, 243, 238, 0.2);
+}
+body:has(.scene-side, .cinematic) .play-mode-tab {
+  color: rgba(245, 243, 238, 0.6);
+}
+body:has(.scene-side, .cinematic) .play-mode-tab:hover { color: #fff; }
+body:has(.scene-side, .cinematic) .play-mode-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-mode-toggle {
+  background: var(--bg-elev);
+  border-color: var(--line-strong);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-mode-tab {
+  color: var(--ink-3);
+}
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-mode-tab:hover { color: var(--ink); }
+:root[data-theme="dark"] body:has(.scene-side, .cinematic) .play-mode-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
 .play-tracker-link {
   font-family: var(--font-mono);
   font-size: 0.72rem;

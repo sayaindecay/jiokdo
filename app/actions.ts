@@ -16,7 +16,7 @@ import {
   updateBestiaryEntry, updateCampaignProfile, updateCharacterProfile, updateCharacterVitals,
   updatePlayEntry, updateUserPassword,
 } from "@/lib/db";
-import type { BestiaryEntry } from "@/lib/types";
+import type { BestiaryEntry, Segment } from "@/lib/types";
 import {
   clearAuthCookies, clearNickname, getAuthenticatedNickname, setNicknameCookie,
   setSessionCookie, SESSION_DURATION_MS,
@@ -847,6 +847,35 @@ export async function postPlayEntryAction(fd: FormData): Promise<void> {
              : kindRaw === "system" ? "system"
              : "dialogue";
   const segments = contentToSegments(content);
+  await createPlayEntry({ campaign_id, nickname: nick, character_id, kind, title, segments });
+  revalidatePath(`/campaigns/${campaign_id}/play`);
+}
+
+// 트래커가 클라이언트에서 굴린 결과를 그대로 로그에 기록.
+// segments 는 JSON 으로 전달 (dice segment 등 사전 구성된 구조).
+export async function appendTrackerEntryAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const campaign_id = num(fd, "campaign_id");
+  const character_id_raw = fd.get("character_id");
+  const character_id =
+    character_id_raw && character_id_raw !== "" ? Number(character_id_raw) : null;
+  const title = text(fd, "title", 120) || "(로그)";
+  const kindRaw = text(fd, "kind", 12);
+  const kind: "dialogue" | "narration" | "system" =
+    kindRaw === "narration" ? "narration"
+      : kindRaw === "system" ? "system"
+      : "dialogue";
+  const segmentsJson = text(fd, "segments_json", 6000);
+  let segments: Segment[] = [];
+  if (segmentsJson) {
+    try {
+      const parsed = JSON.parse(segmentsJson);
+      if (Array.isArray(parsed)) segments = parsed as Segment[];
+    } catch {
+      throw new Error("내용 형식이 잘못되었습니다");
+    }
+  }
+  if (segments.length === 0) throw new Error("기록할 내용이 없습니다");
   await createPlayEntry({ campaign_id, nickname: nick, character_id, kind, title, segments });
   revalidatePath(`/campaigns/${campaign_id}/play`);
 }

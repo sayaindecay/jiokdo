@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import type { BestiaryEntry, CocAttrs, CocSkillGroup, DiceLevel } from "@/lib/types";
+import type { BestiaryEntry, CocAttrs, CocSkillGroup, DiceLevel, Segment } from "@/lib/types";
 import { InitiativeTracker, type InitiativeRow } from "@/components/vtt/InitiativeTracker";
-import { judgeCoc, LEVEL_LABEL } from "@/lib/dice";
-import { formatTime } from "@/lib/format";
-import { speakerHueStyle } from "@/lib/hue";
+import { judgeCoc } from "@/lib/dice";
+import { appendTrackerEntryAction } from "@/app/actions";
 
 export type PcLite = {
   id: number;
@@ -27,18 +26,6 @@ type FocusedEntity =
 
 type CombatAction = "attack" | "brawl" | "dodge" | "fightback" | "flee";
 
-type CombatLogEntry = {
-  id: number;
-  ts: number;
-  actor: string;
-  kind: "roll" | "system";
-  label: string;
-  detail?: string;
-  skill_val?: number;
-  roll?: number;
-  level?: DiceLevel;
-};
-
 function rolld(sides: number): number {
   return Math.floor(Math.random() * sides) + 1;
 }
@@ -55,17 +42,17 @@ function getActionForPc(action: CombatAction, c: PcLite, weaponIdx: number) {
   switch (action) {
     case "attack": {
       const w = c.weapons[weaponIdx] ?? c.weapons[0];
-      if (w) return { label: `공격 (${w.name})`, skillVal: w.skill };
-      return { label: "공격 (주먹)", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
+      if (w) return { label: `공격 (${w.name})`, skillName: w.name, skillVal: w.skill };
+      return { label: "공격 (주먹)", skillName: "주먹", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
     }
     case "brawl":
-      return { label: "근접전 액션 (주먹)", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
+      return { label: "근접전 액션 (주먹)", skillName: "주먹", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
     case "dodge":
-      return { label: "회피", skillVal: findSkill(c, ["회피"]) ?? Math.floor(c.attrs.dex / 2) };
+      return { label: "회피", skillName: "회피", skillVal: findSkill(c, ["회피"]) ?? Math.floor(c.attrs.dex / 2) };
     case "fightback":
-      return { label: "반격 (주먹)", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
+      return { label: "반격 (주먹)", skillName: "주먹", skillVal: findSkill(c, ["주먹", "근접전(주먹)"]) ?? 25 };
     case "flee":
-      return { label: "도주 (DEX×5)", skillVal: c.attrs.dex * 5 };
+      return { label: "도주 (DEX×5)", skillName: "DEX×5", skillVal: c.attrs.dex * 5 };
   }
 }
 
@@ -74,18 +61,18 @@ function getActionForNpc(action: CombatAction, e: BestiaryEntry) {
   const dex = Number(e.attrs.dex ?? 50);
   switch (action) {
     case "attack":
-      if (first) return { label: `공격 (${first.name})`, skillVal: first.skill };
-      return { label: "공격", skillVal: dex };
+      if (first) return { label: `공격 (${first.name})`, skillName: first.name, skillVal: first.skill };
+      return { label: "공격", skillName: "공격", skillVal: dex };
     case "brawl":
-      if (first) return { label: `근접전 (${first.name})`, skillVal: first.skill };
-      return { label: "근접전", skillVal: dex };
+      if (first) return { label: `근접전 (${first.name})`, skillName: first.name, skillVal: first.skill };
+      return { label: "근접전", skillName: "근접전", skillVal: dex };
     case "dodge":
-      return { label: "회피", skillVal: Math.floor(dex / 2) };
+      return { label: "회피", skillName: "회피", skillVal: Math.floor(dex / 2) };
     case "fightback":
-      if (first) return { label: `반격 (${first.name})`, skillVal: first.skill };
-      return { label: "반격", skillVal: dex };
+      if (first) return { label: `반격 (${first.name})`, skillName: first.name, skillVal: first.skill };
+      return { label: "반격", skillName: "반격", skillVal: dex };
     case "flee":
-      return { label: "도주 (DEX×5)", skillVal: dex * 5 };
+      return { label: "도주 (DEX×5)", skillName: "DEX×5", skillVal: dex * 5 };
   }
 }
 
@@ -99,12 +86,14 @@ const NPC_ATTR_LABELS: { key: keyof BestiaryEntry["attrs"]; label: string }[] = 
   { key: "dex", label: "DEX" }, { key: "int", label: "INT" }, { key: "pow", label: "POW" },
 ];
 
-export function SceneClient({
+export function TrackerPanel({
+  campaignId,
   initialRows,
   bestiary,
   pcChars,
   keeperChars,
 }: {
+  campaignId: number;
   initialRows: InitiativeRow[];
   bestiary: BestiaryEntry[];
   pcChars: PcLite[];
@@ -119,8 +108,7 @@ export function SceneClient({
   const [addTab, setAddTab] = useState<AddTab>("enemy");
   const [addedCharIds, setAddedCharIds] = useState<number[]>([]);
   const [weaponIdx, setWeaponIdx] = useState(0);
-  const [combatLog, setCombatLog] = useState<CombatLogEntry[]>([]);
-  const [logSeq, setLogSeq] = useState(1);
+  const [, startLog] = useTransition();
 
   const sorted = useMemo(() => [...rows].sort((a, b) => b.dex - a.dex), [rows]);
   const sortedWithActed = useMemo(
@@ -139,12 +127,56 @@ export function SceneClient({
     setTimeout(() => setRoundFlash(false), 700);
   };
 
-  const pushLog = (e: Omit<CombatLogEntry, "id" | "ts">) => {
-    setCombatLog((prev) => [
-      ...prev,
-      { ...e, id: logSeq, ts: Date.now() },
-    ]);
-    setLogSeq((s) => s + 1);
+  // 서버에 로그 기록 (세션 로그에 합쳐서 표시됨)
+  const submitLog = (params: {
+    title: string;
+    kind: "system" | "dialogue" | "narration";
+    segments: Segment[];
+    characterId?: number | null;
+  }) => {
+    const fd = new FormData();
+    fd.set("campaign_id", String(campaignId));
+    if (params.characterId != null) fd.set("character_id", String(params.characterId));
+    fd.set("title", params.title);
+    fd.set("kind", params.kind);
+    fd.set("segments_json", JSON.stringify(params.segments));
+    startLog(async () => {
+      try {
+        await appendTrackerEntryAction(fd);
+      } catch (e) {
+        console.error("[tracker] log append failed", e);
+      }
+    });
+  };
+
+  const logRoll = (
+    actor: string,
+    label: string,
+    skillName: string,
+    skillVal: number,
+    roll: number,
+    level: DiceLevel,
+    characterId: number | null,
+  ) => {
+    const expression = `/cc ${skillName} ${skillVal}`;
+    submitLog({
+      title: characterId != null ? label : `[${actor}] ${label}`,
+      kind: "system",
+      characterId,
+      segments: [
+        {
+          type: "dice",
+          result: {
+            kind: "cc",
+            expression,
+            name: skillName,
+            skill: skillVal,
+            roll,
+            level,
+          },
+        },
+      ],
+    });
   };
 
   const advance = () => {
@@ -156,7 +188,11 @@ export function SceneClient({
       flash();
       const firstLiveIdx = sorted.findIndex((r) => r.id === liveRows[0].id);
       setActiveIndex(firstLiveIdx >= 0 ? firstLiveIdx : 0);
-      pushLog({ kind: "system", actor: "시스템", label: `라운드 ${nextRound} 시작` });
+      submitLog({
+        title: `라운드 ${nextRound} 시작`,
+        kind: "system",
+        segments: [{ type: "text", value: `전원 행동 완료 — 다음 라운드로 진행합니다.` }],
+      });
       return;
     }
     const cur = sorted[activeIndex];
@@ -176,7 +212,11 @@ export function SceneClient({
     flash();
     setActiveIndex(0);
     setRows((prev) => prev.map((r) => ({ ...r, dead: false, hp: r.hp_max })));
-    pushLog({ kind: "system", actor: "시스템", label: "라운드 초기화 — 전원 부활 / HP 복구" });
+    submitLog({
+      title: "라운드 초기화",
+      kind: "system",
+      segments: [{ type: "text", value: "전원 부활 / HP 복구 / 라운드 1." }],
+    });
   };
 
   const damage = (rowId: string, amount: number) => {
@@ -186,7 +226,11 @@ export function SceneClient({
         const hp = Math.max(0, Math.min(r.hp_max, r.hp - amount));
         const died = hp === 0 && !r.dead;
         if (died) {
-          pushLog({ kind: "system", actor: r.name, label: "사망", detail: `HP 0/${r.hp_max}` });
+          submitLog({
+            title: `${r.name} 사망`,
+            kind: "system",
+            segments: [{ type: "text", value: `HP 0/${r.hp_max} — 전투에서 이탈.` }],
+          });
         }
         return { ...r, hp, dead: hp === 0 };
       })
@@ -277,10 +321,16 @@ export function SceneClient({
     }
   };
 
-  const rollAndLog = (actor: string, label: string, skillVal: number) => {
+  const rollAndLog = (
+    actor: string,
+    label: string,
+    skillName: string,
+    skillVal: number,
+    characterId: number | null,
+  ) => {
     const roll = rolld(100);
     const level = judgeCoc(roll, skillVal);
-    pushLog({ kind: "roll", actor, label, skill_val: skillVal, roll, level });
+    logRoll(actor, label, skillName, skillVal, roll, level, characterId);
   };
 
   const fireAction = (action: CombatAction) => {
@@ -289,253 +339,209 @@ export function SceneClient({
       focused.kind === "pc"
         ? getActionForPc(action, focused.char, weaponIdx)
         : getActionForNpc(action, focused.entry);
-    const actor = focused.kind === "pc" ? focused.char.name : (focusedRow?.name ?? focused.entry.name);
-    rollAndLog(actor, setup.label, setup.skillVal);
+    const actor = focusedRow?.name ?? (focused.kind === "pc" ? focused.char.name : focused.entry.name);
+    const characterId = focused.kind === "pc" && focused.rowId.startsWith("pc-")
+      ? focused.char.id
+      : null;
+    rollAndLog(actor, setup.label, setup.skillName, setup.skillVal, characterId);
   };
 
   const focusedActiveStatblockId = focused?.rowId;
 
   return (
-    <>
-      <div className="scene-grid cinematic">
+    <div className="scene-grid cinematic tracker-embed">
+      <div className="stk-panel">
+        <div className="stk-head">
+          <span className="stk-eyebrow">INITIATIVE</span>
+          <span className="stk-title">트래커</span>
+        </div>
+        <div className="stk-body stk-body-flush">
+          <InitiativeTracker
+            rows={sortedWithActed}
+            round={round}
+            activeIndex={activeIndex}
+            roundFlash={roundFlash}
+            allActed={allActed}
+            onAdvance={advance}
+            onReset={reset}
+            onDamage={damage}
+            onRemove={remove}
+            onSelect={onSelect}
+            activeStatblockId={focusedActiveStatblockId}
+          />
+        </div>
+      </div>
+
+      <div className="stk-col">
         <div className="stk-panel">
           <div className="stk-head">
-            <span className="stk-eyebrow">INITIATIVE</span>
-            <span className="stk-title">트래커</span>
+            <span className="stk-eyebrow">ADD · 장면에 등장</span>
+            <span className="stk-title">추가</span>
           </div>
-          <div className="stk-body stk-body-flush">
-            <InitiativeTracker
-              rows={sortedWithActed}
-              round={round}
-              activeIndex={activeIndex}
-              roundFlash={roundFlash}
-              allActed={allActed}
-              onAdvance={advance}
-              onReset={reset}
-              onDamage={damage}
-              onRemove={remove}
-              onSelect={onSelect}
-              activeStatblockId={focusedActiveStatblockId}
-            />
+          <div className="stk-tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={addTab === "enemy"}
+              className={`stk-tab${addTab === "enemy" ? " active" : ""}`}
+              onClick={() => setAddTab("enemy")}
+            >
+              에너미
+              <span className="stk-tab-count">{bestiary.length}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={addTab === "char"}
+              className={`stk-tab${addTab === "char" ? " active" : ""}`}
+              onClick={() => setAddTab("char")}
+              disabled={keeperChars.length === 0}
+              title={keeperChars.length === 0 ? "키퍼 소유 캐릭터 시트가 없습니다" : ""}
+            >
+              내 캐릭터
+              <span className="stk-tab-count">{keeperChars.length}</span>
+            </button>
           </div>
-        </div>
-
-        <div className="stk-col">
-          {/* 장면에 추가 */}
-          <div className="stk-panel">
-            <div className="stk-head">
-              <span className="stk-eyebrow">ADD · 장면에 등장</span>
-              <span className="stk-title">추가</span>
-            </div>
-            <div className="stk-tabs" role="tablist">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={addTab === "enemy"}
-                className={`stk-tab${addTab === "enemy" ? " active" : ""}`}
-                onClick={() => setAddTab("enemy")}
-              >
-                에너미
-                <span className="stk-tab-count">{bestiary.length}</span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={addTab === "char"}
-                className={`stk-tab${addTab === "char" ? " active" : ""}`}
-                onClick={() => setAddTab("char")}
-                disabled={keeperChars.length === 0}
-                title={keeperChars.length === 0 ? "키퍼 소유 캐릭터 시트가 없습니다" : ""}
-              >
-                내 캐릭터
-                <span className="stk-tab-count">{keeperChars.length}</span>
-              </button>
-            </div>
-            {addTab === "enemy" ? (
-              bestiary.length === 0 ? (
-                <div className="stk-empty">
-                  에너미에 등록된 항목이 없습니다.{" "}
-                  <Link href="/bestiary" className="stk-link">
-                    에너미 페이지에서 추가 →
-                  </Link>
-                </div>
-              ) : (
-                <ul className="stk-add-list">
-                  {bestiary.map((b) => (
-                    <li key={b.slug} className="stk-add-row">
-                      <div className="stk-add-main">
-                        <span className="stk-add-name">{b.name}</span>
-                        <span className="stk-add-meta">
-                          HP {b.attrs.hp ?? "?"} · DEX {b.attrs.dex ?? "?"} · {b.category}
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        className="stk-add-btn"
-                        onClick={() => addNpcFromSlug(b.slug)}
-                        aria-label={`${b.name} 추가`}
-                      >
-                        + 추가
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )
-            ) : keeperChars.length === 0 ? (
-              <div className="stk-empty">소유 캐릭터 시트가 없습니다.</div>
+          {addTab === "enemy" ? (
+            bestiary.length === 0 ? (
+              <div className="stk-empty">
+                에너미에 등록된 항목이 없습니다.{" "}
+                <Link href="/bestiary" className="stk-link">에너미 페이지에서 추가 →</Link>
+              </div>
             ) : (
               <ul className="stk-add-list">
-                {keeperChars.map((c) => (
-                  <li key={c.id} className="stk-add-row">
+                {bestiary.map((b) => (
+                  <li key={b.slug} className="stk-add-row">
                     <div className="stk-add-main">
-                      <span className="stk-add-name">{c.name}</span>
+                      <span className="stk-add-name">{b.name}</span>
                       <span className="stk-add-meta">
-                        HP {c.hp_max} · DEX {c.attrs.dex} · {c.occupation || "직업 미기재"}
+                        HP {b.attrs.hp ?? "?"} · DEX {b.attrs.dex ?? "?"} · {b.category}
                       </span>
                     </div>
                     <button
                       type="button"
                       className="stk-add-btn"
-                      onClick={() => addNpcFromChar(c.id)}
-                      aria-label={`${c.name} 추가`}
+                      onClick={() => addNpcFromSlug(b.slug)}
+                      aria-label={`${b.name} 추가`}
                     >
                       + 추가
                     </button>
                   </li>
                 ))}
               </ul>
-            )}
-          </div>
-
-          {/* 포커스 시트 */}
-          {focused ? (
-            <div className="stk-panel">
-              <div className="stk-head">
-                <span className="stk-eyebrow">
-                  FOCUS · {focused.kind === "pc" ? "캐릭터 시트" : "스탯블록"}
-                </span>
-                <span className="stk-title">
-                  {focusedRow?.name ?? (focused.kind === "pc" ? focused.char.name : focused.entry.name)}
-                </span>
-              </div>
-              <div className="stk-body stk-body-flush">
-                {focused.kind === "npc" ? (
-                  <NpcStatSheet
-                    entry={focused.entry}
-                    rowName={focusedRow?.name ?? focused.entry.name}
-                    currentHp={focusedRow?.hp ?? Number(focused.entry.attrs.hp ?? 0)}
-                    hpMax={focusedRow?.hp_max ?? Number(focused.entry.attrs.hp ?? 0)}
-                    onRoll={rollAndLog}
-                  />
-                ) : (
-                  <PcStatSheet
-                    char={focused.char}
-                    actorName={focusedRow?.name ?? focused.char.name}
-                    currentHp={focusedRow?.hp ?? focused.char.hp}
-                    hpMax={focusedRow?.hp_max ?? focused.char.hp_max}
-                    onRoll={rollAndLog}
-                  />
-                )}
-              </div>
-
-              <div className="stk-foot stk-actions stk-combat-actions">
-                <span className="stk-foot-label">전투 액션</span>
-                <button type="button" className="chip" onClick={() => fireAction("attack")}>공격</button>
-                <button type="button" className="chip" onClick={() => fireAction("brawl")}>근접전</button>
-                <button type="button" className="chip" onClick={() => fireAction("dodge")}>회피</button>
-                <button type="button" className="chip" onClick={() => fireAction("fightback")}>반격</button>
-                <button type="button" className="chip" onClick={() => fireAction("flee")}>도주</button>
-              </div>
-
-              {focused.kind === "pc" && focused.char.weapons.length > 1 ? (
-                <div className="stk-weapon-row">
-                  <span className="stk-foot-label">무기 선택</span>
-                  {focused.char.weapons.map((w, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className={`chip${i === weaponIdx ? " accent" : ""}`}
-                      onClick={() => setWeaponIdx(i)}
-                      title={`${w.skill}% · ${w.damage}`}
-                    >
-                      {w.name} {w.skill}%
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
+            )
+          ) : keeperChars.length === 0 ? (
+            <div className="stk-empty">소유 캐릭터 시트가 없습니다.</div>
           ) : (
-            <div className="stk-panel">
-              <div className="stk-head">
-                <span className="stk-eyebrow">FOCUS · 스탯블록</span>
-                <span className="stk-title">선택 대기</span>
-              </div>
-              <div className="stk-empty">
-                트래커에서 이름을 누르거나 위에서 추가하면 시트/스탯블록이 여기에 표시됩니다.
-              </div>
-            </div>
+            <ul className="stk-add-list">
+              {keeperChars.map((c) => (
+                <li key={c.id} className="stk-add-row">
+                  <div className="stk-add-main">
+                    <span className="stk-add-name">{c.name}</span>
+                    <span className="stk-add-meta">
+                      HP {c.hp_max} · DEX {c.attrs.dex} · {c.occupation || "직업 미기재"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="stk-add-btn"
+                    onClick={() => addNpcFromChar(c.id)}
+                    aria-label={`${c.name} 추가`}
+                  >
+                    + 추가
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-      </div>
 
-      <div className="section-head">
-        <h2>전투 로그</h2>
-        <span className="count">{combatLog.length}개</span>
+        {focused ? (
+          <div className="stk-panel">
+            <div className="stk-head">
+              <span className="stk-eyebrow">
+                FOCUS · {focused.kind === "pc" ? "캐릭터 시트" : "스탯블록"}
+              </span>
+              <span className="stk-title">
+                {focusedRow?.name ?? (focused.kind === "pc" ? focused.char.name : focused.entry.name)}
+              </span>
+            </div>
+            <div className="stk-body stk-body-flush">
+              {focused.kind === "npc" ? (
+                <NpcStatSheet
+                  entry={focused.entry}
+                  rowName={focusedRow?.name ?? focused.entry.name}
+                  currentHp={focusedRow?.hp ?? Number(focused.entry.attrs.hp ?? 0)}
+                  hpMax={focusedRow?.hp_max ?? Number(focused.entry.attrs.hp ?? 0)}
+                  onRoll={(actor, label, skillName, skillVal) =>
+                    rollAndLog(actor, label, skillName, skillVal, null)
+                  }
+                />
+              ) : (
+                <PcStatSheet
+                  char={focused.char}
+                  actorName={focusedRow?.name ?? focused.char.name}
+                  currentHp={focusedRow?.hp ?? focused.char.hp}
+                  hpMax={focusedRow?.hp_max ?? focused.char.hp_max}
+                  characterId={focused.rowId.startsWith("pc-") ? focused.char.id : null}
+                  onRoll={rollAndLog}
+                />
+              )}
+            </div>
+
+            <div className="stk-foot stk-actions stk-combat-actions">
+              <span className="stk-foot-label">전투 액션</span>
+              <button type="button" className="chip" onClick={() => fireAction("attack")}>공격</button>
+              <button type="button" className="chip" onClick={() => fireAction("brawl")}>근접전</button>
+              <button type="button" className="chip" onClick={() => fireAction("dodge")}>회피</button>
+              <button type="button" className="chip" onClick={() => fireAction("fightback")}>반격</button>
+              <button type="button" className="chip" onClick={() => fireAction("flee")}>도주</button>
+            </div>
+
+            {focused.kind === "pc" && focused.char.weapons.length > 1 ? (
+              <div className="stk-weapon-row">
+                <span className="stk-foot-label">무기 선택</span>
+                {focused.char.weapons.map((w, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={`chip${i === weaponIdx ? " accent" : ""}`}
+                    onClick={() => setWeaponIdx(i)}
+                    title={`${w.skill}% · ${w.damage}`}
+                  >
+                    {w.name} {w.skill}%
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div className="stk-panel">
+            <div className="stk-head">
+              <span className="stk-eyebrow">FOCUS · 스탯블록</span>
+              <span className="stk-title">선택 대기</span>
+            </div>
+            <div className="stk-empty">
+              트래커에서 이름을 누르거나 위에서 추가하면 시트/스탯블록이 여기에 표시됩니다.
+            </div>
+          </div>
+        )}
       </div>
-      {combatLog.length === 0 ? (
-        <div className="empty">전투 액션 · 굴림 · 사망 / 라운드 변동이 여기에 누적됩니다.</div>
-      ) : (
-        <ul className="post-board combat-log">
-          {[...combatLog].reverse().map((e) => {
-            const isSystem = e.kind === "system";
-            const tagClass = isSystem ? "system" : "narration";
-            return (
-              <li
-                key={e.id}
-                className={`post-board-row kind-${tagClass}`}
-                style={speakerHueStyle(e.actor)}
-              >
-                <div className="pb-link pb-static">
-                  <span className={`kind-tag kind-${tagClass}`}>
-                    {isSystem ? "시스템" : "굴림"}
-                  </span>
-                  <span className="pb-title">
-                    {e.label}
-                    {e.kind === "roll" && e.skill_val != null ? (
-                      <>
-                        {" "}
-                        <span className="cl-skill">{e.skill_val}%</span>
-                        {" → "}
-                        <span className="cl-roll">{e.roll}</span>{" "}
-                        <span className={`cl-level level ${e.level ?? "fail"}`}>
-                          {e.level ? LEVEL_LABEL[e.level] : ""}
-                        </span>
-                      </>
-                    ) : e.detail ? (
-                      <span className="cl-detail">{" · " + e.detail}</span>
-                    ) : null}
-                  </span>
-                  {e.kind === "roll" ? <span className="pb-dice-mark">⌬</span> : null}
-                  <span className="pb-author">{e.actor}</span>
-                  <span className="pb-time">{formatTime(e.ts)}</span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </>
+    </div>
   );
 }
 
 function PcStatSheet({
-  char, actorName, currentHp, hpMax, onRoll,
+  char, actorName, currentHp, hpMax, characterId, onRoll,
 }: {
   char: PcLite;
   actorName: string;
   currentHp: number;
   hpMax: number;
-  onRoll: (actor: string, label: string, skillVal: number) => void;
+  characterId: number | null;
+  onRoll: (
+    actor: string, label: string, skillName: string, skillVal: number, characterId: number | null,
+  ) => void;
 }) {
   const a = char.attrs;
   return (
@@ -549,7 +555,7 @@ function PcStatSheet({
                 key={key}
                 type="button"
                 className="stat-cell-btn"
-                onClick={() => onRoll(actorName, label, v)}
+                onClick={() => onRoll(actorName, label, label, v, characterId)}
                 title={`${label} ${v}% 굴림`}
               >
                 <div className="k">{label}</div>
@@ -572,7 +578,7 @@ function PcStatSheet({
                   type="button"
                   className="attack-row attack-row-btn"
                   key={i}
-                  onClick={() => onRoll(actorName, `공격 (${w.name})`, w.skill)}
+                  onClick={() => onRoll(actorName, `공격 (${w.name})`, w.name, w.skill, characterId)}
                   title={`${w.name} ${w.skill}% 굴림`}
                 >
                   <span className="name">{w.name}</span>
@@ -593,7 +599,7 @@ function PcStatSheet({
                   <button
                     type="button"
                     className="pc-skill-btn"
-                    onClick={() => onRoll(actorName, s.name, s.value)}
+                    onClick={() => onRoll(actorName, s.name, s.name, s.value, characterId)}
                     title={`${s.name} ${s.value}% 굴림`}
                   >
                     <span className="pc-skill-name">{s.name}</span>
@@ -616,7 +622,7 @@ function NpcStatSheet({
   rowName: string;
   currentHp: number;
   hpMax: number;
-  onRoll: (actor: string, label: string, skillVal: number) => void;
+  onRoll: (actor: string, label: string, skillName: string, skillVal: number) => void;
 }) {
   const a = entry.attrs;
   return (
@@ -632,7 +638,7 @@ function NpcStatSheet({
                 key={key}
                 type="button"
                 className="stat-cell-btn"
-                onClick={() => onRoll(rowName, label, num)}
+                onClick={() => onRoll(rowName, label, label, num)}
                 title={`${label} ${num}% 굴림`}
               >
                 <div className="k">{label}</div>
@@ -667,7 +673,7 @@ function NpcStatSheet({
                   type="button"
                   className="attack-row attack-row-btn"
                   key={i}
-                  onClick={() => onRoll(rowName, `공격 (${atk.name})`, atk.skill)}
+                  onClick={() => onRoll(rowName, `공격 (${atk.name})`, atk.name, atk.skill)}
                   title={`${atk.name} ${atk.skill}% 굴림`}
                 >
                   <span className="name">{atk.name}</span>
@@ -688,7 +694,7 @@ function NpcStatSheet({
                   <button
                     type="button"
                     className="pc-skill-btn"
-                    onClick={() => onRoll(rowName, s.name, s.value)}
+                    onClick={() => onRoll(rowName, s.name, s.name, s.value)}
                     title={`${s.name} ${s.value}% 굴림`}
                   >
                     <span className="pc-skill-name">{s.name}</span>
