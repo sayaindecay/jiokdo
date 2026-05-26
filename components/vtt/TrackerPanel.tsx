@@ -749,14 +749,22 @@ export function TrackerPanel({
 
             {focused.kind === "pc" && focused.char.weapons.length > 1 ? (
               <div className="stk-weapon-row">
-                <span className="stk-foot-label">무기 선택</span>
+                <span className="stk-foot-label">무기로 공격</span>
                 {focused.char.weapons.map((w, i) => (
                   <button
                     key={i}
                     type="button"
                     className={`chip${i === weaponIdx ? " accent" : ""}`}
-                    onClick={() => setWeaponIdx(i)}
-                    title={`${w.skill}% · ${w.damage}`}
+                    onClick={() => {
+                      setWeaponIdx(i);
+                      if (focused.kind !== "pc") return;
+                      const actor = focusedRow?.name ?? focused.char.name;
+                      const characterId = focused.rowId.startsWith("pc-")
+                        ? focused.char.id
+                        : null;
+                      rollAndLog(actor, `공격 (${w.name})`, w.name, w.skill, characterId);
+                    }}
+                    title={`${w.name} ${w.skill}% 굴림 (피해 ${w.damage})`}
                   >
                     {w.name} {w.skill}%
                   </button>
