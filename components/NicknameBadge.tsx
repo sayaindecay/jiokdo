@@ -31,7 +31,6 @@ export function NicknameBadge({
           href="/account"
           className="nick-badge-inner"
           title="내 계정"
-          style={{ color: "var(--ink)" }}
         >
           <span className="dot" aria-hidden="true" />
           {nickname}

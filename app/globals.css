@@ -2678,7 +2678,10 @@ body:has(.scene-side) .nick-badge {
   border-color: rgba(245, 243, 238, 0.18);
   color: var(--bg-elev);
 }
-body:has(.scene-side) .nick-badge-inner { color: var(--bg-elev); }
+body:has(.scene-side) .nick-badge-inner { color: rgba(245, 243, 238, 0.92); }
+body:has(.scene-side) .site-header .brand-ko {
+  color: rgba(245, 243, 238, 0.92);
+}
 body:has(.scene-side) .link-btn { color: rgba(245, 243, 238, 0.55); }
 body:has(.scene-side) .breadcrumb { color: rgba(245, 243, 238, 0.55); }
 body:has(.scene-side) .breadcrumb a { color: rgba(245, 243, 238, 0.75); }
@@ -4162,25 +4165,132 @@ select:focus-visible {
   letter-spacing: 0.02em;
 }
 
-/* 세션 로그 row — 화자 hue stripe + 키퍼 표시 */
-body:has(.scene-side) .session-row {
-  --hue: 8;
-  border-left: 3px solid hsl(var(--hue), 50%, 55%, 0.7);
-  padding-left: 0.85rem;
+/* 세션 로그 — 게시판 스타일 (.session-post) */
+.session-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0.5rem 0 1rem;
 }
-body:has(.scene-side) .session-row.is-keeper {
+.session-post {
+  --hue: 8;
+  background: rgba(245, 243, 238, 0.04);
+  border: 1px solid rgba(245, 243, 238, 0.14);
+  border-left: 3px solid hsl(var(--hue), 50%, 55%, 0.7);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.95rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.session-post.is-keeper {
   border-left-color: var(--accent);
 }
-body:has(.scene-side) .session-row.kind-narration {
-  background: rgba(193, 78, 78, 0.04);
+.session-post.kind-narration {
+  background: rgba(193, 78, 78, 0.06);
 }
-.session-row .ks-crown {
-  color: var(--accent);
+.session-post.kind-system {
+  background: rgba(160, 126, 196, 0.06);
+  border-left-color: var(--purple);
+}
+
+.session-post .sp-head {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: rgba(245, 243, 238, 0.55);
+  padding-bottom: 0.45rem;
+  border-bottom: 1px dashed rgba(245, 243, 238, 0.12);
+}
+.session-post .sp-head .kind-tag {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 243, 238, 0.18);
+  background: rgba(245, 243, 238, 0.06);
+  color: rgba(245, 243, 238, 0.7);
   font-weight: 700;
+  flex-shrink: 0;
+}
+.session-post .sp-head .kind-tag.kind-narration {
+  background: rgba(193, 78, 78, 0.25);
+  border-color: rgba(193, 78, 78, 0.4);
+  color: #f0a8a8;
+}
+.session-post .sp-head .kind-tag.kind-system {
+  background: rgba(160, 126, 196, 0.25);
+  border-color: rgba(160, 126, 196, 0.4);
+  color: #cfb6e8;
+}
+.session-post .sp-head .sp-author {
+  font-weight: 700;
+  color: rgba(245, 243, 238, 0.92);
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+}
+.session-post.is-keeper .sp-head .sp-author { color: #f0a8a8; }
+.session-post .sp-head .sp-author .ks-crown {
+  color: var(--accent);
   margin-right: 0.15rem;
 }
-body:has(.scene-side) .session-row .ks-crown {
-  color: #f0a8a8;
+.session-post .sp-head .sp-time {
+  margin-left: auto;
+  color: rgba(245, 243, 238, 0.45);
+}
+
+.session-post .sp-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.session-post .sp-text {
+  font-family: var(--font-kr, var(--font-anno));
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(245, 243, 238, 0.92);
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.session-post.kind-narration .sp-text {
+  font-style: italic;
+}
+
+.session-post .sp-dice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  background: rgba(245, 243, 238, 0.06);
+  border: 1px solid rgba(245, 243, 238, 0.16);
+  border-radius: 4px;
+  padding: 0.45rem 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: rgba(245, 243, 238, 0.85);
+  align-self: flex-start;
+}
+.session-post .sp-dice-icon {
+  color: var(--accent);
+  font-size: 0.95rem;
+}
+.session-post .sp-dice-expr { color: rgba(245, 243, 238, 0.7); }
+.session-post .sp-dice-arrow { color: rgba(245, 243, 238, 0.4); }
+.session-post .sp-dice-total {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.95rem;
+}
+.session-post .sp-dice-level {
+  margin-left: 0.2rem;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.45rem;
 }
 
 /* 내 시트 패널 (플레이 사이드바) — Roll20 스타일 */
@@ -6292,7 +6402,11 @@ body:has(.scene-side) .session-row .ks-crown {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-.play-composer-sticky .composer-bar .kind-picker { gap: 0.25rem; }
+.play-composer-sticky .composer-bar .kind-picker {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
 .play-composer-sticky .composer-bar .kind-pill {
   background: rgba(245, 243, 228, 0.08);
   border-color: rgba(245, 243, 228, 0.2);

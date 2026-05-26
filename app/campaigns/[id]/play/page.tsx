@@ -12,41 +12,12 @@ import { CluesPanel, SceneRoster } from "@/components/vtt/SceneRoster";
 import { MySheetPanel } from "@/components/vtt/MySheetPanel";
 import { PlayComposerSticky } from "@/components/vtt/PlayComposerSticky";
 import { speakerHueStyle } from "@/lib/hue";
-import type { PlayEntry, Segment } from "@/lib/types";
+import type { PlayEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type DiceMini =
-  | { kind: "cc"; expr: string; total: number; level: string; level_label: string }
-  | { kind: "roll"; notation: string; total: number };
-
-function diceMini(segs: Segment[]): DiceMini[] {
-  const out: DiceMini[] = [];
-  for (const s of segs) {
-    if (s.type !== "dice") continue;
-    const r = s.result;
-    if (r.kind === "cc") {
-      out.push({
-        kind: "cc",
-        expr: `${r.name ? `${r.name} ` : ""}d100≤${r.skill} → ${r.roll}`,
-        total: r.roll,
-        level: r.level,
-        level_label: LEVEL_LABEL[r.level],
-      });
-    } else {
-      out.push({ kind: "roll", notation: r.notation, total: r.total });
-    }
-  }
-  return out;
-}
-
-function textFromSegs(segs: Segment[]): string {
-  const t = segs.find((s) => s.type === "text") as { type: "text"; value: string } | undefined;
-  return t ? t.value : "";
-}
-
 function kindLabel(k: string): string {
-  if (k === "narration") return "묘사";
+  if (k === "narration") return "내레이션";
   if (k === "system") return "시스템";
   return "발화";
 }
@@ -84,7 +55,8 @@ export default async function PlayPage({
     lastEntryAuthor !== myCharName &&
     lastEntryAuthor !== nick;
 
-  const recentEntries = [...entries].reverse().slice(0, 8);
+  // 게시판 스타일 — 오래된 것 → 최신 (composer 가 화면 하단이라 spatial 흐름이 자연스러움)
+  const recentEntries = entries.slice(-12);
 
   return (
     <div className="play-shell">
@@ -126,47 +98,58 @@ export default async function PlayPage({
           아직 기록이 없습니다. {isMember ? "아래 composer에서 첫 글을 남겨보세요." : "이 캠페인의 멤버가 아닙니다."}
         </div>
       ) : (
-        <div className="post-list session-log">
+        <div className="session-log">
           {recentEntries.map((e) => {
-            const dice = diceMini(e.segments);
-            const text = textFromSegs(e.segments);
             const author = e.character_name || e.nickname;
-            const preview = text ? text.slice(0, 80) : null;
             const isKeeperEntry = e.nickname === camp.keeper_nick;
             return (
-              <div
-                className={`post-row session-row kind-${e.kind}${isKeeperEntry ? " is-keeper" : ""}`}
+              <article
+                className={`session-post kind-${e.kind}${isKeeperEntry ? " is-keeper" : ""}`}
                 key={e.id}
                 style={speakerHueStyle(author)}
               >
-                <div className="session-row-main">
+                <header className="sp-head">
                   <span className={`kind-tag kind-${e.kind}`}>{kindLabel(e.kind)}</span>
-                  <span className="session-author">
+                  <span className="sp-author">
                     {isKeeperEntry ? <span aria-hidden="true" className="ks-crown">♛ </span> : null}
                     {author}
                   </span>
-                  {preview ? <span className="session-preview">{preview}{text.length > 80 ? "…" : ""}</span> : null}
-                  {/* 5.7 dice 결과 인라인 chip */}
-                  {dice.length > 0 ? (
-                    <span className="session-dice-row">
-                      {dice.map((d, i) =>
-                        d.kind === "cc" ? (
-                          <span key={i} className={`session-dice cc level ${d.level}`} title={d.expr}>
-                            <span className="dice-icon" aria-hidden="true">⌬</span>
-                            {d.level_label} · {d.total}
+                  <span className="sp-time">{formatTime(e.created_at)}</span>
+                </header>
+                <div className="sp-body">
+                  {e.segments.map((seg, i) => {
+                    if (seg.type === "text") {
+                      return (
+                        <p key={i} className="sp-text">{seg.value}</p>
+                      );
+                    }
+                    const r = seg.result;
+                    if (r.kind === "cc") {
+                      return (
+                        <div key={i} className={`sp-dice cc level ${r.level}`}>
+                          <span className="sp-dice-icon" aria-hidden="true">⌬</span>
+                          <span className="sp-dice-expr">
+                            {r.name ? `${r.name} (${r.skill})` : `1d100 ≤ ${r.skill}`}
                           </span>
-                        ) : (
-                          <span key={i} className="session-dice plain" title={d.notation}>
-                            <span className="dice-icon" aria-hidden="true">⌬</span>
-                            {d.notation} = {d.total}
+                          <span className="sp-dice-arrow" aria-hidden="true">→</span>
+                          <span className="sp-dice-total">{r.roll}</span>
+                          <span className={`sp-dice-level level ${r.level}`}>
+                            {LEVEL_LABEL[r.level]}
                           </span>
-                        )
-                      )}
-                    </span>
-                  ) : null}
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={i} className="sp-dice plain">
+                        <span className="sp-dice-icon" aria-hidden="true">⌬</span>
+                        <span className="sp-dice-expr">{r.notation}</span>
+                        <span className="sp-dice-arrow" aria-hidden="true">=</span>
+                        <span className="sp-dice-total">{r.total}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="session-meta">{formatTime(e.created_at)}</div>
-              </div>
+              </article>
             );
           })}
         </div>
