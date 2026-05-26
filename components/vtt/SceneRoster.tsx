@@ -1,4 +1,8 @@
+"use client";
+
+import { useState, useTransition } from "react";
 import type { CampaignMember, Character, Clue } from "@/lib/types";
+import { createClueAction, deleteClueAction, toggleClueAction } from "@/app/actions";
 
 export function SceneRoster({
   members, characters, myNick,
@@ -44,26 +48,188 @@ export function SceneRoster({
   );
 }
 
-export function CluesPanel({ clues }: { clues: Clue[] }) {
+export function CluesPanel({
+  clues,
+  campaignId,
+  isKeeper,
+}: {
+  clues: Clue[];
+  campaignId: number;
+  isKeeper: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [pending, start] = useTransition();
+
+  const unresolved = clues.filter((c) => !c.resolved);
+  const resolved = clues.filter((c) => c.resolved);
+
+  const submitNew = () => {
+    if (!title.trim()) return;
+    const fd = new FormData();
+    fd.set("campaign_id", String(campaignId));
+    fd.set("title", title);
+    fd.set("body", body);
+    start(async () => {
+      try {
+        await createClueAction(fd);
+        setTitle("");
+        setBody("");
+        setOpen(false);
+      } catch {
+        // ignore — keep form open
+      }
+    });
+  };
+
+  const toggle = (clueId: number, resolved: boolean) => {
+    const fd = new FormData();
+    fd.set("campaign_id", String(campaignId));
+    fd.set("clue_id", String(clueId));
+    fd.set("resolved", resolved ? "1" : "0");
+    start(async () => { await toggleClueAction(fd); });
+  };
+
+  const remove = (clueId: number) => {
+    if (!confirm("이 단서를 삭제할까요?")) return;
+    const fd = new FormData();
+    fd.set("campaign_id", String(campaignId));
+    fd.set("clue_id", String(clueId));
+    start(async () => { await deleteClueAction(fd); });
+  };
+
   return (
-    <div className="scene-roster">
-      <div className="head">이 장면의 단서</div>
-      {clues.length === 0 ? (
-        <div className="member" style={{ display: "block", padding: "0.7rem 0.85rem", opacity: 0.6 }}>
-          <div className="name">아직 등록된 단서가 없습니다.</div>
-        </div>
-      ) : (
-        clues.slice(0, 5).map((c) => (
-          <div className="member" key={c.id} style={{ display: "block", padding: "0.7rem 0.85rem" }}>
-            <div className="name">📌 {c.title}</div>
-            {c.body ? (
-              <div className="info" style={{ fontFamily: "inherit", color: "var(--text-dim)", marginTop: "0.1rem" }}>
-                {c.body}
-              </div>
-            ) : null}
+    <div className="scene-roster clues-panel">
+      <div className="head clues-head">
+        <span>단서 · {clues.length}개</span>
+        {isKeeper && !open ? (
+          <button
+            type="button"
+            className="clues-add-btn"
+            onClick={() => setOpen(true)}
+            title="단서 추가"
+          >
+            + 추가
+          </button>
+        ) : null}
+      </div>
+
+      {open && isKeeper ? (
+        <div className="clue-form">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="단서 제목"
+            maxLength={120}
+            autoFocus
+            disabled={pending}
+          />
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="내용 (선택)"
+            maxLength={1200}
+            rows={2}
+            disabled={pending}
+          />
+          <div className="clue-form-actions">
+            <button
+              type="button"
+              className="btn primary"
+              onClick={submitNew}
+              disabled={pending || !title.trim()}
+            >
+              {pending ? "저장…" : "추가"}
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => { setOpen(false); setTitle(""); setBody(""); }}
+              disabled={pending}
+            >
+              취소
+            </button>
           </div>
-        ))
-      )}
+        </div>
+      ) : null}
+
+      {clues.length === 0 && !open ? (
+        <div className="member clue-empty">
+          <div className="name">
+            {isKeeper ? "아직 등록된 단서가 없습니다." : "단서가 공개되면 여기에 표시됩니다."}
+          </div>
+        </div>
+      ) : null}
+
+      {unresolved.length > 0 ? (
+        <>
+          {unresolved.map((c) => (
+            <ClueRow
+              key={c.id}
+              clue={c}
+              isKeeper={isKeeper}
+              onToggle={() => toggle(c.id, true)}
+              onDelete={() => remove(c.id)}
+            />
+          ))}
+        </>
+      ) : null}
+
+      {resolved.length > 0 ? (
+        <details className="clues-resolved">
+          <summary>해결된 단서 {resolved.length}개</summary>
+          {resolved.map((c) => (
+            <ClueRow
+              key={c.id}
+              clue={c}
+              isKeeper={isKeeper}
+              onToggle={() => toggle(c.id, false)}
+              onDelete={() => remove(c.id)}
+            />
+          ))}
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
+function ClueRow({
+  clue, isKeeper, onToggle, onDelete,
+}: {
+  clue: Clue;
+  isKeeper: boolean;
+  onToggle: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <div className={`member clue-row${clue.resolved ? " is-resolved" : ""}`}>
+      <button
+        type="button"
+        className="clue-check"
+        onClick={onToggle}
+        disabled={!isKeeper}
+        title={isKeeper ? (clue.resolved ? "미해결로 되돌리기" : "해결로 표시") : "키퍼만 표시 가능"}
+        aria-label={clue.resolved ? "해결됨" : "미해결"}
+      >
+        {clue.resolved ? "✓" : "·"}
+      </button>
+      <div className="clue-text">
+        <div className="name">📌 {clue.title}</div>
+        {clue.body ? <div className="info">{clue.body}</div> : null}
+      </div>
+      {isKeeper ? (
+        <button
+          type="button"
+          className="clue-delete"
+          onClick={onDelete}
+          title="단서 삭제"
+          aria-label="삭제"
+        >
+          ×
+        </button>
+      ) : null}
     </div>
   );
 }

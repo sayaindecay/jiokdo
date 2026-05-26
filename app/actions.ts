@@ -10,6 +10,7 @@ import {
   deleteCharacter, deleteOtherUserSessions, deleteUser, deleteUserSession,
   findUser, getBestiaryEntry, getCampaign, getCampaignByCode, getCharacter,
   isBestiarySlugTaken, joinCampaign, listKeperCampaigns, touchUserLogin,
+  createClue, deleteClue, setClueResolved,
   setCampaignIllustration, setCharacterPortrait,
   updateBestiaryEntry, updateCampaignProfile, updateCharacterProfile, updateCharacterVitals,
   updateUserPassword,
@@ -431,6 +432,46 @@ export async function updateCharacterProfileAction(fd: FormData): Promise<void> 
   });
   revalidatePath(`/characters/${id}`);
   redirect(`/characters/${id}`);
+}
+
+export async function createClueAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const id = num(fd, "campaign_id");
+  const camp = await getCampaign(id);
+  if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
+  if (camp.keeper_nick !== nick) throw new Error("키퍼만 단서를 추가할 수 있습니다");
+  const title = text(fd, "title", 120);
+  if (!title) throw new Error("제목을 입력하세요");
+  const body = text(fd, "body", 1200);
+  await createClue({ campaign_id: id, title, body });
+  revalidatePath(`/campaigns/${id}/play`);
+  revalidatePath(`/campaigns/${id}/scene`);
+  revalidatePath(`/campaigns/${id}`);
+}
+
+export async function toggleClueAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const campaignId = num(fd, "campaign_id");
+  const clueId = num(fd, "clue_id");
+  const resolved = fd.get("resolved") === "1";
+  const camp = await getCampaign(campaignId);
+  if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
+  if (camp.keeper_nick !== nick) throw new Error("키퍼만 단서를 수정할 수 있습니다");
+  await setClueResolved(clueId, resolved);
+  revalidatePath(`/campaigns/${campaignId}/play`);
+  revalidatePath(`/campaigns/${campaignId}/scene`);
+}
+
+export async function deleteClueAction(fd: FormData): Promise<void> {
+  const nick = await requireAuthenticatedNickname();
+  const campaignId = num(fd, "campaign_id");
+  const clueId = num(fd, "clue_id");
+  const camp = await getCampaign(campaignId);
+  if (!camp) throw new Error("캠페인을 찾을 수 없습니다");
+  if (camp.keeper_nick !== nick) throw new Error("키퍼만 단서를 삭제할 수 있습니다");
+  await deleteClue(clueId);
+  revalidatePath(`/campaigns/${campaignId}/play`);
+  revalidatePath(`/campaigns/${campaignId}/scene`);
 }
 
 export async function setCharacterPortraitAction(fd: FormData): Promise<void> {

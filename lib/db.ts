@@ -986,6 +986,29 @@ export async function listClues(campaignId: number): Promise<Clue[]> {
   }));
 }
 
+export async function createClue(input: {
+  campaign_id: number; title: string; body: string;
+}): Promise<number> {
+  await ensureReady();
+  const res = await client.execute({
+    sql: `INSERT INTO clues (campaign_id, session_id, title, body, resolved, created_at)
+          VALUES (?, NULL, ?, ?, 0, ?)`,
+    args: [input.campaign_id, input.title, input.body, Date.now()],
+  });
+  return Number(res.lastInsertRowid);
+}
+export async function setClueResolved(id: number, resolved: boolean): Promise<void> {
+  await ensureReady();
+  await client.execute({
+    sql: "UPDATE clues SET resolved = ? WHERE id = ?",
+    args: [resolved ? 1 : 0, id],
+  });
+}
+export async function deleteClue(id: number): Promise<void> {
+  await ensureReady();
+  await client.execute({ sql: "DELETE FROM clues WHERE id = ?", args: [id] });
+}
+
 export async function listActivityFor(nick: string, limit = 8): Promise<ActivityItem[]> {
   await ensureReady();
   const res = await client.execute({

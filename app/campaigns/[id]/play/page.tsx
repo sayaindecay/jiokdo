@@ -10,6 +10,7 @@ import { LEVEL_LABEL } from "@/lib/dice";
 import { SceneStage } from "@/components/vtt/SceneStage";
 import { CluesPanel, SceneRoster } from "@/components/vtt/SceneRoster";
 import { PlayComposerSticky } from "@/components/vtt/PlayComposerSticky";
+import { speakerHueStyle } from "@/lib/hue";
 import type { PlayEntry, Segment } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -69,12 +70,17 @@ export default async function PlayPage({
   const isMember = nick != null && members.some((m) => m.nickname === nick);
   const myChar = nick ? characters.find((c) => c.owner_nick === nick) ?? null : null;
   const currentSession = sessions[0] ?? null;
-
-  // 가장 최근 → 옛 순서의 묘사 흐름 (5.2)
-  const narrationHistory: PlayEntry[] = [...entries]
-    .reverse()
-    .filter((e) => e.kind === "narration")
-    .slice(0, 3);
+  const isKeeper = nick != null && nick === camp.keeper_nick;
+  const lastEntry: PlayEntry | null = entries.length > 0 ? entries[entries.length - 1] : null;
+  const lastEntryAuthor = lastEntry
+    ? (lastEntry.character_name || lastEntry.nickname)
+    : null;
+  const myCharName = myChar?.name ?? null;
+  const isMyTurn =
+    isMember &&
+    lastEntry != null &&
+    lastEntryAuthor !== myCharName &&
+    lastEntryAuthor !== nick;
 
   const recentEntries = [...entries].reverse().slice(0, 8);
 
@@ -96,14 +102,14 @@ export default async function PlayPage({
         <SceneStage
           campaign={camp}
           session={currentSession}
-          narrationHistory={narrationHistory}
+          lastEntry={lastEntry}
           myCharacter={myChar}
-          onlineCount={members.length}
-          isKeeper={nick === camp.keeper_nick}
+          memberCount={members.length}
+          isKeeper={isKeeper}
         />
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <SceneRoster members={members} characters={characters} myNick={nick} />
-          <CluesPanel clues={clues} />
+          <CluesPanel clues={clues} campaignId={id} isKeeper={isKeeper} />
         </div>
       </div>
 
@@ -124,11 +130,19 @@ export default async function PlayPage({
             const text = textFromSegs(e.segments);
             const author = e.character_name || e.nickname;
             const preview = text ? text.slice(0, 80) : null;
+            const isKeeperEntry = e.nickname === camp.keeper_nick;
             return (
-              <div className={`post-row session-row kind-${e.kind}`} key={e.id}>
+              <div
+                className={`post-row session-row kind-${e.kind}${isKeeperEntry ? " is-keeper" : ""}`}
+                key={e.id}
+                style={speakerHueStyle(author)}
+              >
                 <div className="session-row-main">
                   <span className={`kind-tag kind-${e.kind}`}>{kindLabel(e.kind)}</span>
-                  <span className="session-author">{author}</span>
+                  <span className="session-author">
+                    {isKeeperEntry ? <span aria-hidden="true" className="ks-crown">♛ </span> : null}
+                    {author}
+                  </span>
                   {preview ? <span className="session-preview">{preview}{text.length > 80 ? "…" : ""}</span> : null}
                   {/* 5.7 dice 결과 인라인 chip */}
                   {dice.length > 0 ? (
@@ -166,7 +180,9 @@ export default async function PlayPage({
                   .map((c) => ({ id: c.id, name: c.name }))
               : []
           }
-          isKeeper={nick === camp.keeper_nick}
+          isKeeper={isKeeper}
+          isMyTurn={isMyTurn}
+          hasEntries={entries.length > 0}
         />
       ) : (
         <div className="empty" style={{ marginTop: "1.25rem" }}>

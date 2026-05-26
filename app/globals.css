@@ -3921,6 +3921,303 @@ select:focus-visible {
   margin: 0 0 0.6rem;
 }
 
+/* ════════════════════════════════════════════════
+   플레이 화면 사용성 개선 (9개 묶음)
+   ════════════════════════════════════════════════ */
+
+/* SceneStage 최근 활동 메타 */
+.scene-top-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.scene-members {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: rgba(245, 243, 238, 0.65);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+.scene-last-activity {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  align-self: flex-start;
+  margin: 0 1rem 0.5rem;
+  padding: 0.32rem 0.7rem 0.32rem 0.55rem;
+  background: rgba(245, 243, 238, 0.08);
+  border: 1px solid rgba(245, 243, 238, 0.18);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: rgba(245, 243, 238, 0.85);
+  letter-spacing: 0.02em;
+  max-width: calc(100% - 2rem);
+  overflow: hidden;
+}
+.scene-last-activity .sla-kind {
+  font-weight: 700;
+  padding: 0.08rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(245, 243, 238, 0.12);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.scene-last-activity .sla-kind.kind-narration {
+  background: rgba(193, 78, 78, 0.25);
+  color: #f0a8a8;
+}
+.scene-last-activity .sla-kind.kind-system {
+  background: rgba(160, 126, 196, 0.25);
+  color: #cfb6e8;
+}
+.scene-last-activity .sla-who {
+  color: #fff;
+  font-weight: 600;
+}
+.scene-last-activity .sla-when {
+  color: rgba(245, 243, 238, 0.55);
+}
+
+/* compact mode — 일러스트 없음 + 비키퍼 시 SceneStage 축소 */
+.scene.scene-compact {
+  min-height: auto;
+  padding-bottom: 0;
+}
+.scene.scene-compact .scene-center { display: none; }
+
+/* Composer — kind picker pill 재디자인 (아이콘 + 라벨 + 부제) */
+.kind-pill {
+  display: inline-flex !important;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.05rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  background: rgba(245, 243, 238, 0.06);
+  border: 1.5px solid rgba(245, 243, 238, 0.16);
+  color: rgba(245, 243, 238, 0.7);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all var(--tx-fast);
+  text-align: left;
+  line-height: 1.2;
+}
+.kind-pill.dim {
+  opacity: 0.6;
+}
+.kind-pill .kp-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  margin-right: 0.25rem;
+  display: inline-block;
+}
+.kind-pill .kp-label {
+  display: inline;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.kind-pill .kp-sub {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: rgba(245, 243, 238, 0.45);
+  letter-spacing: 0.04em;
+  margin-top: 0.05rem;
+}
+.kind-pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  opacity: 1;
+}
+.kind-pill.active .kp-sub { color: rgba(255, 255, 255, 0.7); }
+.kind-pill:hover:not(.active) {
+  background: rgba(245, 243, 238, 0.12);
+  color: #fff;
+}
+@media (max-width: 720px) {
+  .kind-pill .kp-sub { display: none; }
+  .kind-pill { padding: 0.4rem 0.55rem; }
+}
+
+/* Composer nudge (첫 글 안내 / 응답 차례 안내) */
+.composer-nudge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.8rem;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  font-family: var(--font-anno);
+  font-size: 0.88rem;
+  color: rgba(245, 243, 238, 0.9);
+  margin-bottom: 0.6rem;
+}
+.composer-nudge.first {
+  background: rgba(214, 184, 122, 0.12);
+  border-left-color: var(--gold);
+  color: rgba(245, 243, 238, 0.92);
+}
+.composer-shortcut-hint {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: rgba(245, 243, 238, 0.45);
+  letter-spacing: 0.02em;
+}
+
+/* 세션 로그 row — 화자 hue stripe + 키퍼 표시 */
+body:has(.scene-side) .session-row {
+  --hue: 8;
+  border-left: 3px solid hsl(var(--hue), 50%, 55%, 0.7);
+  padding-left: 0.85rem;
+}
+body:has(.scene-side) .session-row.is-keeper {
+  border-left-color: var(--accent);
+}
+body:has(.scene-side) .session-row.kind-narration {
+  background: rgba(193, 78, 78, 0.04);
+}
+.session-row .ks-crown {
+  color: var(--accent);
+  font-weight: 700;
+  margin-right: 0.15rem;
+}
+body:has(.scene-side) .session-row .ks-crown {
+  color: #f0a8a8;
+}
+
+/* 단서 패널 — 키퍼 인라인 추가 / 토글 / 삭제 */
+.clues-panel { padding-bottom: 0.4rem; }
+.clues-panel .clues-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.clues-panel .clues-add-btn {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+}
+.clues-panel .clues-add-btn:hover { background: var(--accent-deep, #6a1010); }
+.clue-form {
+  padding: 0.55rem 0.85rem;
+  background: rgba(245, 243, 238, 0.04);
+  border-top: 1px dashed rgba(245, 243, 238, 0.15);
+  border-bottom: 1px dashed rgba(245, 243, 238, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.clue-form input,
+.clue-form textarea {
+  background: rgba(245, 243, 238, 0.06);
+  border: 1px solid rgba(245, 243, 238, 0.18);
+  color: rgba(245, 243, 238, 0.92);
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 3px;
+}
+.clue-form input:focus,
+.clue-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.clue-form-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+.clue-form-actions .btn { padding: 0.25rem 0.7rem; font-size: 0.78rem; }
+.clue-row {
+  display: grid !important;
+  grid-template-columns: 24px 1fr auto;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem !important;
+}
+.clue-row.is-resolved { opacity: 0.55; }
+.clue-row.is-resolved .clue-text .name { text-decoration: line-through; }
+.clue-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 1.5px solid rgba(245, 243, 238, 0.3);
+  background: transparent;
+  color: rgba(245, 243, 238, 0.6);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+.clue-check:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.clue-row.is-resolved .clue-check {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+.clue-check:disabled { cursor: default; }
+.clue-text { min-width: 0; }
+.clue-text .name { word-break: keep-all; }
+.clue-text .info { font-size: 0.82rem; line-height: 1.4; color: rgba(245, 243, 238, 0.55); margin-top: 0.15rem; }
+.clue-delete {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: rgba(245, 243, 238, 0.4);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.clue-delete:hover { color: var(--accent); background: rgba(193, 78, 78, 0.15); }
+.clues-resolved {
+  margin-top: 0.3rem;
+  border-top: 1px dashed rgba(245, 243, 238, 0.15);
+}
+.clues-resolved summary {
+  padding: 0.45rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: rgba(245, 243, 238, 0.5);
+  cursor: pointer;
+  list-style: none;
+}
+.clues-resolved summary::-webkit-details-marker { display: none; }
+.clues-resolved summary::before {
+  content: "▸ ";
+  color: rgba(245, 243, 238, 0.4);
+}
+.clues-resolved[open] summary::before { content: "▾ "; }
+.clue-empty { display: block !important; padding: 0.7rem 0.85rem !important; opacity: 0.6; }
+
 /* 캠페인 페이지 — 캠페인 0개 환영 분기 카드 */
 .cl-welcome {
   display: grid;
