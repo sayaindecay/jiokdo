@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 
 export function MobileLanding({ nick }: { nick: string | null }) {
   const ctaHref = nick ? "/campaigns" : "/login?redirect=/campaigns";
@@ -9,17 +8,7 @@ export function MobileLanding({ nick }: { nick: string | null }) {
     <div className="m-landing">
       <section className="m-cover" aria-label="지옥도">
         <div className="m-cover-rule">
-          <Link href="/" className="m-cover-brand" aria-label="지옥도 홈">
-            <Image
-              src="/jiokdo-mark.png"
-              alt=""
-              width={28}
-              height={28}
-              className="m-cover-mark"
-              priority
-            />
-            <span className="m-cover-wordmark">지옥도</span>
-          </Link>
+          <span>Confidential · 대외비</span>
           <span className="file">FILE/01 · SEOUL 2007</span>
         </div>
         <div className="m-cover-body">
