@@ -194,6 +194,71 @@ textarea { resize: vertical; min-height: 8rem; line-height: 1.65; font-family: v
   letter-spacing: 0.02em;
 }
 
+/* ───── Mobile bottom tab bar (≤720px only) ───── */
+.mobile-tabbar { display: none; }
+
+@media (max-width: 720px) {
+  .mobile-tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    background: rgba(251, 249, 244, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1.5px solid var(--ink);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mtab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 7px 2px 8px;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+    min-height: 54px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mtab:hover { color: var(--ink-3); }
+  .mtab-ico { display: grid; place-items: center; line-height: 0; }
+  .mtab.active { color: var(--accent); }
+  .mtab.active:hover { color: var(--accent); }
+  .mtab.active .mtab-label { font-weight: 600; }
+
+  /* 상단 헤더 nav 링크는 하단 탭바로 대체 */
+  .site-header .nav { display: none; }
+
+  /* 고정 탭바 높이만큼 본문 바닥 여백 확보 (푸터가 가려지지 않게) */
+  body { padding-bottom: calc(54px + env(safe-area-inset-bottom, 0px)); }
+  .main { padding-bottom: 2.5rem; }
+
+  /* 플레이/트래커 화면은 자체 하단 입력창이 있어 탭바 숨김 */
+  body:has(.play-shell) .mobile-tabbar { display: none; }
+  body:has(.play-shell) { padding-bottom: 0; }
+}
+
+/* 시네마틱(다크/라이트) 모드 탭바 — 플레이 외 페이지에 .cinematic이 있을 때 */
+body:has(.cinematic) .mobile-tabbar {
+  background: rgba(16, 12, 8, 0.96);
+  border-top-color: rgba(228, 220, 205, 0.16);
+}
+body:has(.cinematic) .mtab { color: #8e857a; }
+body:has(.cinematic) .mtab.active { color: #d98a3e; }
+
+:root[data-theme="dark"] .mobile-tabbar {
+  background: rgba(20, 17, 14, 0.96);
+  border-top-color: rgba(228, 220, 205, 0.16);
+}
+:root[data-theme="dark"] .mtab { color: #8e857a; }
+:root[data-theme="dark"] .mtab.active { color: var(--accent); }
+
 /* ───── Typography ───── */
 h1, h2, h3 {
   margin: 0 0 0.5em;
