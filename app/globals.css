@@ -5362,7 +5362,7 @@ select:focus-visible {
 @media (max-width: 720px) {
   .bestiary-form .row.cols-2,
   .bestiary-form .row.cols-3,
-  .bestiary-form .row.cols-4 { grid-template-columns: 1fr 1fr; }
+  .bestiary-form .row.cols-4 { grid-template-columns: 1fr; }
 }
 .bestiary-form .attr-grid {
   display: grid;
@@ -5444,7 +5444,72 @@ select:focus-visible {
   letter-spacing: 0.03em;
 }
 @media (max-width: 720px) {
-  .bestiary-form .bf-derived { grid-template-columns: 1fr 1fr; }
+  /* 자동 계산 → 화면 하단 sticky 슬림 바 (특성치 입력하면 즉시 반영) */
+  .bestiary-form .bf-derived {
+    position: sticky;
+    bottom: calc(54px + env(safe-area-inset-bottom, 0px));
+    z-index: 30;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 0.5rem -1.25rem;
+    padding: 0.45rem 0.5rem;
+    background: var(--bg-elev);
+    border-top: 1.5px solid var(--ink);
+    border-bottom: 1.5px solid var(--ink);
+    border-radius: 0;
+    box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.14);
+  }
+  .bestiary-form .bf-derived-cell {
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    padding: 0.15rem 0.25rem;
+    border-right: 1px dashed var(--line);
+  }
+  .bestiary-form .bf-derived-cell:last-child { border-right: none; }
+  .bestiary-form .bf-derived-label { font-size: 0.56rem; }
+  .bestiary-form .bf-derived-val { font-size: 1.15rem; margin: 0.05rem 0; }
+  .bestiary-form .bf-derived-formula { display: none; }
+
+  /* 특성치 4-up (8개 = 2줄) */
+  .bestiary-form .attr-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.3rem;
+  }
+  .bestiary-form .attr-grid label {
+    flex-direction: column;
+    gap: 0.2rem;
+    align-items: stretch;
+    text-align: center;
+  }
+  .bestiary-form .attr-grid input {
+    width: 100%;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  /* 공격 행 — 단일 컬럼 스택 */
+  .bestiary-form .attack-row-input {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+    padding: 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    margin-bottom: 0.5rem;
+  }
+
+  /* 기능 행 — 이름 풀폭, 값/분류/삭제 한 줄 */
+  .bestiary-form .bf-skill-row {
+    grid-template-columns: 1fr 80px 36px;
+    grid-template-areas: "name name name" "value group del";
+    gap: 0.3rem;
+  }
+  .bestiary-form .bf-skill-row > input:first-child { grid-area: name; }
+
+  /* 폼 액션 풀폭 (sticky 바 + 탭바 위로 충분한 여백) */
+  .bestiary-form .bf-actions { padding-bottom: 140px; }
+  .bestiary-form .bf-actions .btn { flex: 1; text-align: center; }
 }
 
 /* 기능 입력 */
