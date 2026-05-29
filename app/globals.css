@@ -242,6 +242,8 @@ textarea { resize: vertical; min-height: 8rem; line-height: 1.65; font-family: v
   /* 플레이/트래커 화면은 자체 하단 입력창이 있어 탭바 숨김 */
   body:has(.play-shell) .mobile-tabbar { display: none; }
   body:has(.play-shell) { padding-bottom: 0; }
+  /* 하단 고정 컴포저가 노치/홈 인디케이터를 피하도록 */
+  .play-composer-sticky { padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* 시네마틱(다크/라이트) 모드 탭바 — 플레이 외 페이지에 .cinematic이 있을 때 */
