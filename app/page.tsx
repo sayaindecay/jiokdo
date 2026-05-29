@@ -38,13 +38,7 @@ export default async function LandingPage() {
 
   return (
     <>
-    <MobileLanding
-      nick={nick}
-      stats={stats}
-      peekItems={peekItems}
-      tickerInitial={tickerInitial}
-      isFresh={isFresh}
-    />
+    <MobileLanding nick={nick} />
     <div className="landing landing-desktop">
       <section className="hero-doc">
         <header className="hd-corners">
