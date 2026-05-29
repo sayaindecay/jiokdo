@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>지옥도 · 모바일 시안 v3 — 플레이 / 전투 트래커</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700;900&family=Nanum+Myeongjo:wght@400;700&family=Special+Elite&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --serif: "Noto Serif KR", "Nanum Myeongjo", serif;
+    --type: "Special Elite", "Courier New", monospace;
+    --radius: 4px;
+    /* result level chips */
+    --gold: #d8b15a; --gold-bg: rgba(216,177,90,0.16);
+    --green: #79b97a; --green-bg: rgba(121,185,122,0.16);
+    --blue: #7ba3d8; --blue-bg: rgba(123,163,216,0.16);
+    --red: #d97a78; --red-bg: rgba(217,122,120,0.16);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: #2a2622; color: #d6d1c8;
+    font-family: var(--serif); -webkit-font-smoothing: antialiased;
+  }
+
+  .stage { max-width: 1700px; margin: 0 auto; padding: 40px 24px 80px; }
+  .stage-head { text-align: center; margin-bottom: 30px; }
+  .stage-eyebrow { font-family: var(--type); font-size: 11px; letter-spacing: 0.18em; color: #a89e8e; text-transform: uppercase; }
+  .stage-title { font-size: 28px; font-weight: 900; margin: 6px 0 4px; }
+  .stage-sub { color: #948b7e; font-size: 13px; }
+
+  .frames {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 380px));
+    gap: 56px 40px; justify-content: center; align-items: start;
+  }
+
+  .phone {
+    width: 380px; height: 800px; background: #0d0b09; border-radius: 44px; padding: 12px;
+    box-shadow: 0 0 0 2px #1a1714, 0 20px 60px rgba(0,0,0,0.5), inset 0 0 0 1px #2a2622; position: relative;
+  }
+  .phone::before {
+    content: ""; position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 26px; background: #0d0b09; border-radius: 14px; z-index: 60;
+  }
+  /* ── Play = cinematic DARK by default (matches .scene-side theme) ── */
+  .screen {
+    width: 100%; height: 100%; border-radius: 32px; overflow: hidden; position: relative;
+    background:
+      radial-gradient(120% 70% at 50% -5%, #241c14 0%, transparent 50%),
+      linear-gradient(180deg, #15110d 0%, #1a150f 100%);
+    color: #e4dccd;
+  }
+  .phone-label { text-align: center; margin-top: 14px; color: #948b7e; font-family: var(--type); font-size: 12px; letter-spacing: 0.1em; }
+  .phone-label b { color: #d6d1c8; font-weight: 700; }
+
+  .statusbar { height: 44px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 24px 6px; font-family: var(--type); font-size: 13px; color: #e4dccd; }
+  .statusbar-right { display: flex; gap: 6px; }
+
+  /* play top bar: breadcrumb + mode toggle */
+  .play-top { padding: 6px 14px 10px; border-bottom: 1px solid rgba(228,220,205,0.1); }
+  .crumb { font-family: var(--type); font-size: 10px; letter-spacing: 0.06em; color: #8e857a; margin-bottom: 8px; }
+  .crumb a { color: #b9aa96; text-decoration: none; }
+  .crumb .sep { margin: 0 5px; }
+
+  .mode-toggle {
+    display: flex; padding: 3px; background: rgba(0,0,0,0.3); border: 1px solid rgba(228,220,205,0.12);
+    border-radius: 8px;
+  }
+  .mode-tab {
+    flex: 1; text-align: center; padding: 9px 4px; border-radius: 6px; font-family: var(--serif);
+    font-size: 13px; font-weight: 700; color: #9c9282; text-decoration: none; cursor: pointer;
+  }
+  .mode-tab.active { background: var(--accent, #8a1c1c); color: #fbe6d4; box-shadow: 0 2px 8px rgba(138,28,28,0.4); }
+  :root { --accent: #8a1c1c; }
+
+  .scroll {
+    position: absolute; left: 0; right: 0; overflow-y: auto;
+  }
+  .scroll::-webkit-scrollbar { width: 0; }
+
+  /* ───────── Tab bar (dark) ───────── */
+  .tabbar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 64px; z-index: 40;
+    display: grid; grid-template-columns: repeat(5, 1fr); padding-bottom: 12px;
+    background: #100c08; border-top: 1px solid rgba(228,220,205,0.1);
+  }
+  .tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-family: var(--type); font-size: 10px; color: #6f665b; padding-top: 6px; }
+  .tab .ico { font-size: 16px; }
+  .tab.active, .tab.active .ico { color: #d98a3e; }
+
+  /* ════════════ SCENE MODE ════════════ */
+  .scene-stage {
+    margin: 12px 14px; border-radius: var(--radius); overflow: hidden;
+    border: 1px solid rgba(228,220,205,0.12); position: relative;
+    background: linear-gradient(180deg, #221a12, #1a140e);
+  }
+  .scene-illus {
+    height: 130px; position: relative;
+    background:
+      radial-gradient(80% 120% at 30% 0%, rgba(185,101,31,0.25), transparent 60%),
+      repeating-linear-gradient(135deg, rgba(0,0,0,0.25) 0 2px, transparent 2px 9px),
+      linear-gradient(160deg, #2b2118, #14100b);
+  }
+  .scene-illus::after {
+    content: "장면 일러스트"; position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: var(--type); font-size: 11px; letter-spacing: 0.2em; color: rgba(228,220,205,0.35);
+  }
+  .scene-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; font-family: var(--type); font-size: 10px; color: #b9aa96;
+    border-top: 1px solid rgba(228,220,205,0.1);
+  }
+  .scene-last {
+    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+    background: rgba(0,0,0,0.25); border-top: 1px solid rgba(228,220,205,0.08);
+  }
+  .sla-kind { font-family: var(--type); font-size: 9px; padding: 2px 7px; border-radius: 999px; background: rgba(185,101,31,0.2); color: #d98a3e; letter-spacing: 0.08em; }
+  .sla-who { font-weight: 700; font-size: 12px; }
+  .sla-when { margin-left: auto; font-family: var(--type); font-size: 10px; color: #8e857a; }
+
+  /* my vitals quick bar */
+  .panel {
+    margin: 12px 14px; border: 1px solid rgba(228,220,205,0.12); border-radius: var(--radius);
+    background: rgba(255,255,255,0.025); overflow: hidden;
+  }
+  .panel-head {
+    display: flex; align-items: baseline; gap: 8px; padding: 9px 12px;
+    border-bottom: 1px solid rgba(228,220,205,0.1);
+  }
+  .panel-eyebrow { font-family: var(--type); font-size: 9px; letter-spacing: 0.16em; color: #d98a3e; text-transform: uppercase; }
+  .panel-title { font-weight: 900; font-size: 14px; }
+  .panel-spacer { flex: 1; }
+  .panel-chev { color: #8e857a; font-size: 12px; }
+
+  .vitals-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(228,220,205,0.08); }
+  .vital {
+    background: #1a140e; padding: 10px 6px; text-align: center;
+  }
+  .vital .k { font-family: var(--type); font-size: 9px; letter-spacing: 0.1em; color: #8e857a; margin-bottom: 4px; }
+  .vital .v { font-family: var(--type); font-size: 17px; color: #e4dccd; }
+  .vital .v span { font-size: 11px; color: #6f665b; }
+  .vital.hp .v { color: #d97a78; } .vital.mp .v { color: #7ba3d8; }
+  .vital.san .v { color: #b59ad8; } .vital.luck .v { color: #d8b15a; }
+  .vital-edit {
+    grid-column: 1 / -1; background: #1a140e; padding: 8px; display: flex; justify-content: center; gap: 6px;
+  }
+  .mini-btn {
+    font-family: var(--type); font-size: 11px; padding: 5px 12px; border-radius: 3px;
+    border: 1px solid rgba(228,220,205,0.2); background: rgba(255,255,255,0.04); color: #b9aa96; cursor: pointer;
+  }
+
+  /* roster strip */
+  .roster { display: flex; gap: 8px; padding: 0 14px; overflow-x: auto; margin-bottom: 4px; }
+  .roster::-webkit-scrollbar { display: none; }
+  .pc-chip {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 5px 11px 5px 5px;
+    border: 1px solid rgba(228,220,205,0.14); border-radius: 999px; background: rgba(255,255,255,0.03);
+  }
+  .pc-ava { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 12px; color: #fff; }
+  .pc-nm { font-size: 12px; }
+  .pc-hp { font-family: var(--type); font-size: 9px; color: #8e857a; }
+
+  /* session log stream */
+  .log-head { padding: 14px 16px 6px; display: flex; align-items: baseline; justify-content: space-between; }
+  .log-head h2 { margin: 0; font-size: 16px; font-weight: 900; }
+  .log-head .count { font-family: var(--type); font-size: 10px; color: #8e857a; }
+  .posts { padding: 0 14px; }
+  .post {
+    border-left: 2px solid var(--hue, rgba(228,220,205,0.2)); padding: 8px 0 8px 12px; margin-bottom: 10px;
+  }
+  .post-top { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
+  .post-kind { font-family: var(--type); font-size: 8.5px; padding: 1px 6px; border-radius: 999px; letter-spacing: 0.06em; }
+  .post-kind.narr { background: rgba(185,101,31,0.18); color: #d98a3e; }
+  .post-kind.say { background: rgba(123,163,216,0.16); color: #7ba3d8; }
+  .post-kind.sys { background: rgba(228,220,205,0.1); color: #9c9282; }
+  .post-who { font-weight: 700; font-size: 12px; }
+  .post-when { margin-left: auto; font-family: var(--type); font-size: 9px; color: #6f665b; }
+  .post-body { font-size: 13px; line-height: 1.55; color: #cabfad; }
+  .post-roll {
+    display: inline-block; padding: 1px 7px; border-radius: 3px; font-family: var(--type); font-size: 10px; margin-right: 5px;
+  }
+  .post-roll.ext { background: var(--green-bg); color: var(--green); }
+  .post-roll.fail { background: var(--red-bg); color: var(--red); }
+  .post-roll.crit { background: var(--gold-bg); color: var(--gold); }
+
+  /* sticky composer */
+  .composer {
+    position: absolute; bottom: 64px; left: 0; right: 0; z-index: 30;
+    background: #15100b; border-top: 1px solid rgba(228,220,205,0.14); padding: 9px 12px 11px;
+  }
+  .composer-row1 { display: flex; gap: 6px; margin-bottom: 7px; }
+  .as-select {
+    font-family: var(--type); font-size: 11px; padding: 5px 10px; border-radius: 999px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(228,220,205,0.18); color: #d6cdbd;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .as-select.accent { border-color: #b9651f; color: #d98a3e; }
+  .composer-row2 { display: flex; gap: 8px; align-items: flex-end; }
+  .composer-input {
+    flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(228,220,205,0.18); border-radius: var(--radius);
+    padding: 9px 11px; font-size: 13px; color: #cabfad; min-height: 40px; font-family: var(--serif);
+  }
+  .composer-input::after { content: "묘사나 발화를 입력…"; color: #6f665b; }
+  .send-btn {
+    flex: 0 0 auto; width: 46px; height: 40px; border-radius: var(--radius); border: none;
+    background: var(--accent); color: #fbe6d4; font-size: 17px; display: grid; place-items: center; cursor: pointer;
+  }
+
+  /* ════════════ TRACKER MODE ════════════ */
+  /* collapsible initiative top bar */
+  .ini-bar {
+    margin: 12px 14px; border: 1px solid rgba(228,220,205,0.14); border-radius: var(--radius);
+    background: rgba(255,255,255,0.03); overflow: hidden;
+  }
+  .ini-bar-head {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: pointer;
+  }
+  .ini-round {
+    font-family: var(--type); font-size: 10px; letter-spacing: 0.08em; color: #d98a3e;
+    border: 1px solid rgba(185,101,31,0.4); border-radius: 3px; padding: 3px 8px; flex-shrink: 0;
+  }
+  .ini-prog { font-family: var(--type); font-size: 10px; color: #8e857a; flex: 1; }
+  .ini-next {
+    font-family: var(--serif); font-weight: 700; font-size: 12px; padding: 7px 13px; border-radius: 3px;
+    background: var(--accent); color: #fbe6d4; border: none; cursor: pointer;
+  }
+  .ini-mini { display: flex; gap: 6px; padding: 0 12px 10px; overflow-x: auto; }
+  .ini-mini::-webkit-scrollbar { display: none; }
+  .ini-tok {
+    flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 6px 9px; border-radius: 4px; min-width: 56px; border: 1px solid rgba(228,220,205,0.12);
+    background: rgba(0,0,0,0.25);
+  }
+  .ini-tok.active { border-color: #d98a3e; background: rgba(185,101,31,0.14); }
+  .ini-tok.acted { opacity: 0.5; }
+  .ini-tok.dead { opacity: 0.35; }
+  .ini-tok .nm { font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .ini-tok .dx { font-family: var(--type); font-size: 8.5px; color: #8e857a; }
+  .ini-tok .hpbar { width: 100%; height: 4px; border-radius: 2px; background: rgba(228,220,205,0.15); overflow: hidden; }
+  .ini-tok .hpbar i { display: block; height: 100%; background: #79b97a; }
+  .ini-tok.hurt .hpbar i { background: #d8b15a; }
+  .ini-tok.low .hpbar i { background: #d97a78; }
+  .ini-tok .mark { font-size: 9px; color: #79b97a; height: 10px; }
+
+  /* expanded initiative checklist */
+  .ini-full { padding: 4px 12px 10px; border-top: 1px dashed rgba(228,220,205,0.12); }
+  .ini-row {
+    display: flex; align-items: center; gap: 9px; padding: 8px 0; border-bottom: 1px dashed rgba(228,220,205,0.1);
+  }
+  .ini-row.active { background: rgba(185,101,31,0.1); margin: 0 -8px; padding: 8px; border-radius: 4px; }
+  .ini-dex { font-family: var(--type); font-size: 11px; color: #8e857a; width: 26px; }
+  .ini-name { flex: 1; font-size: 13px; font-weight: 700; }
+  .ini-name .tag { font-family: var(--type); font-size: 8px; color: #6f665b; margin-left: 5px; }
+  .ini-hp { font-family: var(--type); font-size: 11px; color: #cabfad; }
+  .ini-dmg { display: flex; gap: 3px; }
+  .ini-dmg button {
+    width: 24px; height: 24px; border-radius: 3px; border: 1px solid rgba(228,220,205,0.2);
+    background: rgba(255,255,255,0.04); color: #b9aa96; font-size: 11px; cursor: pointer;
+  }
+  .ini-check { width: 16px; text-align: center; color: #79b97a; }
+
+  /* focus stat sheet */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(228,220,205,0.08); }
+  .stat-cell {
+    background: #1a140e; padding: 9px 4px; text-align: center; cursor: pointer; border: none; color: inherit;
+    position: relative;
+  }
+  .stat-cell:active { background: rgba(185,101,31,0.18); }
+  .stat-cell .k { font-family: var(--type); font-size: 8.5px; letter-spacing: 0.06em; color: #8e857a; margin-bottom: 3px; }
+  .stat-cell .v { font-family: var(--type); font-size: 16px; color: #e4dccd; }
+  .stat-hint { text-align: center; font-family: var(--type); font-size: 9px; color: #6f665b; padding: 6px; background: #1a140e; }
+
+  .sb-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: rgba(228,220,205,0.08); }
+  .mrow { background: #1a140e; display: flex; justify-content: space-between; padding: 7px 12px; }
+  .mrow .k { font-family: var(--type); font-size: 10px; color: #8e857a; }
+  .mrow .v { font-family: var(--type); font-size: 12px; color: #cabfad; }
+
+  .sb-sub { font-family: var(--type); font-size: 9px; letter-spacing: 0.12em; color: #d98a3e; padding: 8px 12px 4px; text-transform: uppercase; }
+  .atk-row, .skill-row {
+    display: flex; align-items: center; justify-content: space-between; padding: 8px 12px;
+    border-top: 1px dashed rgba(228,220,205,0.1); cursor: pointer;
+  }
+  .atk-row:active, .skill-row:active { background: rgba(185,101,31,0.12); }
+  .atk-name, .skill-name { font-size: 13px; }
+  .atk-formula { font-family: var(--type); font-size: 10px; color: #8e857a; }
+  .roll-mark { color: #d98a3e; font-size: 13px; margin-left: 8px; }
+  .skill-list { display: grid; grid-template-columns: 1fr 1fr; }
+  .skill-row { border-right: 1px dashed rgba(228,220,205,0.1); }
+  .skill-val { font-family: var(--type); font-size: 11px; color: #b9aa96; }
+
+  /* action bar */
+  .action-bar {
+    display: flex; gap: 6px; padding: 10px 12px; flex-wrap: wrap;
+    border-top: 1px solid rgba(228,220,205,0.12); background: rgba(0,0,0,0.2);
+  }
+  .act-chip {
+    flex: 1; min-width: 64px; text-align: center; padding: 11px 6px; border-radius: 4px;
+    border: 1px solid rgba(228,220,205,0.2); background: rgba(255,255,255,0.04); color: #e4dccd;
+    font-family: var(--serif); font-weight: 700; font-size: 13px; cursor: pointer;
+  }
+  .act-chip.primary { background: var(--accent); border-color: var(--accent); color: #fbe6d4; }
+
+  /* combat log */
+  .clog-head { padding: 14px 16px 4px; display: flex; align-items: center; gap: 8px; }
+  .clog-head h2 { margin: 0; font-size: 15px; font-weight: 900; }
+  .clog-head .count { font-family: var(--type); font-size: 10px; color: #8e857a; }
+  .clog-export {
+    margin-left: auto; font-family: var(--type); font-size: 10px; padding: 5px 10px; border-radius: 3px;
+    background: rgba(185,101,31,0.16); color: #d98a3e; border: 1px solid rgba(185,101,31,0.3); cursor: pointer;
+  }
+  .clog { padding: 4px 14px; }
+  .clog-row {
+    display: grid; grid-template-columns: 44px 1fr; gap: 9px; padding: 7px 0;
+    border-bottom: 1px dashed rgba(228,220,205,0.1); font-size: 12.5px;
+  }
+  .clog-row .t { font-family: var(--type); font-size: 9px; color: #6f665b; text-align: right; }
+  .clog-row .who { font-family: var(--type); font-size: 9.5px; color: #b9aa96; margin-top: 2px; text-align: right; word-break: keep-all; }
+  .clog-row .b { color: #cabfad; line-height: 1.45; }
+  .clog-row.pc .b { color: #e4dccd; }
+  .clog-row.sys .b { color: #9c9282; font-style: italic; }
+
+  /* tracker narration sticky */
+  .tn {
+    position: absolute; bottom: 64px; left: 0; right: 0; z-index: 30;
+    background: #15100b; border-top: 1px solid rgba(228,220,205,0.14); padding: 9px 12px 11px;
+    display: flex; gap: 7px; align-items: center;
+  }
+  .tn-as {
+    font-family: var(--type); font-size: 11px; padding: 8px 10px; border-radius: 4px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(228,220,205,0.18); color: #d6cdbd; flex-shrink: 0;
+  }
+  .tn-in {
+    flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(228,220,205,0.18); border-radius: 4px;
+    padding: 9px 11px; font-size: 12.5px; color: #6f665b; font-family: var(--serif);
+  }
+  .tn-send { width: 40px; height: 38px; border-radius: 4px; border: none; background: var(--accent); color: #fbe6d4; font-size: 16px; cursor: pointer; }
+
+  /* annotations / legend */
+  .anno { background: rgba(214,209,200,0.06); border-left: 2px solid #b9651f; padding: 10px 14px; margin-top: 14px; font-size: 12px; color: #b8ad9e; line-height: 1.55; border-radius: 0 3px 3px 0; }
+  .anno b { color: #d6d1c8; font-weight: 700; }
+  .anno ul { margin: 6px 0 0; padding-left: 16px; }
+  .anno li { margin: 3px 0; }
+  .legend { margin: 0 auto 30px; padding: 16px 24px; background: rgba(214,209,200,0.04); border: 1px solid #3a342c; border-radius: 6px; max-width: 980px; font-size: 13px; line-height: 1.6; color: #d6d1c8; }
+  .legend h3 { margin: 0 0 8px; font-family: var(--type); font-size: 11px; letter-spacing: 0.2em; color: #d98a3e; text-transform: uppercase; }
+  .legend p { margin: 6px 0; color: #c3b9a9; }
+  .legend b { color: #e8e0d2; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <header class="stage-head">
+    <div class="stage-eyebrow">JIOKDO · MOBILE SHIYAN · V3 — PLAY / COMBAT</div>
+    <h1 class="stage-title">플레이 · 전투 트래커</h1>
+    <p class="stage-sub">플레이 화면은 시네마틱 다크 기본 · 한 화면 토글(장면 ⇄ 전투 트래커)</p>
+  </header>
+
+  <section class="legend">
+    <h3>레이아웃 결정</h3>
+    <p>
+      플레이 화면은 실제 앱과 동일하게 <b>시네마틱 다크</b>를 기본으로. 상단 <b>세그먼트 토글</b>(장면 ⇄ 전투 트래커)로
+      한 화면 안에서 전환. 세션 로그는 두 모드 공통 본문.
+    </p>
+    <p>
+      <b>전투 트래커</b>는 추천안대로 <b>세로 스택 + 이니셔티브 접이식 바</b>:
+      평소엔 라운드·진행도·다음 턴 버튼 + 미니 토큰만, 펼치면 풀 체크리스트(HP/피해/행동 ✓)가 슬라이드 다운.
+      그 아래 <b>포커스 스탯시트</b>(특성치·무기·기능 전부 탭 = 굴림) → <b>액션바</b> → <b>전투 로그</b>,
+      최하단 <b>한 줄 묘사 입력</b>(누가 묘사하는지 선택)을 고정.
+    </p>
+  </section>
+
+  <div class="frames">
+
+    <!-- ════════ FRAME 1 — SCENE MODE ════════ -->
+    <div>
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><div class="statusbar-right">●●●● ▮▮</div></div>
+
+          <div class="play-top">
+            <div class="crumb">
+              <a>잠수교의 그림자</a><span class="sep">/</span><a>세션 #7</a><span class="sep">/</span>플레이
+            </div>
+            <div class="mode-toggle">
+              <a class="mode-tab active">▷ 장면</a>
+              <a class="mode-tab">⊞ 전투 트래커</a>
+            </div>
+          </div>
+
+          <div class="scroll" style="top:144px; bottom:174px;">
+            <div class="scene-stage">
+              <div class="scene-illus"></div>
+              <div class="scene-meta">
+                <span>세션 #7 · 잠수교 아래</span>
+                <span>👥 멤버 5명</span>
+              </div>
+              <div class="scene-last">
+                <span class="sla-kind">내레이션</span>
+                <span class="sla-who">키퍼</span>
+                <span class="sla-when">2분 전</span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <span class="panel-eyebrow">MY</span>
+                <span class="panel-title">이태백</span>
+                <span class="panel-spacer"></span>
+                <span class="panel-chev">강력반 형사 ▾</span>
+              </div>
+              <div class="vitals-row">
+                <div class="vital hp"><div class="k">HP</div><div class="v">13<span>/14</span></div></div>
+                <div class="vital mp"><div class="k">MP</div><div class="v">11<span>/12</span></div></div>
+                <div class="vital san"><div class="k">SAN</div><div class="v">58<span>/65</span></div></div>
+                <div class="vital luck"><div class="k">LUCK</div><div class="v">55</div></div>
+                <div class="vital-edit">
+                  <button class="mini-btn">− HP</button>
+                  <button class="mini-btn">+ HP</button>
+                  <button class="mini-btn">vital 편집 ↕</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="roster">
+              <div class="pc-chip"><span class="pc-ava" style="background:#8a1c1c">태</span><span><div class="pc-nm">이태백</div><div class="pc-hp">HP 13/14</div></span></div>
+              <div class="pc-chip"><span class="pc-ava" style="background:#2c466c">소</span><span><div class="pc-nm">이소호</div><div class="pc-hp">HP 10/11</div></span></div>
+              <div class="pc-chip"><span class="pc-ava" style="background:#3b6e3b">은</span><span><div class="pc-nm">천은이</div><div class="pc-hp">HP 12/12</div></span></div>
+            </div>
+
+            <div class="log-head"><h2>세션 로그</h2><span class="count">총 128개 · 1/9</span></div>
+            <div class="posts">
+              <div class="post" style="--hue:#b9651f">
+                <div class="post-top"><span class="post-kind narr">내레이션</span><span class="post-who">키퍼</span><span class="post-when">2분 전</span></div>
+                <div class="post-body">교각 아래, 물에 젖은 발자국이 어둠 속으로 이어진다. 비린내가 코를 찌른다.</div>
+              </div>
+              <div class="post" style="--hue:#7ba3d8">
+                <div class="post-top"><span class="post-kind say">발화</span><span class="post-who">이태백</span><span class="post-when">3분 전</span></div>
+                <div class="post-body">"…다들 손전등 꺼. 저쪽에서 빛 보이면 끝장이야."</div>
+              </div>
+              <div class="post" style="--hue:#79b97a">
+                <div class="post-top"><span class="post-kind sys">시스템</span><span class="post-who">천은이</span><span class="post-when">4분 전</span></div>
+                <div class="post-body"><span class="post-roll ext">EXT</span>은신 — 22 vs 70</div>
+              </div>
+              <div class="post" style="--hue:#b9651f">
+                <div class="post-top"><span class="post-kind narr">내레이션</span><span class="post-who">키퍼</span><span class="post-when">6분 전</span></div>
+                <div class="post-body">멀리서 무언가 끌리는 소리. 점점, 너희 쪽으로.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="composer">
+            <div class="composer-row1">
+              <span class="as-select accent">이태백 ▾</span>
+              <span class="as-select">내레이션 ▾</span>
+            </div>
+            <div class="composer-row2">
+              <div class="composer-input"><span style="color:#6f665b">묘사나 발화를 입력…</span></div>
+              <button class="send-btn">➤</button>
+            </div>
+          </div>
+
+          <nav class="tabbar">
+            <a class="tab"><span class="ico">⌂</span>홈</a>
+            <a class="tab"><span class="ico">▤</span>캠페인</a>
+            <a class="tab active"><span class="ico">▶</span>플레이</a>
+            <a class="tab"><span class="ico">◇</span>시트</a>
+            <a class="tab"><span class="ico">⋯</span>더보기</a>
+          </nav>
+        </div>
+      </div>
+      <div class="phone-label"><b>화면 3.</b> 플레이 · 장면 모드</div>
+      <div class="anno">
+        <b>의도</b>
+        <ul>
+          <li>장면 일러스트 + 최근 활동 → 분위기/맥락, 그 아래 내 vital 빠른 조절</li>
+          <li>파티는 가로 PC 칩, 세션 로그가 본문(묘사/발화/판정 색 구분)</li>
+          <li>컴포저 하단 고정 — 누구로/무슨 종류로 쓸지 칩 선택 후 한 줄 입력</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ════════ FRAME 2 — TRACKER (이니셔티브 접힘) ════════ -->
+    <div>
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><div class="statusbar-right">●●●● ▮▮</div></div>
+
+          <div class="play-top">
+            <div class="crumb">
+              <a>잠수교의 그림자</a><span class="sep">/</span><a>세션 #7</a><span class="sep">/</span>전투 트래커
+            </div>
+            <div class="mode-toggle">
+              <a class="mode-tab">▷ 장면</a>
+              <a class="mode-tab active">⊞ 전투 트래커</a>
+            </div>
+          </div>
+
+          <div class="scroll" style="top:144px; bottom:124px;">
+            <!-- collapsible initiative bar (collapsed) -->
+            <div class="ini-bar">
+              <div class="ini-bar-head">
+                <span class="ini-round">R 2</span>
+                <span class="ini-prog">행동 2 / 4 · 이태백 차례 ▾</span>
+                <button class="ini-next">다음 턴 →</button>
+              </div>
+              <div class="ini-mini">
+                <div class="ini-tok active hurt"><span class="mark">▶</span><span class="nm">이태백</span><span class="dx">DEX 65</span><span class="hpbar"><i style="width:78%"></i></span></div>
+                <div class="ini-tok acted"><span class="mark">✓</span><span class="nm">이소호</span><span class="dx">DEX 60</span><span class="hpbar"><i style="width:90%"></i></span></div>
+                <div class="ini-tok acted low"><span class="mark">✓</span><span class="nm">심해어</span><span class="dx">DEX 55</span><span class="hpbar"><i style="width:30%"></i></span></div>
+                <div class="ini-tok"><span class="mark"></span><span class="nm">천은이</span><span class="dx">DEX 50</span><span class="hpbar"><i style="width:100%"></i></span></div>
+              </div>
+            </div>
+
+            <!-- focus stat sheet -->
+            <div class="panel">
+              <div class="panel-head">
+                <span class="panel-eyebrow">FOCUS · 캐릭터 시트</span>
+                <span class="panel-title" style="margin-left:auto">이태백</span>
+              </div>
+              <div class="stat-grid">
+                <button class="stat-cell"><div class="k">STR</div><div class="v">65</div></button>
+                <button class="stat-cell"><div class="k">CON</div><div class="v">60</div></button>
+                <button class="stat-cell"><div class="k">SIZ</div><div class="v">55</div></button>
+                <button class="stat-cell"><div class="k">DEX</div><div class="v">65</div></button>
+                <button class="stat-cell"><div class="k">INT</div><div class="v">70</div></button>
+                <button class="stat-cell"><div class="k">POW</div><div class="v">55</div></button>
+                <button class="stat-cell"><div class="k">APP</div><div class="v">50</div></button>
+                <button class="stat-cell"><div class="k">EDU</div><div class="v">75</div></button>
+              </div>
+              <div class="stat-hint">특성치 탭 = 해당 값으로 굴림 (×5 아님)</div>
+              <div class="sb-meta">
+                <div class="mrow"><span class="k">HP</span><span class="v">13 / 14</span></div>
+                <div class="mrow"><span class="k">MP</span><span class="v">11 / 12</span></div>
+                <div class="mrow"><span class="k">SAN</span><span class="v">58 / 65</span></div>
+                <div class="mrow"><span class="k">DEX(도주)</span><span class="v">65</span></div>
+              </div>
+              <div class="sb-sub">무기 · 탭 → 굴림</div>
+              <div class="atk-row"><span class="atk-name">38구경 리볼버</span><span><span class="atk-formula">55% · 1d10</span><span class="roll-mark">⌬</span></span></div>
+              <div class="atk-row"><span class="atk-name">맨손</span><span><span class="atk-formula">50% · 1d3+DB</span><span class="roll-mark">⌬</span></span></div>
+              <div class="sb-sub">기능 · 탭 → 굴림</div>
+              <div class="skill-list">
+                <div class="skill-row"><span class="skill-name">근접전 (격투)</span><span class="skill-val">55%</span></div>
+                <div class="skill-row"><span class="skill-name">회피</span><span class="skill-val">32%</span></div>
+                <div class="skill-row"><span class="skill-name">감지</span><span class="skill-val">75%</span></div>
+                <div class="skill-row"><span class="skill-name">권총</span><span class="skill-val">55%</span></div>
+              </div>
+
+              <div class="action-bar">
+                <button class="act-chip primary">맨손 공격</button>
+                <button class="act-chip">근접전 액션</button>
+                <button class="act-chip">회피</button>
+                <button class="act-chip">반격</button>
+                <button class="act-chip">도주</button>
+              </div>
+            </div>
+
+            <div style="height:8px"></div>
+          </div>
+
+          <!-- one-line narration input -->
+          <div class="tn">
+            <span class="tn-as">키퍼 ▾</span>
+            <div class="tn-in">묘사 / 상황 한 줄… (/cc 감지 75)</div>
+            <button class="tn-send">➤</button>
+          </div>
+
+          <nav class="tabbar">
+            <a class="tab"><span class="ico">⌂</span>홈</a>
+            <a class="tab"><span class="ico">▤</span>캠페인</a>
+            <a class="tab active"><span class="ico">▶</span>플레이</a>
+            <a class="tab"><span class="ico">◇</span>시트</a>
+            <a class="tab"><span class="ico">⋯</span>더보기</a>
+          </nav>
+        </div>
+      </div>
+      <div class="phone-label"><b>화면 4.</b> 전투 트래커 · 이니셔티브 접힘</div>
+      <div class="anno">
+        <b>의도</b>
+        <ul>
+          <li>이니셔티브 = 접이식 바. 라운드/진행도/다음 턴 + 미니 토큰(HP 바·✓)만 평소 노출</li>
+          <li>포커스 스탯시트: 특성치·무기·기능 <b>전부 탭 = 굴림</b>. 도주는 DEX로 판정 명시</li>
+          <li>액션바 5종(맨손 공격/근접전 액션/회피/반격/도주), 최하단 한 줄 묘사 입력</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ════════ FRAME 3 — TRACKER (이니셔티브 펼침 + 로그) ════════ -->
+    <div>
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><div class="statusbar-right">●●●● ▮▮</div></div>
+
+          <div class="play-top">
+            <div class="crumb">
+              <a>잠수교의 그림자</a><span class="sep">/</span><a>세션 #7</a><span class="sep">/</span>전투 트래커
+            </div>
+            <div class="mode-toggle">
+              <a class="mode-tab">▷ 장면</a>
+              <a class="mode-tab active">⊞ 전투 트래커</a>
+            </div>
+          </div>
+
+          <div class="scroll" style="top:144px; bottom:124px;">
+            <!-- expanded initiative -->
+            <div class="ini-bar">
+              <div class="ini-bar-head">
+                <span class="ini-round">R 2</span>
+                <span class="ini-prog">행동 2 / 4 · 이태백 차례 ▴</span>
+                <button class="ini-next">다음 턴 →</button>
+              </div>
+              <div class="ini-full">
+                <div class="ini-row active">
+                  <span class="ini-dex">65</span>
+                  <span class="ini-name">이태백 <span class="tag">PC</span></span>
+                  <span class="ini-hp">13/14</span>
+                  <span class="ini-dmg"><button>−1</button><button>−5</button></span>
+                  <span class="ini-check">▶</span>
+                </div>
+                <div class="ini-row">
+                  <span class="ini-dex">60</span>
+                  <span class="ini-name">이소호 <span class="tag">PC</span></span>
+                  <span class="ini-hp">10/11</span>
+                  <span class="ini-dmg"><button>−1</button><button>−5</button></span>
+                  <span class="ini-check">✓</span>
+                </div>
+                <div class="ini-row">
+                  <span class="ini-dex">55</span>
+                  <span class="ini-name">심해어 #1 <span class="tag">NPC</span></span>
+                  <span class="ini-hp" style="color:#d97a78">3/10</span>
+                  <span class="ini-dmg"><button>−1</button><button>−5</button></span>
+                  <span class="ini-check">✓</span>
+                </div>
+                <div class="ini-row">
+                  <span class="ini-dex">50</span>
+                  <span class="ini-name">천은이 <span class="tag">PC</span></span>
+                  <span class="ini-hp">12/12</span>
+                  <span class="ini-dmg"><button>−1</button><button>−5</button></span>
+                  <span class="ini-check"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- combat log -->
+            <div class="clog-head">
+              <h2>전투 트래커 로그</h2>
+              <span class="count">6건 대기</span>
+              <button class="clog-export">세션 로그로 →</button>
+            </div>
+            <div class="clog">
+              <div class="clog-row pc">
+                <div><div class="t">방금</div><div class="who">이태백</div></div>
+                <div class="b"><span class="post-roll ext" style="background:var(--green-bg);color:var(--green)">EXT</span> 공격 (38구경 리볼버) — 18 vs 55 · 피해 1d10</div>
+              </div>
+              <div class="clog-row sys">
+                <div><div class="t">방금</div><div class="who">시스템</div></div>
+                <div class="b">심해어 #1 피해 7 — HP 3/10</div>
+              </div>
+              <div class="clog-row pc">
+                <div><div class="t">1분</div><div class="who">이소호</div></div>
+                <div class="b"><span class="post-roll fail" style="background:var(--red-bg);color:var(--red)">FAIL</span> 근접전 액션 — 71 vs 45</div>
+              </div>
+              <div class="clog-row">
+                <div><div class="t">1분</div><div class="who">키퍼</div></div>
+                <div class="b">심해어가 비늘을 곤두세우며 이태백에게 달려든다.</div>
+              </div>
+              <div class="clog-row sys">
+                <div><div class="t">2분</div><div class="who">시스템</div></div>
+                <div class="b">라운드 2 시작 — 전원 행동 완료</div>
+              </div>
+            </div>
+
+            <div style="height:8px"></div>
+          </div>
+
+          <div class="tn">
+            <span class="tn-as">심해어 ▾</span>
+            <div class="tn-in">묘사 / 상황 한 줄…</div>
+            <button class="tn-send">➤</button>
+          </div>
+
+          <nav class="tabbar">
+            <a class="tab"><span class="ico">⌂</span>홈</a>
+            <a class="tab"><span class="ico">▤</span>캠페인</a>
+            <a class="tab active"><span class="ico">▶</span>플레이</a>
+            <a class="tab"><span class="ico">◇</span>시트</a>
+            <a class="tab"><span class="ico">⋯</span>더보기</a>
+          </nav>
+        </div>
+      </div>
+      <div class="phone-label"><b>화면 4-b.</b> 전투 트래커 · 이니셔티브 펼침 + 로그</div>
+      <div class="anno">
+        <b>의도</b>
+        <ul>
+          <li>펼치면 풀 체크리스트: DEX 순 정렬, HP, 빠른 피해(−1/−5), 행동 ✓/현재 ▶</li>
+          <li>전투 로그는 세션 로그와 <b>분리</b> — 캐릭터별 굴림 출처 표시, 색 칩으로 결과 스캔</li>
+          <li>「세션 로그로 →」 익스포트로 전투 종료 시 한 게시물로 통합 저장</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <section class="legend" style="margin-top:42px;">
+    <h3>남은 화면 후보</h3>
+    <p><b>내 캐릭터 시트</b> — 섹션 아코디언(특성치/파생/기능/무기/인벤토리), vital 편집 bottom-sheet.
+       <b>에너미 작성</b> — 단일 컬럼 폼 + 자동계산 패널 sticky. 다음으로 이어갈지 알려줘.</p>
+  </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>지옥도 · 모바일 시안 v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700;900&family=Nanum+Myeongjo:wght@400;700&family=Special+Elite&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --bg-2: #ebe7df;
+    --bg-elev: #fbf9f4;
+    --bg-elev-2: #ebe7df;
+    --ink: #1a1714;
+    --ink-2: #4a443c;
+    --ink-3: #7a7268;
+    --line: rgba(26, 23, 20, 0.18);
+    --line-strong: rgba(26, 23, 20, 0.32);
+    --accent: #8a1c1c;
+    --accent-soft: rgba(138, 28, 28, 0.10);
+    --gold-bg: #fef3c7;
+    --green-bg: #d8ead8;
+    --blue-bg: #dde6f1;
+    --grey-bg: #e8e4dc;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", serif;
+    --type: "Special Elite", "Courier New", monospace;
+    --radius: 4px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #2a2622;
+    color: #d6d1c8;
+    font-family: var(--serif);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── Stage ─────────────────────────── */
+  .stage {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+  .stage-head {
+    text-align: center;
+    margin-bottom: 36px;
+    color: #d6d1c8;
+  }
+  .stage-eyebrow {
+    font-family: var(--type);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: #a89e8e;
+    text-transform: uppercase;
+  }
+  .stage-title {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 900;
+    margin: 6px 0 4px;
+  }
+  .stage-sub {
+    color: #948b7e;
+    font-size: 13px;
+  }
+
+  .frames {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 380px));
+    gap: 56px 40px;
+    justify-content: center;
+    align-items: start;
+  }
+
+  /* ─── Phone frame ───────────────────── */
+  .phone {
+    width: 380px;
+    height: 800px;
+    background: #0d0b09;
+    border-radius: 44px;
+    padding: 12px;
+    box-shadow:
+      0 0 0 2px #1a1714,
+      0 20px 60px rgba(0,0,0,0.5),
+      inset 0 0 0 1px #2a2622;
+    position: relative;
+  }
+  .phone::before {
+    content: "";
+    position: absolute;
+    top: 18px; left: 50%;
+    transform: translateX(-50%);
+    width: 110px; height: 26px;
+    background: #0d0b09;
+    border-radius: 14px;
+    z-index: 5;
+  }
+  .phone-screen {
+    width: 100%; height: 100%;
+    border-radius: 32px;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--ink);
+    position: relative;
+  }
+  .phone-label {
+    text-align: center;
+    margin-top: 14px;
+    color: #948b7e;
+    font-family: var(--type);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+  }
+  .phone-label b { color: #d6d1c8; font-weight: 700; }
+
+  /* ─── Status bar ─────────────────────── */
+  .statusbar {
+    height: 44px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0 24px 6px;
+    font-family: var(--type);
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  .statusbar-right { display: flex; gap: 6px; align-items: center; }
+
+  /* ─── Top app bar ────────────────────── */
+  .topbar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-elev);
+  }
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+  }
+  .topbar-brand-mark {
+    width: 22px; height: 22px;
+    border: 1.5px solid var(--ink);
+    display: grid; place-items: center;
+    font-family: var(--type);
+    font-size: 10px;
+    background: var(--bg-elev);
+  }
+  .topbar-right { display: flex; gap: 10px; align-items: center; font-size: 12px; }
+  .topbar-nick {
+    font-family: var(--type);
+    color: var(--ink-2);
+  }
+  .topbar-icon {
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    font-size: 14px;
+  }
+
+  /* ─── Body scroll area ─────────────────── */
+  .body-scroll {
+    height: calc(100% - 44px - 52px - 64px);
+    overflow-y: auto;
+    padding-bottom: 16px;
+  }
+  .body-scroll::-webkit-scrollbar { width: 0; }
+
+  /* ─── Bottom tab bar ───────────────────── */
+  .tabbar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 64px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: var(--bg-elev);
+    border-top: 1px solid var(--line);
+    padding-bottom: 12px;
+  }
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-family: var(--type);
+    font-size: 10px;
+    color: var(--ink-3);
+    padding-top: 6px;
+  }
+  .tab .ico { font-size: 16px; line-height: 1; }
+  .tab.active { color: var(--accent); }
+  .tab.active .ico { color: var(--accent); }
+
+  /* ──────────────────────────────────────────────
+     LANDING — mobile
+     ────────────────────────────────────────────── */
+
+  .hero-doc {
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .hd-corners {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 16px 10px;
+    border-bottom: 1px dashed var(--line);
+    position: relative;
+  }
+  .hd-stamp {
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    padding: 6px 10px;
+    font-family: var(--type);
+    transform: rotate(-2deg);
+    background: rgba(255,255,255,0.4);
+  }
+  .hd-stamp-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .hd-stamp-num {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: 2px;
+  }
+  .hd-stamp-num b { font-size: 22px; }
+  .hd-meta {
+    text-align: right;
+    font-family: var(--type);
+    font-size: 9px;
+    color: var(--ink-2);
+    letter-spacing: 0.08em;
+    line-height: 1.5;
+  }
+  .hd-classification { color: var(--accent); font-weight: 700; }
+
+  .hd-body { padding: 18px 18px 14px; }
+
+  .hd-quote {
+    margin: 0 0 16px;
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.45;
+    color: var(--ink);
+    position: relative;
+    padding-left: 18px;
+  }
+  .hd-q-mark {
+    position: absolute;
+    left: -2px; top: -6px;
+    font-size: 42px;
+    color: var(--accent);
+    font-family: var(--serif);
+    line-height: 1;
+  }
+  .hd-quote em { color: var(--accent); font-style: normal; }
+
+  .hero-questionnaire {
+    margin: 0;
+    padding: 12px 0 0;
+    border-top: 1px dashed var(--line);
+    font-family: var(--serif);
+    color: var(--ink-2);
+    font-size: 12.5px;
+    line-height: 1.65;
+  }
+  .hero-questionnaire p {
+    margin: 0 0 4px;
+    padding-left: 16px;
+    position: relative;
+  }
+  .hero-questionnaire p::before {
+    content: "□";
+    position: absolute;
+    left: 0; top: 0;
+    color: var(--ink-3);
+    font-size: 11px;
+  }
+  .hr-strong { color: var(--ink) !important; font-weight: 700; }
+  .hr-divider {
+    text-align: center !important;
+    padding-left: 0 !important;
+    color: var(--ink-3) !important;
+    font-family: var(--type) !important;
+    font-size: 10px !important;
+    letter-spacing: 0.2em;
+    margin: 8px 0 !important;
+  }
+  .hr-divider::before { content: none !important; }
+  .hr-final {
+    color: var(--accent) !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    padding-left: 0 !important;
+    text-align: center;
+  }
+  .hr-final::before { content: none !important; }
+
+  .hd-footer {
+    padding: 14px 18px 18px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-elev-2);
+  }
+  .hd-cta-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+    padding: 0 18px;
+    border-radius: var(--radius);
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 15px;
+    border: 1.5px solid var(--ink);
+    background: var(--bg-elev);
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fef9e8;
+  }
+  .btn.ghost {
+    background: transparent;
+    border-color: var(--line-strong);
+    color: var(--ink-2);
+  }
+  .btn.large { font-size: 16px; height: 52px; }
+
+  .hd-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin: 0 0 12px;
+    border: 1px solid var(--line);
+    background: var(--bg-elev);
+    border-radius: var(--radius);
+  }
+  .hd-stats > div {
+    text-align: center;
+    padding: 10px 4px;
+    border-right: 1px dashed var(--line);
+  }
+  .hd-stats > div:last-child { border-right: none; }
+  .hd-stats dt {
+    font-family: var(--type);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    margin: 0 0 3px;
+  }
+  .hd-stats dd {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .hd-sign {
+    text-align: center;
+    font-family: var(--type);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.15em;
+  }
+
+  /* hero-aside: peek + ticker */
+  .hero-aside {
+    padding: 20px 16px;
+    background: var(--bg);
+  }
+  .ha-eyebrow {
+    font-family: var(--type);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .peek {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .peek-head {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-elev-2);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--type);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-2);
+  }
+  .peek-body {
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .peek-line { color: var(--ink-2); }
+  .peek-who {
+    font-family: var(--type);
+    font-size: 10px;
+    color: var(--ink-3);
+    margin-right: 6px;
+    letter-spacing: 0.06em;
+  }
+  .peek-roll {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: var(--type);
+    font-size: 10px;
+    margin-right: 4px;
+  }
+  .peek-roll.crit { background: var(--gold-bg); color: #7a5a2a; }
+  .peek-roll.extreme { background: var(--green-bg); color: #3b6e3b; }
+  .peek-roll.hard { background: var(--blue-bg); color: #2c466c; }
+  .peek-roll.fail { background: var(--accent-soft); color: var(--accent); }
+
+  .ticker {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+  }
+  .ticker-head {
+    font-family: var(--type);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+    display: flex; justify-content: space-between;
+  }
+  .ticker-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+    margin-right: 4px;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+  .ticker-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    padding: 3px 0;
+    color: var(--ink-2);
+    border-bottom: 1px dashed var(--line);
+  }
+  .ticker-row:last-child { border-bottom: none; }
+  .ticker-row b { color: var(--ink); font-family: var(--type); font-weight: 400; }
+
+  /* ──────────────────────────────────────────────
+     CAMPAIGN LIST — mobile
+     ────────────────────────────────────────────── */
+
+  .crumb {
+    padding: 10px 16px;
+    font-family: var(--type);
+    font-size: 11px;
+    color: var(--ink-3);
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .crumb a { color: var(--ink-2); text-decoration: none; }
+  .crumb .sep { margin: 0 6px; color: var(--ink-3); }
+
+  .cl-header {
+    padding: 18px 16px 14px;
+    background: var(--bg-elev);
+    border-bottom: 1px solid var(--line);
+  }
+  .cl-eyebrow {
+    font-family: var(--type);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .cl-title {
+    margin: 0 0 4px;
+    font-family: var(--serif);
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--ink);
+  }
+  .cl-subtitle {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .cl-meta {
+    display: flex;
+    gap: 16px;
+    margin: 12px 0 0;
+    padding: 0;
+    font-family: var(--type);
+    font-size: 11px;
+  }
+  .cl-meta div { display: flex; gap: 4px; }
+  .cl-meta dt { color: var(--ink-3); margin: 0; }
+  .cl-meta dd { margin: 0; color: var(--ink); font-weight: 700; }
+
+  /* Continue card */
+  .continue-card {
+    margin: 14px 16px;
+    background: linear-gradient(135deg, #1a1714 0%, #2a2218 100%);
+    color: #fef9e8;
+    border-radius: var(--radius);
+    padding: 14px 14px 14px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 3px 3px 0 rgba(26, 23, 20, 0.15);
+  }
+  .continue-card::before {
+    content: "";
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    background: radial-gradient(circle at top right, var(--accent) 0%, transparent 70%);
+    opacity: 0.7;
+  }
+  .cc-eyebrow {
+    font-family: var(--type);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: #c9aa6c;
+    text-transform: uppercase;
+    position: relative;
+  }
+  .cc-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 4px 0 6px;
+    position: relative;
+  }
+  .cc-meta {
+    font-family: var(--type);
+    font-size: 11px;
+    color: #b8ad9e;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .cc-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 14px;
+    border: 1px solid #c9aa6c;
+    color: #fef9e8;
+    border-radius: var(--radius);
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    background: rgba(201, 170, 108, 0.12);
+    position: relative;
+  }
+
+  /* Section */
+  .cl-section {
+    margin: 0 0 4px;
+    padding: 20px 16px 10px;
+  }
+  .cl-section-eyebrow {
+    font-family: var(--type);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .cl-section h2 {
+    margin: 0 0 4px;
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 900;
+    color: var(--ink);
+  }
+  .cl-section-hint {
+    margin: 0 0 12px;
+    color: var(--ink-3);
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  /* My chars carousel (horizontal scroll) */
+  .my-chars-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    scroll-snap-type: x mandatory;
+  }
+  .my-chars-scroll::-webkit-scrollbar { display: none; }
+  .my-char-card {
+    flex: 0 0 220px;
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--c-hue, var(--accent));
+    border-radius: var(--radius);
+    padding: 12px;
+    scroll-snap-align: start;
+    position: relative;
+  }
+  .mc-camp {
+    font-family: var(--type);
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .mc-name {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .mc-occu {
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-bottom: 10px;
+  }
+  .mc-vitals {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin: 0 0 8px;
+    padding: 0;
+  }
+  .mc-vitals > div {
+    background: var(--bg);
+    padding: 4px 6px;
+    border-radius: 3px;
+    text-align: center;
+  }
+  .mc-vitals dt {
+    font-family: var(--type);
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    margin: 0 0 2px;
+  }
+  .mc-vitals dd {
+    margin: 0;
+    font-family: var(--type);
+    font-size: 12px;
+    color: var(--ink);
+  }
+  .mc-vitals dd span { color: var(--ink-3); font-size: 10px; }
+  .mc-play {
+    display: block;
+    text-align: center;
+    background: var(--accent);
+    color: #fef9e8;
+    padding: 8px;
+    border-radius: 3px;
+    font-family: var(--type);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+  }
+
+  /* Status filter pills */
+  .cl-status-pills {
+    display: flex;
+    gap: 6px;
+    margin: 0 0 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .cl-status-pills::-webkit-scrollbar { display: none; }
+  .cl-status-pill {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-family: var(--type);
+    font-size: 11px;
+    color: var(--ink-2);
+    text-decoration: none;
+    background: var(--bg-elev);
+  }
+  .cl-status-pill.is-active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+  .cl-status-pill.accent.is-active {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* Campaign card list (replaces table on mobile) */
+  .camp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .camp-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .camp-card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--c-hue, var(--accent));
+  }
+  .cc-row1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .cc-num {
+    font-family: var(--type);
+    font-size: 10px;
+    color: var(--ink-3);
+    letter-spacing: 0.1em;
+  }
+  .cc-name {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    flex: 1;
+    line-height: 1.3;
+  }
+  .cc-status {
+    font-family: var(--type);
+    font-size: 9.5px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  .cc-status.active { background: var(--green-bg); color: #3b6e3b; }
+  .cc-status.dormant { background: var(--grey-bg); color: var(--ink-2); }
+  .cc-status.closed { background: var(--accent-soft); color: var(--accent); }
+  .cc-row2 {
+    display: flex;
+    gap: 12px;
+    font-family: var(--type);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .cc-row2 b { color: var(--ink-2); font-weight: 400; }
+  .cc-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+    font-family: var(--type);
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+  .cc-foot-cta {
+    color: var(--accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  /* Notifications mini */
+  .cl-notify-mini {
+    margin: 0 16px 12px;
+    padding: 10px 12px;
+    background: var(--bg-elev);
+    border: 1px dashed var(--line);
+    border-radius: var(--radius);
+    font-family: var(--type);
+    font-size: 11px;
+    color: var(--ink-3);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  /* FAB */
+  .fab {
+    position: absolute;
+    right: 20px;
+    bottom: 80px;
+    width: 56px; height: 56px;
+    background: var(--accent);
+    color: #fef9e8;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    box-shadow: 4px 4px 0 rgba(26, 23, 20, 0.18), 0 6px 16px rgba(138, 28, 28, 0.3);
+    text-decoration: none;
+  }
+
+  /* Annotations */
+  .anno {
+    background: rgba(214, 209, 200, 0.06);
+    border-left: 2px solid var(--accent);
+    padding: 10px 14px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: #b8ad9e;
+    font-family: var(--serif);
+    line-height: 1.55;
+    border-radius: 0 3px 3px 0;
+  }
+  .anno b { color: #d6d1c8; font-weight: 700; }
+  .anno-list {
+    margin: 6px 0 0;
+    padding-left: 16px;
+  }
+  .anno-list li { margin: 3px 0; }
+
+  /* Design system legend at top */
+  .legend {
+    margin: 0 auto 36px;
+    padding: 16px 24px;
+    background: rgba(214, 209, 200, 0.04);
+    border: 1px solid #3a342c;
+    border-radius: 6px;
+    color: #d6d1c8;
+    max-width: 920px;
+    font-family: var(--serif);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .legend h3 {
+    margin: 0 0 8px;
+    font-family: var(--type);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: #c9aa6c;
+    text-transform: uppercase;
+  }
+  .legend .tokens {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    font-family: var(--type);
+    font-size: 11px;
+  }
+  .swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch i {
+    width: 18px; height: 18px;
+    border-radius: 3px;
+    border: 1px solid #3a342c;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <header class="stage-head">
+    <div class="stage-eyebrow">JIOKDO · MOBILE SHIYAN · V1</div>
+    <h1 class="stage-title">지옥도 모바일 시안</h1>
+    <p class="stage-sub">랜딩 · 캠페인 목록 · 다크 시네마틱(라이트 페이퍼) 톤 유지</p>
+  </header>
+
+  <section class="legend">
+    <h3>모바일 디자인 원칙</h3>
+    <p>
+      데스크탑의 <b>3-column 보고서 톤</b>(paper + oxblood + 타이프라이터)을 유지하면서,
+      세로 1-column 흐름으로 재배치. 데스크탑의 <i>좌·중·우 패널</i>은
+      <b>섹션 분할 + 카드 + 가로 스크롤 캐러셀</b>로 분해합니다.
+    </p>
+    <div class="tokens">
+      <span class="swatch"><i style="background:#f5f3ee"></i>paper #f5f3ee</span>
+      <span class="swatch"><i style="background:#fbf9f4"></i>elev #fbf9f4</span>
+      <span class="swatch"><i style="background:#1a1714"></i>ink #1a1714</span>
+      <span class="swatch"><i style="background:#8a1c1c"></i>accent #8a1c1c</span>
+      <span class="swatch"><i style="background:#c9aa6c"></i>gold #c9aa6c</span>
+    </div>
+    <p style="margin-top:10px;">
+      <b>하단 탭바</b>: 홈 / 캠페인 / 플레이 / 시트 / 더보기 — 5개로 고정.
+      <b>FAB</b>: 컨텍스트 액션(예: 새 캠페인, 새 글)에만 사용.
+      <b>터치 타겟</b> 최소 44px, 칩/필터는 가로 스크롤 허용.
+    </p>
+  </section>
+
+  <div class="frames">
+
+    <!-- ════════════════════════════════════════════════
+         FRAME 1 — LANDING (logged-out · fresh)
+         ════════════════════════════════════════════════ -->
+    <div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <div class="statusbar-right">●●●● ▮▮</div>
+          </div>
+
+          <div class="topbar">
+            <div class="topbar-brand">
+              <div class="topbar-brand-mark">地</div>
+              <span>지옥도</span>
+            </div>
+            <div class="topbar-right">
+              <div class="topbar-icon" title="다크/라이트 토글">◐</div>
+              <div class="topbar-icon" title="검색">⌕</div>
+            </div>
+          </div>
+
+          <div class="body-scroll">
+            <!-- HERO DOC -->
+            <section class="hero-doc">
+              <div class="hd-corners">
+                <div class="hd-stamp">
+                  <div class="hd-stamp-label">현장 보고서</div>
+                  <div class="hd-stamp-num">№<b>01</b></div>
+                </div>
+                <div class="hd-meta">
+                  <div class="hd-classification">CONFIDENTIAL · 대외비</div>
+                  <div>SEOUL · 2007</div>
+                  <div>FILE/01.SEOUL.2007</div>
+                </div>
+              </div>
+
+              <div class="hd-body">
+                <h2 class="hd-quote">
+                  <span class="hd-q-mark" aria-hidden="true">"</span>
+                  어쩌겠습니까.<br />
+                  <em>우리 세상은</em> 2000년대<br />
+                  초반부터 그렇게 된 것을.
+                </h2>
+
+                <div class="hero-questionnaire">
+                  <p>이태백, 이소호, 최혜진, 천은이 모두 생존해있습니까?</p>
+                  <p>안세인, 백진아, 권효명, 천경석이 모두 생존해있습니까?</p>
+                  <p>지격환에게 정확히 무슨 일이 있었는지 알아내셨습니까?</p>
+                  <p>남상범의 마스크 아래에 무엇이 있는지 확인하셨습니까?</p>
+                  <p class="hr-strong">이미 벌어진 일 역시 바꿀 수 있다는 확신을 얻으셨습니까?</p>
+                  <p class="hr-divider">— 마지막으로, —</p>
+                  <p class="hr-final">이 모든 일을 끝낼 준비가 되셨습니까?</p>
+                </div>
+              </div>
+
+              <footer class="hd-footer">
+                <div class="hd-cta-row">
+                  <a href="#" class="btn primary large">지금 시작하기 →</a>
+                  <a href="#" class="btn ghost">먼저 룰북 보기</a>
+                </div>
+
+                <dl class="hd-stats">
+                  <div><dt>등록 닉네임</dt><dd>248</dd></div>
+                  <div><dt>누적 굴림</dt><dd>4,931</dd></div>
+                  <div><dt>이번 주</dt><dd>17</dd></div>
+                </dl>
+
+                <div class="hd-sign">— 서울경찰청 특수사건수사팀 —</div>
+              </footer>
+            </section>
+
+            <!-- HERO ASIDE -->
+            <section class="hero-aside">
+              <div class="ha-eyebrow">최근 세션 · 미리보기</div>
+
+              <div class="peek">
+                <div class="peek-head">
+                  <span>jiokdo.app · 최근 세션</span>
+                  <span>◉ LIVE</span>
+                </div>
+                <div class="peek-body">
+                  <div class="peek-line">
+                    <span class="peek-who">@천은</span>
+                    문 너머로 발걸음 소리가 점점 가까워진다.
+                  </div>
+                  <div class="peek-line">
+                    <span class="peek-who">@이태백</span>
+                    <span class="peek-roll extreme">EXT</span>
+                    감지 — 64 vs 75
+                  </div>
+                  <div class="peek-line">
+                    <span class="peek-who">@키퍼</span>
+                    숨소리가 멎는다. 무언가 너희를 보고 있다.
+                  </div>
+                  <div class="peek-line">
+                    <span class="peek-who">@최혜진</span>
+                    <span class="peek-roll fail">FAIL</span>
+                    SAN — 87 vs 60
+                  </div>
+                </div>
+              </div>
+
+              <div class="ticker">
+                <div class="ticker-head">
+                  <span><span class="ticker-dot"></span>LIVE TICKER</span>
+                  <span>10 mins</span>
+                </div>
+                <div class="ticker-row"><span>@이소호</span><b>도서관 56% — EXT</b></div>
+                <div class="ticker-row"><span>@권효명</span><b>1d6+1 = 5</b></div>
+                <div class="ticker-row"><span>@백진아</span><b>설득 41% — REG</b></div>
+              </div>
+            </section>
+          </div>
+
+          <nav class="tabbar">
+            <a class="tab active"><span class="ico">⌂</span>홈</a>
+            <a class="tab"><span class="ico">▤</span>캠페인</a>
+            <a class="tab"><span class="ico">▶</span>플레이</a>
+            <a class="tab"><span class="ico">◇</span>시트</a>
+            <a class="tab"><span class="ico">⋯</span>더보기</a>
+          </nav>
+        </div>
+      </div>
+      <div class="phone-label"><b>화면 1.</b> 랜딩 · 로그인 전</div>
+
+      <div class="anno">
+        <b>주요 변경점</b>
+        <ul class="anno-list">
+          <li>현장 보고서 스탬프는 그대로, 우측 메타는 폰트 9px로 축소</li>
+          <li>질문지(체크박스)는 짧은 4개 + 마지막 강조 2개만 노출 (전체는 펼치기 토글)</li>
+          <li>CTA는 풀폭 세로 스택 — primary 위, ghost 아래</li>
+          <li>최근 세션 / 라이브 티커는 별도 섹션으로 분리 (스크롤 하단)</li>
+          <li>다크 토글(◐) + 검색(⌕)을 우상단 단축 아이콘으로</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         FRAME 2 — CAMPAIGN LIST (logged-in)
+         ════════════════════════════════════════════════ -->
+    <div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <div class="statusbar-right">●●●● ▮▮</div>
+          </div>
+
+          <div class="topbar">
+            <div class="topbar-brand">
+              <div class="topbar-brand-mark">地</div>
+              <span>지옥도</span>
+            </div>
+            <div class="topbar-right">
+              <span class="topbar-nick">@suuk</span>
+              <div class="topbar-icon">◐</div>
+            </div>
+          </div>
+
+          <div class="body-scroll">
+            <div class="crumb">
+              <a href="#">지옥도</a>
+              <span class="sep">/</span>
+              <span>내 캠페인</span>
+            </div>
+
+            <header class="cl-header">
+              <div class="cl-eyebrow">CAMPAIGNS · @suuk</div>
+              <h2 class="cl-title">내 캠페인</h2>
+              <p class="cl-subtitle">
+                진행 중인 사건과 가까운 세션, 누적 기록을 한 화면에서.
+              </p>
+              <dl class="cl-meta">
+                <div><dt>참여</dt><dd>4</dd></div>
+                <div><dt>키퍼</dt><dd>2</dd></div>
+                <div><dt>플레이어</dt><dd>2</dd></div>
+                <div><dt>활성</dt><dd>3</dd></div>
+              </dl>
+            </header>
+
+            <!-- Continue -->
+            <a href="#" class="continue-card" style="text-decoration:none;color:inherit;display:block;">
+              <div class="cc-eyebrow">이어서 플레이 · 키퍼</div>
+              <div class="cc-title">서울 1997 · 잠수교의 그림자</div>
+              <div class="cc-meta">다음 세션 · 토요일 21:00 — 마지막 활동 3시간 전</div>
+              <span class="cc-cta">플레이 페이지 열기 →</span>
+            </a>
+
+            <!-- My characters -->
+            <section class="cl-section">
+              <div class="cl-section-eyebrow">DOSSIER · @suuk</div>
+              <h2>내 캐릭터</h2>
+              <p class="cl-section-hint">
+                참여 중인 캠페인의 내 시트들. 좌우로 스와이프.
+              </p>
+              <div class="my-chars-scroll">
+                <div class="my-char-card" style="--c-hue:#8a1c1c">
+                  <div class="mc-camp">잠수교의 그림자</div>
+                  <div class="mc-name">이태백</div>
+                  <div class="mc-occu">강력반 형사</div>
+                  <dl class="mc-vitals">
+                    <div><dt>HP</dt><dd>13<span>/14</span></dd></div>
+                    <div><dt>MP</dt><dd>11<span>/12</span></dd></div>
+                    <div><dt>SAN</dt><dd>58<span>/65</span></dd></div>
+                  </dl>
+                  <a class="mc-play">플레이 →</a>
+                </div>
+                <div class="my-char-card" style="--c-hue:#2c466c">
+                  <div class="mc-camp">남산 미스터리</div>
+                  <div class="mc-name">최혜진</div>
+                  <div class="mc-occu">의대생</div>
+                  <dl class="mc-vitals">
+                    <div><dt>HP</dt><dd>9<span>/10</span></dd></div>
+                    <div><dt>MP</dt><dd>14<span>/14</span></dd></div>
+                    <div><dt>SAN</dt><dd>72<span>/80</span></dd></div>
+                  </dl>
+                  <a class="mc-play">플레이 →</a>
+                </div>
+                <div class="my-char-card" style="--c-hue:#3b6e3b">
+                  <div class="mc-camp">을지로 사건</div>
+                  <div class="mc-name">권효명</div>
+                  <div class="mc-occu">사립탐정</div>
+                  <dl class="mc-vitals">
+                    <div><dt>HP</dt><dd>12<span>/12</span></dd></div>
+                    <div><dt>MP</dt><dd>10<span>/13</span></dd></div>
+                    <div><dt>SAN</dt><dd>65<span>/70</span></dd></div>
+                  </dl>
+                  <a class="mc-play">플레이 →</a>
+                </div>
+              </div>
+            </section>
+
+            <!-- Notifications mini -->
+            <div class="cl-notify-mini">
+              <span>·</span>
+              <span>새 알림 없음 · 마지막 변동 12분 전</span>
+            </div>
+
+            <!-- All campaigns -->
+            <section class="cl-section">
+              <div class="cl-section-eyebrow">ROSTER</div>
+              <h2>모든 캠페인</h2>
+
+              <div class="cl-status-pills">
+                <a class="cl-status-pill is-active">전부 4</a>
+                <a class="cl-status-pill accent">활성 3</a>
+                <a class="cl-status-pill">휴면 1</a>
+              </div>
+
+              <div class="camp-list">
+                <div class="camp-card" style="--c-hue:#8a1c1c">
+                  <div class="cc-row1">
+                    <span class="cc-num">№01</span>
+                    <div class="cc-name">서울 1997 · 잠수교의 그림자</div>
+                    <span class="cc-status active">활성</span>
+                  </div>
+                  <div class="cc-row2">
+                    <span>키퍼 <b>@suuk</b></span>
+                    <span>탐사자 <b>4</b></span>
+                    <span>멤버 <b>5</b></span>
+                  </div>
+                  <div class="cc-foot">
+                    <span>다음 세션 · 토 21:00</span>
+                    <a class="cc-foot-cta">열기 →</a>
+                  </div>
+                </div>
+
+                <div class="camp-card" style="--c-hue:#2c466c">
+                  <div class="cc-row1">
+                    <span class="cc-num">№02</span>
+                    <div class="cc-name">남산 미스터리</div>
+                    <span class="cc-status active">활성</span>
+                  </div>
+                  <div class="cc-row2">
+                    <span>플레이어</span>
+                    <span>탐사자 <b>3</b></span>
+                    <span>멤버 <b>4</b></span>
+                  </div>
+                  <div class="cc-foot">
+                    <span>다음 세션 미정 · 활동 1일 전</span>
+                    <a class="cc-foot-cta">열기 →</a>
+                  </div>
+                </div>
+
+                <div class="camp-card" style="--c-hue:#3b6e3b">
+                  <div class="cc-row1">
+                    <span class="cc-num">№03</span>
+                    <div class="cc-name">을지로 사건</div>
+                    <span class="cc-status active">활성</span>
+                  </div>
+                  <div class="cc-row2">
+                    <span>플레이어</span>
+                    <span>탐사자 <b>5</b></span>
+                    <span>멤버 <b>6</b></span>
+                  </div>
+                  <div class="cc-foot">
+                    <span>다음 세션 · 일 19:00</span>
+                    <a class="cc-foot-cta">열기 →</a>
+                  </div>
+                </div>
+
+                <div class="camp-card" style="--c-hue:#7a7268">
+                  <div class="cc-row1">
+                    <span class="cc-num">№04</span>
+                    <div class="cc-name">홍대 입구역 4번 출구</div>
+                    <span class="cc-status dormant">휴면</span>
+                  </div>
+                  <div class="cc-row2">
+                    <span>키퍼 <b>@suuk</b></span>
+                    <span>탐사자 <b>3</b></span>
+                    <span>멤버 <b>3</b></span>
+                  </div>
+                  <div class="cc-foot">
+                    <span>마지막 활동 · 2주 전</span>
+                    <a class="cc-foot-cta">열기 →</a>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div style="height:80px;"></div>
+          </div>
+
+          <a href="#" class="fab" title="새 캠페인 / 초대 코드">+</a>
+
+          <nav class="tabbar">
+            <a class="tab"><span class="ico">⌂</span>홈</a>
+            <a class="tab active"><span class="ico">▤</span>캠페인</a>
+            <a class="tab"><span class="ico">▶</span>플레이</a>
+            <a class="tab"><span class="ico">◇</span>시트</a>
+            <a class="tab"><span class="ico">⋯</span>더보기</a>
+          </nav>
+        </div>
+      </div>
+      <div class="phone-label"><b>화면 2.</b> 내 캠페인 · 로그인 후</div>
+
+      <div class="anno">
+        <b>주요 변경점</b>
+        <ul class="anno-list">
+          <li><b>이어서 플레이</b> 카드를 가장 위 — 한 탭으로 즉시 본격 플레이로 진입</li>
+          <li><b>내 캐릭터</b>는 가로 스크롤 캐러셀 (한 화면에 1.5장 보임 — 추가 있다는 신호)</li>
+          <li>데스크탑의 표(CampaignsTable) → <b>카드 리스트</b>. 좌측 색 띠 = 캠페인 hue</li>
+          <li>상태 필터 pill은 가로 스크롤 허용 (전부 / 활성 / 휴면 / 종료)</li>
+          <li>FAB(➕) = 새 캠페인 · 초대 코드 입력 (기존 collapsible 폼은 시트로 슬라이드업)</li>
+          <li>하단 탭바 「캠페인」 활성 상태</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <section class="legend" style="margin-top:48px;">
+    <h3>다음 단계 · 후속 시안 후보</h3>
+    <p>
+      두 화면이 합의되면 우선 작업 권장 순서:
+    </p>
+    <ol style="padding-left:18px; margin:6px 0 0; line-height:1.7;">
+      <li><b>플레이 · 장면 모드</b> — 시트 bottom-sheet, 컴포저 sticky, PC 칩 가로 스크롤</li>
+      <li><b>플레이 · 전투 트래커</b> — 추천안: <b>세로 스택 + 이니셔티브 접이식</b>
+        <br>(이니셔티브를 상단 collapsed bar로 두고, 펼치면 풀-체크리스트가 슬라이드 다운.
+        스탯블록 → 액션바 → 로그 순서로 자연스러운 위→아래 흐름. 탭 전환보다 가독성·동시 노출이 좋음.)</li>
+      <li><b>내 캐릭터 시트</b> — 섹션 아코디언 (특성치 / 파생 / 기능 / 무기 / 인벤토리). 굴림 버튼 = 큰 터치 타겟</li>
+      <li><b>vital 편집 시트</b> — 화면 하단에서 슬라이드업 (현재의 인라인 편집기를 모달 시트로 격상)</li>
+      <li><b>에너미 작성</b> — 단일 컬럼 폼, 섹션별 collapsible 카드, 자동계산 패널은 항상 sticky 상단 노출</li>
+    </ol>
+  </section>
+</div>
+</body>
+</html>

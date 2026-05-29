@@ -12,6 +12,7 @@ import { ContinueCard, type ContinueTarget } from "@/components/vtt/ContinueCard
 import { NicknameInline } from "@/components/vtt/NicknameInline";
 import { CampaignsTable, type CampaignTableRow } from "@/components/vtt/CampaignsTable";
 import { NotificationsCard } from "@/components/vtt/NotificationsCard";
+import { MobileCampaignDashboard } from "@/components/vtt/MobileCampaignDashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -71,9 +72,11 @@ export default async function CampaignsDashboardPage({
       const myChars: { char: Character; campaign: Campaign }[] = chars
         .filter((ch) => ch.owner_nick === nick)
         .map((ch) => ({ char: ch, campaign: c }));
-      return { row, myChars, lastEntryAt };
+      return { row, myChars, lastEntryAt, chars };
     })
   );
+  const charactersByCampaign: Record<number, Character[]> = {};
+  for (const e of enriched) charactersByCampaign[e.row.campaign.id] = e.chars;
   const allRows: CampaignTableRow[] = enriched.map((e) => e.row);
   const rows = statusFilter ? allRows.filter((r) => r.status === statusFilter) : allRows;
   const myChars = enriched.flatMap((e) => e.myChars);
@@ -111,7 +114,22 @@ export default async function CampaignsDashboardPage({
   const lastNotifyAt = notifications[0]?.when ?? null;
 
   return (
-    <div className="cl-page">
+    <>
+    {campaigns.length > 0 ? (
+      <MobileCampaignDashboard
+        nick={nick}
+        rows={rows}
+        allRows={allRows}
+        myChars={myChars}
+        charactersByCampaign={charactersByCampaign}
+        continueTarget={continueTarget}
+        statusFilter={statusFilter}
+        activeCount={activeCount}
+        dormantCount={dormantCount}
+        closedCount={closedCount}
+      />
+    ) : null}
+    <div className="cl-page cl-page-desktop">
       <div className="breadcrumb">
         <Link href="/">지옥도</Link>
         <span className="sep">/</span>
@@ -306,6 +324,7 @@ export default async function CampaignsDashboardPage({
         <Link href="/rulebook">📖 룰북·사이트 사용법</Link>
       </div>
     </div>
+    </>
   );
 }
 
