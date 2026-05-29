@@ -275,6 +275,14 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
     margin: -1.75rem -1.25rem 0;
   }
 
+  /* 랜딩(표지)은 한 화면으로 고정 — 표지 아래로 스크롤되며 페이퍼 패딩이
+     보이지 않도록, 랜딩 페이지에서만 본문 하단 여백·footer·탭바 예약 여백 제거.
+     표지(.m-cover)가 calc(100dvh - 헤더 - 탭바) 높이라 문서가 뷰포트보다
+     커지지 않아 스크롤이 발생하지 않음. */
+  body:has(.m-landing) { padding-bottom: 0; }
+  body:has(.m-landing) .main { padding-bottom: 0; }
+  body:has(.m-landing) .site-footer { display: none; }
+
   /* ── 표지 ── */
   .m-cover {
     min-height: calc(100dvh - 60px - 54px);
