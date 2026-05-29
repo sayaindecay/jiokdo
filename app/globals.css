@@ -876,6 +876,122 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
     line-height: 1;
   }
   .m-fab:hover { color: #fef0d8; }
+
+  /* ── 플레이 / 전투 트래커 모바일 적응 ── */
+  /* topbar: 브레드크럼 위, 토글 풀폭 아래 */
+  .play-shell .play-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .play-shell .play-mode-toggle { width: 100%; }
+  .play-shell .play-mode-tab {
+    flex: 1;
+    text-align: center;
+    padding: 0.55rem 0.5rem;
+    font-size: 0.82rem;
+  }
+
+  /* ── 모드 토글 통일 (장면/트래커) → 컴팩트 패딩 ── */
+  .scene-grid.tracker-embed {
+    gap: 0.6rem;
+  }
+
+  /* 이니셔티브 패널 자체 — sticky 상단 (스탯시트 굴릴 때 라운드/턴 확인) */
+  .scene-grid.tracker-embed > .stk-panel:first-child {
+    position: sticky;
+    top: 60px;
+    z-index: 9;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+  .scene-grid.tracker-embed > .stk-panel:first-child .stk-body-flush {
+    max-height: 38vh;
+    overflow-y: auto;
+  }
+
+  /* 이니셔티브 row 컴팩트 */
+  .initiative { padding: 0.6rem 0.7rem; }
+  .initiative .ini-head { font-size: 0.66rem; margin-bottom: 0.45rem; padding-bottom: 0.35rem; }
+  .initiative .ini-head .round { font-size: 1rem; }
+  .initiative .ini-row {
+    padding: 0.4rem 0.4rem;
+    gap: 0.4rem;
+    margin-bottom: 0.15rem;
+  }
+  .initiative .ini-row .dex { width: 1.7rem; font-size: 0.7rem; }
+  .initiative .ini-row .name { font-size: 0.86rem; }
+  .initiative .ini-row .hp { font-size: 0.78rem; gap: 0.2rem; }
+  .initiative .ini-damage { width: 22px; height: 22px; font-size: 0.78rem; }
+  .initiative .ini-remove { width: 22px; height: 22px; font-size: 0.7rem; }
+  .ini-actions { gap: 0.4rem; flex-wrap: wrap; }
+  .ini-actions .btn { flex: 1; min-width: 0; font-size: 0.78rem; padding: 0.45rem 0.6rem; }
+
+  /* ADD 패널 — 모바일에선 목록 max-height 제한 + 내부 스크롤 */
+  .stk-add-list { max-height: 220px; overflow-y: auto; }
+
+  /* 스탯시트 컴팩트 */
+  .statblock .stat-grid { grid-template-columns: repeat(4, 1fr); }
+  .statblock .stat-grid .k { font-size: 0.62rem; }
+  .statblock .stat-grid .v { font-size: 0.95rem; }
+  .pc-skill-list { grid-template-columns: 1fr 1fr; }
+
+  /* 액션바 — sticky bottom (탭바는 트래커에서 숨겨져 있음, 자체 하단 narration 위에 위치) */
+  .stk-combat-actions {
+    position: sticky;
+    bottom: 70px; /* tracker-narration 높이 위 */
+    z-index: 8;
+    background: rgba(14, 11, 9, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(245, 243, 238, 0.2);
+    padding: 0.5rem 0.6rem;
+    margin: 0 -1px;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .stk-combat-actions .chip {
+    flex: 1 1 calc(33% - 0.3rem);
+    text-align: center;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.78rem;
+  }
+  .stk-combat-actions .stk-foot-label { display: none; }
+  .stk-weapon-row {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    padding: 0.5rem 0.6rem;
+  }
+  .stk-weapon-row .chip {
+    flex: 1 1 calc(50% - 0.3rem);
+    text-align: center;
+    font-size: 0.75rem;
+  }
+
+  /* 트래커 묘사 입력 — sticky bottom */
+  .tracker-narration {
+    position: sticky;
+    bottom: 0;
+    z-index: 7;
+    margin: 0 -1.25rem;
+    padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+    background: #15100b;
+    border-top: 1.5px solid rgba(245, 243, 228, 0.18);
+    gap: 0.35rem;
+  }
+  .tracker-narration .tn-narrator {
+    max-width: 7rem;
+    font-size: 0.72rem;
+    padding: 0.35rem 0.4rem;
+  }
+  .tracker-narration .tn-input {
+    font-size: 0.82rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  /* 전투 로그 헤더 액션 줄바꿈 */
+  .section-head-tracker-log { flex-wrap: wrap; gap: 0.4rem; }
+  .section-head-tracker-log .actions { width: 100%; display: flex; gap: 0.3rem; }
+  .section-head-tracker-log .actions .btn { flex: 1; min-width: 0; font-size: 0.75rem; }
 }
 
 /* ───── Typography ───── */
