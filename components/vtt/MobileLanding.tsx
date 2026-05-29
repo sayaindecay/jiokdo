@@ -195,16 +195,16 @@ export function MobileLanding({
             <p className="m-acc-final">이 모든 일을 끝낼 준비가 되셨습니까?</p>
           </div>
         </details>
-      </section>
 
-      <div className="m-pinned-cta">
-        <Link href={ctaHref} className="btn primary">
-          {ctaLabel}
-        </Link>
-        <Link href="/rulebook" className="btn ghost">
-          룰북
-        </Link>
-      </div>
+        <div className="m-pinned-cta">
+          <Link href={ctaHref} className="btn primary">
+            {ctaLabel}
+          </Link>
+          <Link href="/rulebook" className="btn ghost">
+            룰북
+          </Link>
+        </div>
+      </section>
     </div>
   );
 }

@@ -414,7 +414,7 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
   .m-feed {
     background: var(--bg);
     color: var(--ink);
-    padding-bottom: 88px; /* pinned cta + 여백 */
+    padding-bottom: 12px;
   }
   .m-feed-head {
     padding: 18px 16px 12px;
@@ -592,12 +592,15 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
   }
   .m-acc-final::before { content: none !important; }
 
-  /* ── 피드 화면 고정 CTA ── */
+  /* ── 피드 영역 고정 CTA ──
+     feed 내부 sticky → 표지(첫 화면)에선 보이지 않고, 피드로 스크롤해야
+     하단에 나타남. (이전 position:fixed 는 다크 표지 위에도 겹쳐 떠서
+     표지 자체 CTA 와 중복되는 어색한 밴드를 만들었음) */
   .m-pinned-cta {
-    position: fixed;
-    left: 0; right: 0;
+    position: sticky;
     bottom: calc(54px + env(safe-area-inset-bottom, 0px));
     z-index: 50;
+    margin-top: 16px;
     padding: 10px 14px;
     background: var(--bg-elev);
     border-top: 1px solid var(--line);
@@ -611,9 +614,6 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
     color: #fef0d8;
   }
   .m-pinned-cta .btn.ghost { flex: 0 0 auto; }
-
-  /* 표지 화면에서는 m-pinned-cta 숨김 (표지 자체 CTA 사용) */
-  /* 표지가 첫 화면이고 피드로 스크롤하면 곧 보이게 — 일단 항상 표시 */
 
   /* ── 모바일 캠페인 대시보드 ── */
   .cl-page-desktop { display: none !important; }
