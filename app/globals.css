@@ -992,6 +992,48 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
   .section-head-tracker-log { flex-wrap: wrap; gap: 0.4rem; }
   .section-head-tracker-log .actions { width: 100%; display: flex; gap: 0.3rem; }
   .section-head-tracker-log .actions .btn { flex: 1; min-width: 0; font-size: 0.75rem; }
+
+  /* ── 플레이 장면 모드 모바일 적응 ── */
+  .scene-side { gap: 0.75rem; }
+  .scene-side > .scene-col { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  /* 시네마틱 무대: 데스크탑의 38rem 최소 높이 제거 (모바일 빈 공간 방지) */
+  .play-shell .scene {
+    min-height: auto;
+  }
+  .play-shell .scene-center { padding: 0.6rem 0.7rem 0.9rem; }
+  .play-shell .scene-illustration {
+    aspect-ratio: 16 / 10;
+    max-height: 200px;
+    font-size: 0.85rem;
+  }
+  .play-shell .scene-top {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.66rem;
+  }
+  .play-shell .scene-last-activity {
+    padding: 0.55rem 0.8rem;
+  }
+
+  /* 내 시트 패널 — 탭/행 터치 타겟 확대 */
+  .ms-panel .ms-tab { padding: 0.55rem 0.5rem; font-size: 0.85rem; }
+  .ms-panel .ms-row { min-height: 40px; }
+  .ms-panel .ms-char-strip { overflow-x: auto; flex-wrap: nowrap; }
+  .ms-panel .ms-char-strip::-webkit-scrollbar { display: none; }
+  .ms-panel .ms-char-chip { flex-shrink: 0; }
+  .ms-panel .ms-group-filter { overflow-x: auto; flex-wrap: nowrap; }
+  .ms-panel .ms-group-filter::-webkit-scrollbar { display: none; }
+  .ms-panel .ms-group-chip { flex-shrink: 0; }
+
+  /* 참여자/단서 패널 컴팩트 */
+  .scene-roster .member { padding: 0.5rem 0; }
+  .scene-roster .av { width: 1.9rem; height: 1.9rem; font-size: 0.8rem; }
+
+  /* 장면 모드에서도 컴포저가 노치를 피하도록 (탭바는 .play-shell에서 숨김) */
+  .play-shell .play-composer-sticky {
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+  }
 }
 
 /* ───── Typography ───── */
