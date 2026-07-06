@@ -223,7 +223,7 @@ function ClueRow({
         {clue.resolved ? "✓" : "·"}
       </button>
       <div className="clue-text">
-        <div className="name">📌 {clue.title}</div>
+        <div className="name"><span className="clue-glyph" aria-hidden="true">◆</span> {clue.title}</div>
         {clue.body ? <div className="info">{clue.body}</div> : null}
       </div>
       {isKeeper ? (

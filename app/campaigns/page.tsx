@@ -320,8 +320,8 @@ export default async function CampaignsDashboardPage({
       </section>
 
       <div className="cl-footer-links">
-        <Link href="/account">⚙ 내 계정 / 데이터 다운로드</Link>
-        <Link href="/rulebook">📖 룰북·사이트 사용법</Link>
+        <Link href="/account">◈ 내 계정 / 데이터 다운로드</Link>
+        <Link href="/rulebook">§ 룰북·사이트 사용법</Link>
       </div>
     </div>
     </>

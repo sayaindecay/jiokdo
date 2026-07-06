@@ -24,6 +24,8 @@
   --accent: #8a1c1c;
   --accent-hover: #6a1414;
   --accent-soft: rgba(138, 28, 28, 0.10);
+  --focus: #b9651f;                       /* 포커스·활성 (앰버) — 빨강은 위험 전용 */
+  --focus-soft: rgba(185, 101, 31, 0.16);
 
   /* — Result levels ——————————————————— */
   --gold: #7a5a2a;
@@ -102,9 +104,11 @@ input, textarea, select {
   transition: border-color .12s, box-shadow .12s;
   width: 100%;
 }
+/* 포커스 = 앰버. 빨강(accent)은 위험·실패·키퍼 전용 — 포커스에 쓰면
+   required 필드가 항상 에러처럼 읽힘 */
 input:focus, textarea:focus, select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-soft);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px var(--focus-soft);
 }
 textarea { resize: vertical; min-height: 8rem; line-height: 1.65; font-family: var(--font-mono); font-size: 0.9rem; }
 
@@ -290,6 +294,32 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
   }
   body:has(.m-landing) .main { padding-bottom: 0; }
   body:has(.m-landing) .site-footer { display: none; }
+
+  /* 표지가 다크 무드이므로 헤더·탭바도 다크로 — 페이퍼색 프레임이
+     표지를 "액자 속 그림"처럼 만들던 부조화 해소 */
+  body:has(.m-landing) .site-header {
+    background: rgba(18, 14, 11, 0.94);
+    border-bottom-color: rgba(236, 228, 214, 0.16);
+  }
+  body:has(.m-landing) .site-header .brand-ko { color: #f3ecdd; }
+  body:has(.m-landing) .site-header .search-trigger {
+    background: rgba(236, 228, 214, 0.06);
+    border-color: rgba(236, 228, 214, 0.2);
+    color: #b8ad9e;
+  }
+  body:has(.m-landing) .theme-toggle {
+    border-color: rgba(236, 228, 214, 0.2);
+    color: #d6cdbd;
+    background: transparent;
+  }
+  body:has(.m-landing) .nick-badge,
+  body:has(.m-landing) .nick-badge a { color: #d6cdbd; }
+  body:has(.m-landing) .mobile-tabbar {
+    background: #15100b;
+    border-top-color: rgba(236, 228, 214, 0.14);
+  }
+  body:has(.m-landing) .mtab { color: #8e857a; }
+  body:has(.m-landing) .mtab.active { color: #d98a3e; }
 
   /* ── 표지 ── */
   .m-cover {
@@ -2442,8 +2472,8 @@ body:has(.scene-side, .cinematic) .play-tracker-link:hover {
 }
 .pep-field input[type="url"]:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-soft);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 2px var(--focus-soft);
 }
 .pep-or {
   text-align: center;
@@ -2928,7 +2958,7 @@ button.char-row.rollable:disabled { cursor: not-allowed; opacity: 0.6; }
   border-radius: var(--radius);
   overflow: hidden;
   position: relative;
-  min-height: 38rem;
+  min-height: 24rem; /* 38rem 은 콘텐츠 적을 때 좌컬럼에 큰 공백을 만듦 */
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
@@ -3452,6 +3482,13 @@ button.char-row.rollable:disabled { cursor: not-allowed; opacity: 0.6; }
 @media (max-width: 980px) {
   .wiki-layout { grid-template-columns: 1fr; }
   .wiki-sidebar, .wiki-aside { position: static; max-height: none; }
+  /* 문서를 읽으러 온 화면 — 목차 전체가 본문을 화면 밖으로 밀어내지 않게
+     본문 먼저, 챕터 목차·문서 내 목차는 본문 아래로 */
+  .wiki-main { order: -1; }
+  .wiki-sidebar {
+    border-top: 1.5px dashed var(--line);
+    padding-top: 1.25rem;
+  }
   .search-layout { grid-template-columns: 1fr; }
   .facets { position: static; display: flex; gap: 0.4rem; flex-wrap: wrap; }
   .facets .group { margin-bottom: 0; }
@@ -5480,8 +5517,8 @@ select:focus-visible {
 }
 .bestiary-form .bf-image-field input[type="url"]:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-soft);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 2px var(--focus-soft);
 }
 .bestiary-form .bf-image-clear {
   align-self: flex-start;
@@ -5822,8 +5859,8 @@ select:focus-visible {
 }
 .scene-spotlight .ss-pin-edit-form textarea:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(193, 78, 78, 0.25);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 2px var(--focus-soft);
 }
 .scene-spotlight .ss-pin-edit-actions {
   display: flex;
@@ -6142,7 +6179,15 @@ select:focus-visible {
     gap: 0.3rem 0.55rem;
   }
   .post-board-row .kind-tag { grid-area: tag; align-self: center; }
-  .post-board-row .pb-title { grid-area: title; }
+  .post-board-row .pb-title {
+    grid-area: title;
+    /* 한 줄 말줄임은 모바일에서 제목 절반을 날림 → 2줄까지 허용 */
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.35;
+  }
   .post-board-row .pb-dice-mark { grid-area: dice; }
   .post-board-row .pb-author { grid-area: author; font-size: 0.7rem; }
   .post-board-row .pb-time { grid-area: time; }
@@ -6342,8 +6387,8 @@ select:focus-visible {
 .entry-detail .ed-edit-title:focus,
 .entry-detail .ed-edit-kind:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(193, 78, 78, 0.25);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 2px var(--focus-soft);
 }
 .entry-detail .ed-edit-note {
   font-family: var(--font-anno);
@@ -6560,7 +6605,7 @@ select:focus-visible {
 }
 .ms-panel .ms-char-picker:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--focus);
 }
 .ms-panel .ms-char-picker option {
   background: var(--bg);
@@ -6881,7 +6926,7 @@ select:focus-visible {
 .mvs-num input::-webkit-inner-spin-button,
 .mvs-num input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .mvs-num input:hover { border-color: rgba(245, 243, 238, 0.18) !important; }
-.mvs-num input:focus { outline: none; border-color: var(--accent) !important; background: rgba(245, 243, 238, 0.06) !important; }
+.mvs-num input:focus { outline: none; border-color: var(--focus) !important; background: rgba(245, 243, 238, 0.06) !important; }
 .mvs-num-direct input {
   border-color: rgba(245, 243, 238, 0.16) !important;
   background: rgba(245, 243, 238, 0.04) !important;
@@ -6998,6 +7043,10 @@ select:focus-visible {
   .vital-bar .vital-cells {
     grid-template-columns: repeat(4, 1fr);
   }
+  /* 캐릭터 시트 좌컬럼(~240px) 안에서는 4열이 짓눌려 라벨·버튼이 잘림 → 2열 유지 */
+  .sheet-col .vital-bar .vital-cells {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .vital-bar .vital-foot {
   display: flex;
@@ -7077,7 +7126,7 @@ select:focus-visible {
 .vital-cell .vital-val input::-webkit-outer-spin-button {
   -webkit-appearance: none; margin: 0;
 }
-.vital-cell .vital-val input:focus { outline: 1.5px dashed var(--accent); outline-offset: 1px; }
+.vital-cell .vital-val input:focus { outline: 1.5px dashed var(--focus); outline-offset: 1px; }
 .vital-cell .vital-sep { color: rgba(245, 243, 238, 0.35); }
 .vital-cell .vital-max { color: rgba(245, 243, 238, 0.55); font-weight: 400; font-size: 0.82rem; }
 
@@ -7279,10 +7328,12 @@ body:has(.scene-side, .cinematic) .scene-roster .info {
   padding: 0.35rem 0.5rem;
   border-radius: 3px;
 }
+.clue-row .clue-glyph { color: var(--accent); font-size: 0.75em; }
+
 .clue-form input:focus,
 .clue-form textarea:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--focus);
 }
 .clue-form-actions {
   display: flex;
@@ -8080,11 +8131,11 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
   .roll-btn { min-height: 36px; min-width: 48px; }
 }
 
-/* 7.4 meter 색 변형 강화 */
-.meter.hp .meter-bar i { background: linear-gradient(90deg, var(--red), #c14e4e); }
-.meter.mp .meter-bar i { background: linear-gradient(90deg, var(--blue), #4682b4); }
-.meter.san .meter-bar i { background: linear-gradient(90deg, var(--purple), #7d5fa3); }
-.meter.luck .meter-bar i { background: linear-gradient(90deg, var(--green), #6a9655); }
+/* 7.4 meter 색 변형 강화 — 잉크 섞인 톤 (원색 그라데이션은 페이퍼 팔레트에서 튐) */
+.meter.hp .meter-bar i { background: linear-gradient(90deg, var(--red), #a84a42); }
+.meter.mp .meter-bar i { background: linear-gradient(90deg, var(--blue), #52688a); }
+.meter.san .meter-bar i { background: linear-gradient(90deg, var(--purple), #6d5486); }
+.meter.luck .meter-bar i { background: linear-gradient(90deg, var(--green), #5f7d52); }
 .meter.hp .meter-head .label  { color: var(--red); }
 .meter.mp .meter-head .label  { color: var(--blue); }
 .meter.san .meter-head .label { color: var(--purple); }
@@ -8647,8 +8698,8 @@ body:has(.scene-side, .cinematic) .clue-form-actions .btn.ghost:hover {
 }
 .stk-title {
   font-family: var(--font-display);
-  font-size: 0.95rem;
-  color: #fff;
+  font-size: 0.88rem;
+  color: rgba(245, 243, 238, 0.72); /* 패널 3연속에서 우측 상태 라벨이 본문보다 세면 위계가 무너짐 */
   letter-spacing: -0.005em;
   overflow: hidden;
   text-overflow: ellipsis;

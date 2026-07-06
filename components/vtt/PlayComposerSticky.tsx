@@ -144,7 +144,7 @@ export function PlayComposerSticky({
               내레이션
             </KindBtn>
             {isKeeper ? (
-              <KindBtn current={kind} value="system" onClick={setKind} icon="⚙" subtitle="룰·공지">
+              <KindBtn current={kind} value="system" onClick={setKind} icon="※" subtitle="룰·공지">
                 시스템
               </KindBtn>
             ) : null}

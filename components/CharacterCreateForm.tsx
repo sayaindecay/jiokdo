@@ -35,7 +35,7 @@ export function CharacterCreateForm({ campaignId }: { campaignId: number }) {
       <div className="cc-options">
         <label className="cc-option cc-option-primary">
           <SubmitButton className="btn primary" name="use_template" value="random" pendingLabel="생성 중…">
-            🎲 굴려서 생성
+            ◈ 굴려서 생성
           </SubmitButton>
           <span className="cc-option-hint">기본 추천. 3d6×5 / 2d6+6×5 정통 방식으로 능력치를 굴립니다.</span>
         </label>

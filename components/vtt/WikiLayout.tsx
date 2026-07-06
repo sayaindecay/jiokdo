@@ -11,8 +11,8 @@ export type WikiNavItem = {
 export type WikiAnchor = { id: string; text: string };
 
 const GROUP_ICONS: Record<string, string> = {
-  기본: "📘",
-  판정: "🎲",
+  기본: "§",
+  판정: "◈",
   기타: "✦",
 };
 
@@ -52,7 +52,7 @@ export function WikiLayout({
     <div className="wiki-layout">
       <aside className="wiki-sidebar">
         <Link href="/search?in=rulebook" className="search-box">
-          🔍 룰북에서 찾기 <kbd>/</kbd>
+          ⌕ 룰북에서 찾기 <kbd>/</kbd>
         </Link>
         {sortedGroupEntries.map(([groupTitle, items]) => (
           <div className="group" key={groupTitle}>
