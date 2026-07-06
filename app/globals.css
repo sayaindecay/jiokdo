@@ -264,6 +264,7 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
 /* ───── Mobile landing (≤720px) ───── */
 .m-landing { display: none; }
 .m-cs { display: none; }
+.m-cl { display: none; }
 
 @media (max-width: 720px) {
   /* 데스크탑 랜딩 숨김 */
@@ -400,6 +401,7 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
   /* ── 모바일 캠페인 대시보드 ── */
   .cl-page-desktop { display: none !important; }
   .m-cl {
+    display: block;
     margin: -1.75rem -1.25rem 0;
     background: var(--bg);
     padding-bottom: 100px;
@@ -685,8 +687,13 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
     position: sticky;
     top: 60px;
     z-index: 9;
+    /* 기본 rgba(…0.04) 배경은 반투명이라 sticky 로 뜨면 밑 콘텐츠가 비침 */
+    background: #1b1611;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   }
+  /* active 행은 배경·보더로 이미 구분 — "← 지금" 텍스트는 좁은 폭에서
+     이름을 잘리게 하므로 숨김 */
+  .initiative .active-mark { display: none; }
   .scene-grid.tracker-embed > .stk-panel:first-child .stk-body-flush {
     max-height: 38vh;
     overflow-y: auto;
@@ -773,8 +780,19 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
 
   /* 전투 로그 헤더 액션 줄바꿈 */
   .section-head-tracker-log { flex-wrap: wrap; gap: 0.4rem; }
-  .section-head-tracker-log .actions { width: 100%; display: flex; gap: 0.3rem; }
-  .section-head-tracker-log .actions .btn { flex: 1; min-width: 0; font-size: 0.75rem; }
+  .section-head-tracker-log .actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .section-head-tracker-log .actions .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.5rem;
+    white-space: nowrap;
+  }
 
   /* ── 플레이 장면 모드 모바일 적응 ── */
   .scene-side { gap: 0.75rem; }
@@ -1038,6 +1056,34 @@ body:has(.cinematic) .mtab.active { color: #d98a3e; }
     color: var(--ink-2);
     font-size: 0.8rem;
   }
+
+  /* ── 캠페인 상세 모바일 ── */
+  /* 캐릭터 행: 이름·직업이 소유자 표기를 밀어내며 넘치던 것 → 줄바꿈 허용 */
+  .cd-char-list li { flex-wrap: wrap; row-gap: 0.15rem; }
+  .cd-char-list .cc-link { min-width: 0; flex: 1 1 60%; }
+  .cd-char-list .cc-owner { flex-shrink: 0; margin-left: auto; font-size: 0.72rem; }
+  /* 최근 플레이 행: 종류·이름·시간 윗줄 / 본문 아랫줄 2단 재배치 */
+  .cd-recent-link {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "kind who time" "summary summary summary";
+    row-gap: 0.25rem;
+  }
+  .cd-recent-kind { grid-area: kind; }
+  .cd-recent-who { grid-area: who; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .cd-recent-time { grid-area: time; }
+  .cd-recent-summary {
+    grid-area: summary;
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── 푸터: 탭바와 중복되는 내비 링크 숨김 (한 줄 메타만) ── */
+  .site-footer .footer-nav { display: none; }
+  .site-footer { padding: 1rem 0 1.25rem; }
+  .footer-inner { gap: 0.5rem; }
 }
 
 /* ───── Typography ───── */
@@ -5880,8 +5926,16 @@ select:focus-visible {
 }
 .composer-title:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(193, 78, 78, 0.25);
+  border-color: #b9651f; /* 앰버 — 빨강은 에러로 읽혀 required 필드가 항상 경고처럼 보임 */
+  box-shadow: 0 0 0 2px rgba(185, 101, 31, 0.22);
+}
+
+/* 데스크탑(2컬럼)에서 sticky 컴포저가 우측 사이드바(단서·참여자 320px)를
+   덮지 않도록 좌컬럼 폭으로 한정 */
+@media (min-width: 981px) {
+  body:has(.scene-side) .play-composer-sticky {
+    margin-right: calc(320px + 1.25rem);
+  }
 }
 
 /* 세션 로그 — 게시판 리스트 (.post-board) */
