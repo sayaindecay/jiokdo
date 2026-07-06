@@ -19,9 +19,9 @@ type Group = {
 };
 
 const GROUPS: Group[] = [
-  { key: "rulebook", label: "룰북", icon: "📖", kinds: ["rule", "monster"] },
-  { key: "campaign", label: "캠페인 · 글", icon: "📚", kinds: ["campaign"] },
-  { key: "sheet", label: "캐릭터 시트", icon: "👤", kinds: ["character"] },
+  { key: "rulebook", label: "룰북", icon: "§", kinds: ["rule", "monster"] },
+  { key: "campaign", label: "캠페인 · 글", icon: "¶", kinds: ["campaign"] },
+  { key: "sheet", label: "캐릭터 시트", icon: "◉", kinds: ["character"] },
   { key: "note", label: "노트 · 단서", icon: "🗒", kinds: ["clue"] },
 ];
 
@@ -179,34 +179,34 @@ export default async function SearchPage({
               </p>
               <div className="search-entry-grid">
                 <Link href="/rulebook" className="search-entry-card">
-                  <span className="icon" aria-hidden="true">📖</span>
+                  <span className="icon" aria-hidden="true">§</span>
                   <h3>룰북</h3>
                   <div className="count">{ruleCount}개 섹션</div>
                   <div className="recent">판정·전투·이성·캐릭터 생성</div>
                 </Link>
                 <Link href="/bestiary" className="search-entry-card">
-                  <span className="icon" aria-hidden="true">🐙</span>
+                  <span className="icon" aria-hidden="true">✦</span>
                   <h3>에너미</h3>
                   <div className="count">{beastCount}개 항목</div>
                   <div className="recent">신화 생물 · NPC 스탯블록</div>
                 </Link>
                 {nick ? (
                   <Link href="/campaigns" className="search-entry-card">
-                    <span className="icon" aria-hidden="true">📚</span>
+                    <span className="icon" aria-hidden="true">¶</span>
                     <h3>내 캠페인</h3>
                     <div className="count">{myCounts.campaigns}개 참여 중</div>
                     <div className="recent">단서·세션 로그·플레이 기록</div>
                   </Link>
                 ) : (
                   <Link href="/login" className="search-entry-card">
-                    <span className="icon" aria-hidden="true">📚</span>
+                    <span className="icon" aria-hidden="true">¶</span>
                     <h3>내 캠페인</h3>
                     <div className="count">로그인 필요</div>
                     <div className="recent">가입 후 단서·로그·시트 검색 가능</div>
                   </Link>
                 )}
                 <Link href="/" className="search-entry-card">
-                  <span className="icon" aria-hidden="true">🎲</span>
+                  <span className="icon" aria-hidden="true">◈</span>
                   <h3>홈으로</h3>
                   <div className="count">최근 굴림 · 라이브 피드</div>
                   <div className="recent">최근 어떤 굴림이 있었는지 확인</div>

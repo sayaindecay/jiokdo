@@ -7,7 +7,7 @@ function kindMeta(kind: Notification["kind"]): { icon: string; label: string } {
   switch (kind) {
     case "play":      return { icon: "✎", label: "플레이" };
     case "character": return { icon: "✦", label: "캐릭터" };
-    case "clue":      return { icon: "📌", label: "단서" };
+    case "clue":      return { icon: "◆", label: "단서" };
   }
 }
 

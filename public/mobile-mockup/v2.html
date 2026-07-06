@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>지옥도 · 모바일 시안 v2 (레이아웃 재구성)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700;900&family=Nanum+Myeongjo:wght@400;700&family=Special+Elite&display=swap"
+  rel="stylesheet"
+/>
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --bg-2: #ebe7df;
+    --bg-elev: #fbf9f4;
+    --bg-elev-2: #ebe7df;
+    --ink: #1a1714;
+    --ink-2: #4a443c;
+    --ink-3: #7a7268;
+    --line: rgba(26, 23, 20, 0.18);
+    --line-strong: rgba(26, 23, 20, 0.32);
+    --accent: #8a1c1c;
+    --accent-soft: rgba(138, 28, 28, 0.10);
+    --gold: #7a5a2a;
+    --gold-bg: #fef3c7;
+    --green: #3b6e3b;
+    --green-bg: #d8ead8;
+    --blue: #2c466c;
+    --blue-bg: #dde6f1;
+    --grey-bg: #e8e4dc;
+    --serif: "Noto Serif KR", "Nanum Myeongjo", serif;
+    --type: "Special Elite", "Courier New", monospace;
+    --radius: 4px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #2a2622;
+    color: #d6d1c8;
+    font-family: var(--serif);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── Stage / scaffolding ─────────────── */
+  .stage { max-width: 1700px; margin: 0 auto; padding: 40px 24px 80px; }
+  .stage-head { text-align: center; margin-bottom: 30px; color: #d6d1c8; }
+  .stage-eyebrow {
+    font-family: var(--type); font-size: 11px; letter-spacing: 0.18em;
+    color: #a89e8e; text-transform: uppercase;
+  }
+  .stage-title { font-size: 28px; font-weight: 900; margin: 6px 0 4px; }
+  .stage-sub { color: #948b7e; font-size: 13px; }
+
+  .frames {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 380px));
+    gap: 56px 40px; justify-content: center; align-items: start;
+  }
+
+  .phone {
+    width: 380px; height: 800px;
+    background: #0d0b09; border-radius: 44px; padding: 12px;
+    box-shadow: 0 0 0 2px #1a1714, 0 20px 60px rgba(0,0,0,0.5), inset 0 0 0 1px #2a2622;
+    position: relative;
+  }
+  .phone::before {
+    content: ""; position: absolute; top: 18px; left: 50%;
+    transform: translateX(-50%); width: 110px; height: 26px;
+    background: #0d0b09; border-radius: 14px; z-index: 60;
+  }
+  .phone-screen {
+    width: 100%; height: 100%; border-radius: 32px; overflow: hidden;
+    background: var(--bg); color: var(--ink); position: relative;
+  }
+  .phone-label {
+    text-align: center; margin-top: 14px; color: #948b7e;
+    font-family: var(--type); font-size: 12px; letter-spacing: 0.1em;
+  }
+  .phone-label b { color: #d6d1c8; font-weight: 700; }
+
+  .statusbar {
+    height: 44px; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 24px 6px; font-family: var(--type); font-size: 13px;
+    color: var(--ink); position: relative; z-index: 10;
+  }
+  .statusbar.on-dark { color: #f0ebe0; }
+  .statusbar-right { display: flex; gap: 6px; align-items: center; }
+
+  /* ─── Bottom tab bar ──────────────────── */
+  .tabbar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 64px;
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    background: var(--bg-elev); border-top: 1px solid var(--line);
+    padding-bottom: 12px; z-index: 40;
+  }
+  .tab {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; font-family: var(--type); font-size: 10px; color: var(--ink-3); padding-top: 6px;
+  }
+  .tab .ico { font-size: 16px; line-height: 1; }
+  .tab.active, .tab.active .ico { color: var(--accent); }
+
+  /* ════════════════════════════════════════════════════════
+     LANDING v2 — "표지" cover + pinned CTA + pull-up feed
+     ════════════════════════════════════════════════════════ */
+
+  /* The cover is a full-height dark dossier "front page". */
+  .cover {
+    position: absolute; inset: 0; z-index: 20;
+    display: flex; flex-direction: column;
+    background:
+      radial-gradient(120% 80% at 50% -10%, #2c2118 0%, transparent 55%),
+      linear-gradient(180deg, #18140f 0%, #221b14 60%, #2a2016 100%);
+    color: #ece4d6;
+    overflow: hidden;
+  }
+  .cover::after {
+    /* faint paper grain / vignette */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(100% 60% at 50% 120%, rgba(138,28,28,0.22) 0%, transparent 60%);
+  }
+  .cover-rule {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 18px; font-family: var(--type); font-size: 9px; letter-spacing: 0.16em;
+    color: #b9651f; border-bottom: 1px solid rgba(236,228,214,0.14);
+    text-transform: uppercase;
+  }
+  .cover-rule .file { color: #8e857a; }
+
+  .cover-body {
+    flex: 1; display: flex; flex-direction: column; justify-content: center;
+    padding: 0 26px; position: relative; z-index: 2;
+  }
+  .cover-stamp {
+    align-self: flex-start;
+    border: 2px solid #b9651f; color: #d98a3e;
+    padding: 7px 12px; font-family: var(--type);
+    transform: rotate(-2.5deg); margin-bottom: 26px;
+    box-shadow: 0 0 0 4px rgba(185,101,31,0.06);
+  }
+  .cover-stamp .lbl { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; }
+  .cover-stamp .num { font-size: 20px; font-weight: 700; line-height: 1; margin-top: 3px; }
+  .cover-stamp .num b { font-size: 26px; }
+
+  .cover-quote {
+    font-family: var(--serif); font-weight: 700; font-size: 27px; line-height: 1.5;
+    color: #f3ecdd; margin: 0 0 18px; position: relative;
+  }
+  .cover-quote .qm {
+    font-size: 56px; color: #b9651f; line-height: 0; position: absolute;
+    left: -6px; top: 14px; opacity: 0.7;
+  }
+  .cover-quote em { color: #d98a3e; font-style: normal; }
+  .cover-sub {
+    font-family: var(--type); font-size: 11px; letter-spacing: 0.12em;
+    color: #9c9282; line-height: 1.7; max-width: 280px;
+  }
+
+  .cover-foot {
+    padding: 16px 22px 18px; position: relative; z-index: 2;
+    border-top: 1px solid rgba(236,228,214,0.12);
+    background: linear-gradient(180deg, transparent, rgba(0,0,0,0.25));
+  }
+  .cover-sign {
+    text-align: center; font-family: var(--type); font-size: 9.5px;
+    letter-spacing: 0.16em; color: #8e857a; margin-bottom: 12px;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 50px; padding: 0 18px; border-radius: var(--radius);
+    font-family: var(--serif); font-weight: 700; font-size: 15px;
+    text-decoration: none; cursor: pointer; border: 1.5px solid var(--ink);
+    background: var(--bg-elev); color: var(--ink);
+  }
+  .cta-row { display: flex; gap: 8px; }
+  .cta-row .btn.primary {
+    flex: 1; background: var(--accent); border-color: var(--accent); color: #fef0d8;
+    box-shadow: 0 6px 18px rgba(138,28,28,0.35);
+  }
+  .cta-row .btn.ghost-dark {
+    flex: 0 0 auto; background: transparent;
+    border-color: rgba(236,228,214,0.3); color: #d6cdbd;
+  }
+
+  /* Pull handle hinting feed below */
+  .cover-handle {
+    position: absolute; bottom: 78px; left: 50%; transform: translateX(-50%);
+    z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-family: var(--type); font-size: 9px; letter-spacing: 0.2em; color: #b9651f;
+    text-transform: uppercase; animation: bob 1.8s ease-in-out infinite;
+  }
+  @keyframes bob { 50% { transform: translate(-50%, 4px); } }
+  .cover-handle .bar { width: 34px; height: 3px; border-radius: 3px; background: #b9651f; opacity: 0.8; }
+
+  /* — Landing scrolled state: the activity feed page — */
+  .topbar {
+    height: 52px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; border-bottom: 1px solid var(--line); background: var(--bg-elev);
+    position: relative; z-index: 10;
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 8px; font-weight: 900; font-size: 16px; }
+  .topbar-mark {
+    width: 22px; height: 22px; border: 1.5px solid var(--ink); display: grid; place-items: center;
+    font-family: var(--type); font-size: 10px;
+  }
+  .topbar-right { display: flex; gap: 8px; }
+  .topbar-icon {
+    width: 30px; height: 30px; display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: var(--radius); font-size: 14px; background: var(--bg-elev);
+  }
+
+  .body-scroll {
+    position: absolute; top: 44px; bottom: 64px; left: 0; right: 0;
+    overflow-y: auto; background: var(--bg);
+  }
+  .body-scroll::-webkit-scrollbar { width: 0; }
+
+  .feed-head {
+    padding: 16px 16px 10px; background: var(--bg-elev); border-bottom: 1px solid var(--line);
+  }
+  .feed-eyebrow {
+    font-family: var(--type); font-size: 10px; letter-spacing: 0.18em; color: var(--accent);
+    text-transform: uppercase; display: flex; align-items: center; gap: 6px;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+  .feed-title { font-size: 21px; font-weight: 900; margin: 4px 0 2px; }
+  .feed-sub { font-size: 12px; color: var(--ink-3); }
+
+  /* Unified activity stream (narrations + rolls interleaved) */
+  .stream { padding: 10px 14px 4px; }
+  .stream-item {
+    display: grid; grid-template-columns: 54px 1fr; gap: 10px; padding: 9px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .si-rail { text-align: right; }
+  .si-time { font-family: var(--type); font-size: 9.5px; color: var(--ink-3); }
+  .si-who {
+    font-family: var(--type); font-size: 10px; color: var(--ink-2); margin-top: 2px;
+    word-break: keep-all;
+  }
+  .si-body { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+  .si-body.narr { color: var(--ink); }
+  .roll-chip {
+    display: inline-block; padding: 1px 7px; border-radius: 3px;
+    font-family: var(--type); font-size: 10px; margin-right: 5px; vertical-align: middle;
+  }
+  .roll-chip.crit { background: var(--gold-bg); color: var(--gold); }
+  .roll-chip.ext { background: var(--green-bg); color: var(--green); }
+  .roll-chip.hard { background: var(--blue-bg); color: var(--blue); }
+  .roll-chip.fail { background: var(--accent-soft); color: var(--accent); }
+  .si-camp {
+    font-family: var(--type); font-size: 9px; color: var(--ink-3); letter-spacing: 0.08em;
+    margin-top: 3px; display: inline-block;
+  }
+
+  .stats-strip {
+    display: flex; margin: 6px 14px 14px; border: 1px solid var(--line);
+    border-radius: var(--radius); background: var(--bg-elev); overflow: hidden;
+  }
+  .stats-strip > div { flex: 1; text-align: center; padding: 10px 4px; border-right: 1px dashed var(--line); }
+  .stats-strip > div:last-child { border-right: none; }
+  .stats-strip dt { font-family: var(--type); font-size: 9px; letter-spacing: 0.1em; color: var(--ink-3); margin: 0 0 3px; }
+  .stats-strip dd { margin: 0; font-weight: 900; font-size: 20px; line-height: 1; }
+
+  /* Collapsed questionnaire accordion */
+  .accordion {
+    margin: 0 14px 18px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--bg-elev); overflow: hidden;
+  }
+  .acc-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; cursor: pointer;
+  }
+  .acc-head .t { font-family: var(--type); font-size: 11px; letter-spacing: 0.1em; color: var(--ink-2); }
+  .acc-head .c { color: var(--accent); font-size: 13px; }
+  .acc-body {
+    padding: 0 14px 12px; border-top: 1px dashed var(--line);
+    font-size: 12px; line-height: 1.65; color: var(--ink-2);
+  }
+  .acc-body p { margin: 8px 0 0; padding-left: 16px; position: relative; }
+  .acc-body p::before { content: "□"; position: absolute; left: 0; color: var(--ink-3); font-size: 10px; }
+  .acc-body .final { color: var(--accent); font-weight: 700; }
+  .acc-body .final::before { content: "■"; color: var(--accent); }
+
+  /* Pinned bottom CTA bar on the feed page */
+  .pinned-cta {
+    position: absolute; bottom: 64px; left: 0; right: 0; z-index: 30;
+    padding: 10px 14px; background: linear-gradient(180deg, rgba(245,243,238,0), var(--bg) 30%);
+    display: flex; gap: 8px; border-top: 1px solid var(--line);
+    background-color: var(--bg-elev);
+  }
+  .pinned-cta .btn.primary { flex: 1; background: var(--accent); border-color: var(--accent); color: #fef0d8; }
+  .pinned-cta .btn.ghost { flex: 0 0 auto; background: transparent; border-color: var(--line-strong); color: var(--ink-2); }
+
+  /* ════════════════════════════════════════════════════════
+     CAMPAIGN LIST v2 — segmented control + case-file rows
+     ════════════════════════════════════════════════════════ */
+  .crumb {
+    padding: 10px 16px; font-family: var(--type); font-size: 11px; color: var(--ink-3);
+    border-bottom: 1px solid var(--line); background: var(--bg);
+  }
+  .crumb a { color: var(--ink-2); text-decoration: none; }
+  .crumb .sep { margin: 0 6px; }
+
+  .cl-header { padding: 16px 16px 12px; background: var(--bg-elev); border-bottom: 1px solid var(--line); }
+  .cl-eyebrow { font-family: var(--type); font-size: 10px; letter-spacing: 0.15em; color: var(--ink-3); text-transform: uppercase; }
+  .cl-title { margin: 4px 0 2px; font-size: 23px; font-weight: 900; }
+  .cl-meta { display: flex; gap: 14px; margin: 8px 0 0; padding: 0; font-family: var(--type); font-size: 11px; }
+  .cl-meta div { display: flex; gap: 4px; }
+  .cl-meta dt { color: var(--ink-3); margin: 0; }
+  .cl-meta dd { margin: 0; font-weight: 700; }
+
+  /* Compact "my characters" avatar strip (replaces big carousel) */
+  .dossier-strip {
+    display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto;
+    border-bottom: 1px solid var(--line); background: var(--bg);
+  }
+  .dossier-strip::-webkit-scrollbar { display: none; }
+  .ds-chip {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px 6px 6px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--bg-elev); text-decoration: none; color: inherit;
+  }
+  .ds-ava {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    display: grid; place-items: center; font-family: var(--serif); font-weight: 900;
+    font-size: 13px; color: #fff; background: var(--c-hue, var(--accent));
+  }
+  .ds-tx { line-height: 1.15; }
+  .ds-name { font-size: 12px; font-weight: 700; }
+  .ds-hp { font-family: var(--type); font-size: 9.5px; color: var(--ink-3); }
+  .ds-add {
+    flex: 0 0 auto; width: 42px; border: 1px dashed var(--line-strong); border-radius: 999px;
+    display: grid; place-items: center; color: var(--ink-3); font-size: 18px; background: transparent;
+  }
+
+  /* Segmented control */
+  .segmented {
+    display: flex; margin: 12px 16px 4px; padding: 3px;
+    background: var(--bg-2); border-radius: 8px; border: 1px solid var(--line);
+  }
+  .seg {
+    flex: 1; text-align: center; padding: 8px 4px; border-radius: 6px;
+    font-family: var(--type); font-size: 11.5px; color: var(--ink-2); text-decoration: none;
+  }
+  .seg.active { background: var(--bg-elev); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08); font-weight: 700; }
+  .seg b { color: var(--ink-3); font-weight: 400; margin-left: 3px; }
+  .seg.active b { color: var(--accent); }
+
+  /* "이어서" slim banner */
+  .resume {
+    margin: 10px 16px; padding: 12px 14px; border-radius: var(--radius);
+    background: linear-gradient(135deg, #1a1714, #2a2016); color: #f0e9da;
+    display: flex; align-items: center; gap: 12px; text-decoration: none;
+    position: relative; overflow: hidden; box-shadow: 3px 3px 0 rgba(26,23,20,0.15);
+  }
+  .resume::before {
+    content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 90px;
+    background: radial-gradient(circle at right, rgba(185,101,31,0.5), transparent 70%);
+  }
+  .resume-play {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; position: relative;
+    background: var(--accent); display: grid; place-items: center; color: #fef0d8; font-size: 16px;
+    box-shadow: 0 0 0 4px rgba(138,28,28,0.2);
+  }
+  .resume-tx { position: relative; flex: 1; min-width: 0; }
+  .resume-eyebrow { font-family: var(--type); font-size: 9px; letter-spacing: 0.18em; color: #d98a3e; text-transform: uppercase; }
+  .resume-name { font-weight: 700; font-size: 15px; margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .resume-meta { font-family: var(--type); font-size: 10px; color: #b8ad9e; }
+  .resume-arrow { position: relative; color: #d98a3e; font-size: 18px; }
+
+  /* Case-file rows — each campaign as a folder tab */
+  .files { padding: 6px 16px 0; }
+  .file-row {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--radius);
+    margin-bottom: 8px; position: relative; overflow: hidden;
+  }
+  .file-row::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--c-hue, var(--accent));
+  }
+  .fr-top { display: flex; align-items: center; gap: 8px; padding: 11px 12px 8px 16px; }
+  .fr-num { font-family: var(--type); font-size: 10px; color: var(--ink-3); letter-spacing: 0.08em; }
+  .fr-name { flex: 1; font-weight: 700; font-size: 14.5px; line-height: 1.3; word-break: keep-all; }
+  .fr-status { font-family: var(--type); font-size: 9px; padding: 2px 7px; border-radius: 999px; letter-spacing: 0.08em; flex-shrink: 0; }
+  .fr-status.active { background: var(--green-bg); color: var(--green); }
+  .fr-status.dormant { background: var(--grey-bg); color: var(--ink-2); }
+  .fr-status.closed { background: var(--accent-soft); color: var(--accent); }
+  .fr-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px 10px 16px; border-top: 1px dashed var(--line);
+  }
+  .fr-roles { display: flex; align-items: center; gap: 8px; }
+  .fr-role {
+    font-family: var(--type); font-size: 9.5px; padding: 2px 7px; border-radius: 3px;
+    background: var(--bg-2); color: var(--ink-2); letter-spacing: 0.06em;
+  }
+  .fr-avatars { display: flex; }
+  .fr-avatars .a {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--bg-elev);
+    margin-left: -7px; display: grid; place-items: center; font-size: 9px; color: #fff; font-family: var(--type);
+  }
+  .fr-avatars .a:first-child { margin-left: 0; }
+  .fr-next { font-family: var(--type); font-size: 10px; color: var(--ink-3); }
+  .fr-next b { color: var(--accent); font-weight: 400; }
+
+  /* notify mini */
+  .notify-mini {
+    margin: 10px 16px 0; padding: 9px 12px; border: 1px dashed var(--line); border-radius: var(--radius);
+    font-family: var(--type); font-size: 11px; color: var(--ink-3); background: var(--bg-elev);
+  }
+
+  /* FAB */
+  .fab {
+    position: absolute; right: 18px; bottom: 80px; width: 56px; height: 56px; z-index: 35;
+    background: var(--accent); color: #fef0d8; border-radius: 50%; display: grid; place-items: center;
+    font-size: 26px; text-decoration: none;
+    box-shadow: 4px 4px 0 rgba(26,23,20,0.18), 0 8px 20px rgba(138,28,28,0.35);
+  }
+
+  /* Annotations */
+  .anno {
+    background: rgba(214,209,200,0.06); border-left: 2px solid #b9651f;
+    padding: 10px 14px; margin-top: 14px; font-size: 12px; color: #b8ad9e;
+    line-height: 1.55; border-radius: 0 3px 3px 0;
+  }
+  .anno b { color: #d6d1c8; font-weight: 700; }
+  .anno ul { margin: 6px 0 0; padding-left: 16px; }
+  .anno li { margin: 3px 0; }
+
+  .legend {
+    margin: 0 auto 36px; padding: 16px 24px; background: rgba(214,209,200,0.04);
+    border: 1px solid #3a342c; border-radius: 6px; color: #d6d1c8; max-width: 960px;
+    font-size: 13px; line-height: 1.6;
+  }
+  .legend h3 { margin: 0 0 8px; font-family: var(--type); font-size: 11px; letter-spacing: 0.2em; color: #d98a3e; text-transform: uppercase; }
+  .legend .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 10px; }
+  .legend .vs h4 { font-family: var(--type); font-size: 10px; letter-spacing: 0.12em; color: #b9651f; margin: 0 0 6px; }
+  .legend .vs ul { margin: 0; padding-left: 16px; font-size: 12px; color: #b8ad9e; }
+  .legend .vs li { margin: 3px 0; }
+  .tokens { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-family: var(--type); font-size: 11px; }
+  .swatch { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch i { width: 18px; height: 18px; border-radius: 3px; border: 1px solid #3a342c; display: inline-block; }
+  @media (max-width: 720px) { .legend .vs { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="stage">
+  <header class="stage-head">
+    <div class="stage-eyebrow">JIOKDO · MOBILE SHIYAN · V2 — LAYOUT REBUILD</div>
+    <h1 class="stage-title">지옥도 모바일 시안 v2</h1>
+    <p class="stage-sub">톤 유지(paper · oxblood · 타이프라이터) · 정보 배치 재구성</p>
+  </header>
+
+  <section class="legend">
+    <h3>v1 → v2 무엇이 달라졌나</h3>
+    <div class="vs">
+      <div>
+        <h4>랜딩</h4>
+        <ul>
+          <li>긴 단일 스크롤 → <b>"표지" 한 화면</b> + 끌어올리는 활동 피드</li>
+          <li>peek 박스 + 티커(2개) → <b>하나의 통합 활동 스트림</b></li>
+          <li>질문지 전체 노출 → <b>접이식 아코디언</b>으로 격하</li>
+          <li>CTA가 스크롤 끝에 → <b>표지/피드 모두 하단 고정</b></li>
+          <li>표지를 <b>다크</b>로 강하게 (피드는 페이퍼) — 진입 임팩트</li>
+        </ul>
+      </div>
+      <div>
+        <h4>캠페인 목록</h4>
+        <ul>
+          <li>흩어진 필터 pill → <b>세그먼트 컨트롤</b> (진행 중/전체/보관)</li>
+          <li>큰 캐릭터 캐러셀 → 상단 <b>컴팩트 아바타 스트립</b></li>
+          <li>표/카드 → <b>케이스파일 행</b>(폴더 탭 + 멤버 아바타 스택)</li>
+          <li>큰 "이어서" 카드 → <b>슬림 배너</b> (재생 버튼형)</li>
+          <li>역할·다음 세션을 한 행에서 즉시 스캔</li>
+        </ul>
+      </div>
+    </div>
+    <div class="tokens">
+      <span class="swatch"><i style="background:#f5f3ee"></i>paper</span>
+      <span class="swatch"><i style="background:#18140f"></i>cover dark</span>
+      <span class="swatch"><i style="background:#1a1714"></i>ink</span>
+      <span class="swatch"><i style="background:#8a1c1c"></i>accent</span>
+      <span class="swatch"><i style="background:#b9651f"></i>amber(파일등급)</span>
+    </div>
+  </section>
+
+  <div class="frames">
+
+    <!-- ════════ FRAME 1 — LANDING COVER (표지) ════════ -->
+    <div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="cover">
+            <div class="statusbar on-dark">
+              <span>9:41</span>
+              <div class="statusbar-right">●●●● ▮▮</div>
+            </div>
+
+            <div class="cover-rule">
+              <span>Confidential · 대외비</span>
+              <span class="file">FILE/01 · SEOUL 2007</span>
+            </div>
+
+            <div class="cover-body">
+              <div class="cover-stamp">
+                <div class="lbl">현장 보고서</div>
+                <div class="num">№<b>01</b></div>
+              </div>
+              <h2 class="cover-quote">
+                <span class="qm">"</span>
+                어쩌겠습니까.<br />
+                <em>우리 세상은</em><br />
+                2000년대 초반부터<br />
+                그렇게 된 것을.
+              </h2>
+              <p class="cover-sub">
+                Call of Cthulhu 7판 · 한국어 VTT<br />
+                서울경찰청 특수사건수사팀 사건 기록 시스템
+              </p>
+            </div>
+
+            <div class="cover-handle">
+              <span>오늘의 지옥도</span>
+              <div class="bar"></div>
+              <span style="opacity:.7">▲ 끌어올리기</span>
+            </div>
+
+            <div class="cover-foot">
+              <div class="cover-sign">— 서울경찰청 특수사건수사팀 —</div>
+              <div class="cta-row">
+                <a href="#" class="btn primary">지금 시작하기 →</a>
+                <a href="#" class="btn ghost-dark">룰북</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- (cover sits above; tabbar peeks underneath the dark cover only conceptually) -->
+        </div>
+      </div>
+      <div class="phone-label"><b>화면 1.</b> 랜딩 · 표지 (진입 첫 화면)</div>
+      <div class="anno">
+        <b>의도</b>
+        <ul>
+          <li>스크롤·읽기 부담 없이 <b>분위기 + 단 하나의 행동</b>(시작하기)에 집중</li>
+          <li>다크 표지로 시네마틱 임팩트 — 아래로 끌면 페이퍼 톤 활동 피드</li>
+          <li>앰버(№01 스탬프)는 "사건 파일 등급" 시각 코드로 일관 사용</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ════════ FRAME 2 — LANDING FEED (스크롤/끌어올린 상태) ════════ -->
+    <div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><div class="statusbar-right">●●●● ▮▮</div></div>
+
+          <div class="topbar">
+            <div class="topbar-brand"><div class="topbar-mark">地</div><span>지옥도</span></div>
+            <div class="topbar-right">
+              <div class="topbar-icon" title="다크/라이트">◐</div>
+              <div class="topbar-icon" title="검색">⌕</div>
+            </div>
+          </div>
+
+          <div class="body-scroll">
+            <div class="feed-head">
+              <div class="feed-eyebrow"><span class="dot"></span>오늘의 지옥도 · LIVE</div>
+              <div class="feed-title">최근 활동</div>
+              <div class="feed-sub">지금 굴러가는 사건들의 묘사와 판정이 한 흐름으로.</div>
+            </div>
+
+            <div class="stream">
+              <div class="stream-item">
+                <div class="si-rail"><div class="si-time">방금</div><div class="si-who">@천은</div></div>
+                <div class="si-body narr">
+                  문 너머로 발걸음 소리가 점점 가까워진다. 누구도 숨소리를 내지 못했다.
+                  <span class="si-camp">잠수교의 그림자</span>
+                </div>
+              </div>
+              <div class="stream-item">
+                <div class="si-rail"><div class="si-time">1분</div><div class="si-who">@이태백</div></div>
+                <div class="si-body">
+                  <span class="roll-chip ext">EXT</span> 감지(직감) — 64 vs 75
+                  <span class="si-camp">잠수교의 그림자</span>
+                </div>
+              </div>
+              <div class="stream-item">
+                <div class="si-rail"><div class="si-time">2분</div><div class="si-who">@키퍼</div></div>
+                <div class="si-body narr">
+                  숨소리가 멎는다. 무언가 너희를 <em>보고 있다</em>.
+                  <span class="si-camp">잠수교의 그림자</span>
+                </div>
+              </div>
+              <div class="stream-item">
+                <div class="si-rail"><div class="si-time">4분</div><div class="si-who">@최혜진</div></div>
+                <div class="si-body">
+                  <span class="roll-chip fail">FAIL</span> SAN 판정 — 87 vs 60 · 1d6 SAN 손실
+                  <span class="si-camp">남산 미스터리</span>
+                </div>
+              </div>
+              <div class="stream-item">
+                <div class="si-rail"><div class="si-time">6분</div><div class="si-who">@권효명</div></div>
+                <div class="si-body">
+                  <span class="roll-chip crit">CRIT</span> 도서관 이용 — 03 vs 56
+                  <span class="si-camp">을지로 사건</span>
+                </div>
+              </div>
+              <div class="stream-item">
+                <div class="si-rail"><div class="si-time">9분</div><div class="si-who">@백진아</div></div>
+                <div class="si-body">
+                  <span class="roll-chip hard">HARD</span> 설득 — 19 vs 41
+                  <span class="si-camp">을지로 사건</span>
+                </div>
+              </div>
+            </div>
+
+            <dl class="stats-strip">
+              <div><dt>등록 닉네임</dt><dd>248</dd></div>
+              <div><dt>누적 굴림</dt><dd>4,931</dd></div>
+              <div><dt>이번 주</dt><dd>17</dd></div>
+            </dl>
+
+            <div class="accordion">
+              <div class="acc-head">
+                <span class="t">이 사건의 질문지 — 11개 항목</span>
+                <span class="c">펼치기 ▾</span>
+              </div>
+              <div class="acc-body">
+                <p>이태백, 이소호, 최혜진, 천은이 모두 생존해있습니까?</p>
+                <p>지격환에게 정확히 무슨 일이 있었는지 알아내셨습니까?</p>
+                <p>남상범의 마스크 아래에 무엇이 있는지 확인하셨습니까?</p>
+                <p class="final">이 모든 일을 끝낼 준비가 되셨습니까?</p>
+              </div>
+            </div>
+
+            <div style="height:8px;"></div>
+          </div>
+
+          <div class="pinned-cta">
+            <a href="#" class="btn primary">지금 시작하기 →</a>
+            <a href="#" class="btn ghost">룰북</a>
+          </div>
+
+          <nav class="tabbar">
+            <a class="tab active"><span class="ico">⌂</span>홈</a>
+            <a class="tab"><span class="ico">▤</span>캠페인</a>
+            <a class="tab"><span class="ico">▶</span>플레이</a>
+            <a class="tab"><span class="ico">◇</span>시트</a>
+            <a class="tab"><span class="ico">⋯</span>더보기</a>
+          </nav>
+        </div>
+      </div>
+      <div class="phone-label"><b>화면 1-b.</b> 랜딩 · 활동 피드 (끌어올린 상태)</div>
+      <div class="anno">
+        <b>의도</b>
+        <ul>
+          <li>묘사 + 판정을 <b>한 타임라인</b>으로 — 누가/언제/무엇을 좌측 레일로 정렬</li>
+          <li>판정 결과는 색 칩(CRIT/EXT/HARD/FAIL)으로 한눈에 스캔</li>
+          <li>통계는 얇은 스트립, 질문지는 접힘 — 분위기는 살리되 자리는 안 뺏음</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ════════ FRAME 3 — CAMPAIGN LIST ════════ -->
+    <div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><div class="statusbar-right">●●●● ▮▮</div></div>
+
+          <div class="topbar">
+            <div class="topbar-brand"><div class="topbar-mark">地</div><span>지옥도</span></div>
+            <div class="topbar-right">
+              <div class="topbar-icon">◐</div>
+              <div class="topbar-icon">⌕</div>
+            </div>
+          </div>
+
+          <div class="body-scroll" style="bottom:64px;">
+            <div class="crumb"><a href="#">지옥도</a><span class="sep">/</span><span>내 캠페인</span></div>
+
+            <div class="cl-header">
+              <div class="cl-eyebrow">CAMPAIGNS · @suuk</div>
+              <h2 class="cl-title">내 캠페인</h2>
+              <dl class="cl-meta">
+                <div><dt>참여</dt><dd>4</dd></div>
+                <div><dt>키퍼</dt><dd>2</dd></div>
+                <div><dt>플레이어</dt><dd>2</dd></div>
+              </dl>
+            </div>
+
+            <!-- compact dossier strip -->
+            <div class="dossier-strip">
+              <a class="ds-chip">
+                <span class="ds-ava" style="--c-hue:#8a1c1c">태</span>
+                <span class="ds-tx"><span class="ds-name">이태백</span><span class="ds-hp">HP 13/14</span></span>
+              </a>
+              <a class="ds-chip">
+                <span class="ds-ava" style="--c-hue:#2c466c">혜</span>
+                <span class="ds-tx"><span class="ds-name">최혜진</span><span class="ds-hp">HP 9/10</span></span>
+              </a>
+              <a class="ds-chip">
+                <span class="ds-ava" style="--c-hue:#3b6e3b">효</span>
+                <span class="ds-tx"><span class="ds-name">권효명</span><span class="ds-hp">HP 12/12</span></span>
+              </a>
+              <button class="ds-add" title="새 캐릭터">+</button>
+            </div>
+
+            <!-- resume banner -->
+            <a href="#" class="resume">
+              <div class="resume-play">▶</div>
+              <div class="resume-tx">
+                <div class="resume-eyebrow">이어서 · 키퍼</div>
+                <div class="resume-name">서울 1997 · 잠수교의 그림자</div>
+                <div class="resume-meta">다음 세션 토 21:00 · 활동 3시간 전</div>
+              </div>
+              <div class="resume-arrow">›</div>
+            </a>
+
+            <!-- segmented control -->
+            <div class="segmented">
+              <a class="seg active">진행 중<b>3</b></a>
+              <a class="seg">전체<b>4</b></a>
+              <a class="seg">보관<b>1</b></a>
+            </div>
+
+            <!-- case-file rows -->
+            <div class="files">
+              <a href="#" class="file-row" style="--c-hue:#8a1c1c">
+                <div class="fr-top">
+                  <span class="fr-num">№01</span>
+                  <span class="fr-name">서울 1997 · 잠수교의 그림자</span>
+                  <span class="fr-status active">활성</span>
+                </div>
+                <div class="fr-bottom">
+                  <div class="fr-roles">
+                    <span class="fr-role">키퍼</span>
+                    <div class="fr-avatars">
+                      <span class="a" style="background:#8a1c1c">태</span>
+                      <span class="a" style="background:#2c466c">소</span>
+                      <span class="a" style="background:#3b6e3b">은</span>
+                      <span class="a" style="background:#7a7268">+1</span>
+                    </div>
+                  </div>
+                  <span class="fr-next">다음 <b>토 21:00</b></span>
+                </div>
+              </a>
+
+              <a href="#" class="file-row" style="--c-hue:#2c466c">
+                <div class="fr-top">
+                  <span class="fr-num">№02</span>
+                  <span class="fr-name">남산 미스터리</span>
+                  <span class="fr-status active">활성</span>
+                </div>
+                <div class="fr-bottom">
+                  <div class="fr-roles">
+                    <span class="fr-role">플레이어</span>
+                    <div class="fr-avatars">
+                      <span class="a" style="background:#2c466c">혜</span>
+                      <span class="a" style="background:#5b3a78">진</span>
+                      <span class="a" style="background:#7a7268">석</span>
+                    </div>
+                  </div>
+                  <span class="fr-next">활동 1일 전</span>
+                </div>
+              </a>
+
+              <a href="#" class="file-row" style="--c-hue:#3b6e3b">
+                <div class="fr-top">
+                  <span class="fr-num">№03</span>
+                  <span class="fr-name">을지로 사건</span>
+                  <span class="fr-status active">활성</span>
+                </div>
+                <div class="fr-bottom">
+                  <div class="fr-roles">
+                    <span class="fr-role">플레이어</span>
+                    <div class="fr-avatars">
+                      <span class="a" style="background:#3b6e3b">효</span>
+                      <span class="a" style="background:#8a1c1c">백</span>
+                      <span class="a" style="background:#2c466c">+3</span>
+                    </div>
+                  </div>
+                  <span class="fr-next">다음 <b>일 19:00</b></span>
+                </div>
+              </a>
+            </div>
+
+            <div class="notify-mini">· 새 알림 없음 · 마지막 변동 12분 전</div>
+            <div style="height:90px;"></div>
+          </div>
+
+          <a href="#" class="fab" title="새 캠페인 / 초대 코드">+</a>
+
+          <nav class="tabbar">
+            <a class="tab"><span class="ico">⌂</span>홈</a>
+            <a class="tab active"><span class="ico">▤</span>캠페인</a>
+            <a class="tab"><span class="ico">▶</span>플레이</a>
+            <a class="tab"><span class="ico">◇</span>시트</a>
+            <a class="tab"><span class="ico">⋯</span>더보기</a>
+          </nav>
+        </div>
+      </div>
+      <div class="phone-label"><b>화면 2.</b> 내 캠페인 · 로그인 후</div>
+      <div class="anno">
+        <b>의도</b>
+        <ul>
+          <li>제일 위 = 내 캐릭터 빠른 진입(아바타 칩), 그 다음 = 이어서, 그 다음 = 목록</li>
+          <li>세그먼트로 상태 전환 — pill 흩뿌리기보다 위치 고정·예측 가능</li>
+          <li>케이스파일 행: 이름·역할·멤버·다음 세션을 <b>두 줄</b>에 압축, 표보다 모바일 친화</li>
+          <li>멤버 아바타 스택으로 "누가 있는지" 즉시 인지</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <section class="legend" style="margin-top:48px;">
+    <h3>다음 화면 후보 (합의되면 진행)</h3>
+    <div class="vs">
+      <div>
+        <h4>플레이 · 장면 모드</h4>
+        <ul>
+          <li>로그 = 본문(같은 스트림 패턴 재사용)</li>
+          <li>컴포저 하단 고정, PC 칩 가로 스크롤</li>
+          <li>내 시트는 bottom-sheet 슬라이드업</li>
+        </ul>
+      </div>
+      <div>
+        <h4>플레이 · 전투 트래커 (추천)</h4>
+        <ul>
+          <li>세로 스택 + 이니셔티브 <b>접이식 상단 바</b></li>
+          <li>포커스 스탯블록 → 액션바 → 전투 로그 순</li>
+          <li>묘사 입력 = 최하단 한 줄 sticky</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

@@ -161,7 +161,7 @@ export function BestiaryForm({
             <img src={imageUrl} alt="에너미 이미지 미리보기" />
           ) : (
             <div className="bf-image-empty" aria-hidden="true">
-              <span className="bie-icon">🖼</span>
+              <span className="bie-icon">▦</span>
               <span className="bie-label">이미지 없음</span>
             </div>
           )}

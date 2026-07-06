@@ -9,6 +9,7 @@ import { VitalsEditor } from "./VitalsEditor";
 import { WeaponList } from "./WeaponList";
 import { PortraitSilhouette } from "./Illustrations";
 import { CharacterPortraitEditor } from "./CharacterPortraitEditor";
+import { MobileCharacterSheet } from "./MobileCharacterSheet";
 
 const ATTR_KEYS: { key: keyof Character["attrs"]; label: string }[] = [
   { key: "str", label: "STR" }, { key: "con", label: "CON" }, { key: "siz", label: "SIZ" },
@@ -40,6 +41,15 @@ export function CharacterSheet({
         <span>{character.name}</span>
       </div>
 
+      {/* 모바일 전용 아코디언 시트 (≤720px) */}
+      <MobileCharacterSheet
+        character={character}
+        campaign={campaign}
+        recentRolls={recentRolls}
+        isOwner={isOwner}
+      />
+
+      <div className="cs-desktop">
       {/* 모바일 sticky 요약 (P17) */}
       <div className="sheet-sticky-summary" aria-hidden="false">
         <div className="ss-name">{character.name}</div>
@@ -253,6 +263,7 @@ export function CharacterSheet({
           </div>
         </div>
         </div>
+      </div>
       </div>
     </>
   );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PeekWindow, type PeekItem } from "@/components/vtt/PeekWindow";
 import { LiveTicker } from "@/components/vtt/LiveTicker";
+import { MobileLanding } from "@/components/vtt/MobileLanding";
 import { getNickname } from "@/lib/auth";
 import { getGlobalStats, getRecentNarrationsAndRolls, listRecentDice } from "@/lib/db";
 
@@ -36,7 +37,9 @@ export default async function LandingPage() {
   const isFresh = totalSignal === 0;
 
   return (
-    <div className="landing">
+    <>
+    <MobileLanding nick={nick} />
+    <div className="landing landing-desktop">
       <section className="hero-doc">
         <header className="hd-corners">
           <div className="hd-stamp" aria-hidden="true">
@@ -134,5 +137,6 @@ export default async function LandingPage() {
         <LiveTicker initial={tickerInitial} />
       </section>
     </div>
+    </>
   );
 }

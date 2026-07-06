@@ -51,11 +51,19 @@ export function PlayComposerSticky({
     }
     return characters[0] ? String(characters[0].id) : "";
   });
-  // 기본 펼침 — 첫 사용자 발견성 우선
+  // 기본 펼침 — 첫 사용자 발견성 우선. 모바일은 펼침이 화면 절반을
+  // 가리므로 첫 마운트에 접힘으로 전환 (한 줄 → 탭하면 펼침).
   const [collapsed, setCollapsed] = useState(false);
   const [pending, setPending] = useState(false);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+  const mobileInit = useRef(false);
+
+  useEffect(() => {
+    if (mobileInit.current) return;
+    mobileInit.current = true;
+    if (window.matchMedia("(max-width: 720px)").matches) setCollapsed(true);
+  }, []);
 
   useEffect(() => {
     if (!collapsed) {
@@ -136,7 +144,7 @@ export function PlayComposerSticky({
               내레이션
             </KindBtn>
             {isKeeper ? (
-              <KindBtn current={kind} value="system" onClick={setKind} icon="⚙" subtitle="룰·공지">
+              <KindBtn current={kind} value="system" onClick={setKind} icon="※" subtitle="룰·공지">
                 시스템
               </KindBtn>
             ) : null}

@@ -52,7 +52,7 @@ export function SceneSpotlight({
     <div className="scene-spotlight">
       <div className="ss-pin">
         <div className="ss-pin-head">
-          <span className="ss-pin-eyebrow">📌 현재 장면</span>
+          <span className="ss-pin-eyebrow">▸ 현재 장면</span>
           {isKeeper && !editing ? (
             <button
               type="button"

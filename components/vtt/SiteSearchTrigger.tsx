@@ -67,7 +67,7 @@ export function SiteSearchTrigger() {
         onClick={() => setOpen(true)}
         aria-label="사이트 검색"
       >
-        <span style={{ opacity: 0.65 }}>🔍</span>
+        <span style={{ opacity: 0.65 }}>⌕</span>
         <span>검색</span>
         <kbd>/</kbd>
       </button>

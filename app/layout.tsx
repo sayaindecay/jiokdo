@@ -15,6 +15,7 @@ import { NicknameBadge } from "@/components/NicknameBadge";
 import { SiteSearchTrigger } from "@/components/vtt/SiteSearchTrigger";
 import { ThemeBootstrap, ThemeToggle } from "@/components/vtt/ThemeToggle";
 import { NavLinks } from "@/components/vtt/NavLinks";
+import { MobileTabBar } from "@/components/vtt/MobileTabBar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -119,6 +120,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </div>
           </div>
         </footer>
+        <MobileTabBar />
       </body>
     </html>
   );
